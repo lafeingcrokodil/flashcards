@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/lafeingcrokodil/flashcards/app"
 )
 
@@ -15,15 +16,9 @@ func main() {
 		ContextHeader: "context",
 		AnswerHeader:  "korean",
 	}
-	fcs, err := app.LoadFromCSV(lc)
-	if err != nil {
-		fmt.Printf("Failed to load CSV file: %v\n", err)
-		os.Exit(1)
-	}
-
-	err = app.Review(fcs)
-	if err != nil {
-		fmt.Printf("Failed to review flashcards: %v\n", err)
+	p := tea.NewProgram(&app.TUI{LoadConfig: lc})
+	if _, err := p.Run(); err != nil {
+		fmt.Printf("ERROR: %v\n", err)
 		os.Exit(1)
 	}
 }
