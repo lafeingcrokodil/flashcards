@@ -51,7 +51,7 @@ func (f *Flashcard) Check(answer string) bool {
 
 // LoadFromCSV loads flashcards from a CSV file.
 func LoadFromCSV(lc LoadConfig) ([]*Flashcard, error) {
-	var fcs []*Flashcard
+	var fs []*Flashcard
 
 	// Load records from a CSV file.
 	records, err := io.ReadAllCSV(lc.Filepath, lc.Delimiter)
@@ -79,21 +79,21 @@ func LoadFromCSV(lc LoadConfig) ([]*Flashcard, error) {
 
 	// Create a flashcard for each qualified prompt.
 	for _, prompt := range prompts {
-		var fc *Flashcard
+		var f *Flashcard
 		records := recordsByPrompt[prompt]
 		for _, record := range records {
-			if fc == nil {
-				fc = &Flashcard{
+			if f == nil {
+				f = &Flashcard{
 					Prompt:  record[lc.PromptHeader],
 					Context: record[lc.ContextHeader],
 					Answers: []string{record[lc.AnswerHeader]},
 				}
 			} else {
-				fc.Answers = append(fc.Answers, record[lc.AnswerHeader])
+				f.Answers = append(f.Answers, record[lc.AnswerHeader])
 			}
 		}
-		fcs = append(fcs, fc)
+		fs = append(fs, f)
 	}
 
-	return fcs, nil
+	return fs, nil
 }
