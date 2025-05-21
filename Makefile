@@ -7,7 +7,7 @@ lint: ## Run linters.
 	@ golangci-lint run
 
 run: ## Run the application.
-	@ go run main.go
+	@ go run cmd/flashcards/main.go
 
 test: ## Run unit tests.
-	@ go test
+	@ go test ./...

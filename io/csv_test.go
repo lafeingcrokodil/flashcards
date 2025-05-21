@@ -1,4 +1,4 @@
-package main
+package io
 
 import (
 	"testing"
@@ -6,8 +6,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestReadAllTSV(t *testing.T) {
-	actual, err := ReadAllTSV("testdata/test.tsv")
+func TestReadAllCSV(t *testing.T) {
+	actual, err := ReadAllCSV("testdata/test.tsv", '\t')
 	if err != nil {
 		t.Fatal(err.Error())
 	}

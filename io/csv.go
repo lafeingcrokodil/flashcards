@@ -1,4 +1,4 @@
-package main
+package io
 
 import (
 	"encoding/csv"
@@ -6,8 +6,8 @@ import (
 	"os"
 )
 
-// ReadAllTSV parses the contents of a TSV file.
-func ReadAllTSV(filepath string) ([]map[string]string, error) {
+// ReadAllCSV parses the contents of a CSV file.
+func ReadAllCSV(filepath string, delimiter rune) ([]map[string]string, error) {
 	var headers []string
 	var records []map[string]string
 
@@ -17,7 +17,7 @@ func ReadAllTSV(filepath string) ([]map[string]string, error) {
 	}
 
 	r := csv.NewReader(f)
-	r.Comma = '\t'
+	r.Comma = delimiter
 
 	for {
 		values, err := r.Read()
