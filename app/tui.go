@@ -21,6 +21,8 @@ type TUI struct {
 	viewCount int
 	// correctCount is the number of correct answers so far.
 	correctCount int
+	// showExpected is true if the expected answer should be shown.
+	showExpected bool
 	// answer is the user-provided answer.
 	answer textinput.Model
 	// help displays keybindings to the user.
@@ -74,15 +76,23 @@ func (t *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return t, tea.Quit
 		case key.Matches(msg, t.keys.Submit):
 			f := t.flashcards[t.cursor]
-			if f.Check(t.answer.Value()) {
-				t.correctCount++
+			isCorrect := f.Check(t.answer.Value())
+			if !t.showExpected {
+				if isCorrect {
+					t.correctCount++
+				} else {
+					t.showExpected = true
+				}
+				t.viewCount++
 			}
-			t.viewCount++
-			t.answer.Reset()
-			if t.cursor < len(t.flashcards)-1 {
-				t.cursor++
-			} else {
-				t.cursor = 0
+			if isCorrect {
+				t.showExpected = false
+				t.answer.Reset()
+				if t.cursor < len(t.flashcards)-1 {
+					t.cursor++
+				} else {
+					t.cursor = 0
+				}
 			}
 		}
 	}
@@ -99,11 +109,16 @@ func (t *TUI) View() string {
 		correctPerc = 100 * t.correctCount / t.viewCount
 	}
 
+	prompt := QualifiedPrompt(f.Prompt, f.Context)
+	if t.showExpected {
+		prompt += " > " + f.Answers[0]
+	}
+
 	return fmt.Sprintf("Correct: %d/%d (%d%%)\n\n%s\n\n%s\n\n%s",
 		t.correctCount,
 		t.viewCount,
 		correctPerc,
-		QualifiedPrompt(f.Prompt, f.Context),
+		prompt,
 		t.answer.View(),
 		t.help.View(t.keys),
 	)
