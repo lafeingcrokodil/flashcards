@@ -8,3 +8,6 @@ lint: ## Run linters.
 
 run: ## Run the application.
 	@ go run main.go
+
+test: ## Run unit tests.
+	@ go test
