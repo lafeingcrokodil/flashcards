@@ -16,7 +16,7 @@ func main() {
 		ContextHeader: "context",
 		AnswerHeader:  "korean",
 	}
-	p := tea.NewProgram(&app.TUI{LoadConfig: lc})
+	p := tea.NewProgram(app.NewTUI(lc))
 	if _, err := p.Run(); err != nil {
 		fmt.Printf("ERROR: %v\n", err)
 		os.Exit(1)

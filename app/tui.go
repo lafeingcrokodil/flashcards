@@ -3,6 +3,7 @@ package app
 import (
 	"fmt"
 
+	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
@@ -18,6 +19,19 @@ type TUI struct {
 	viewCount int
 	// correctCount is the number of correct answers so far.
 	correctCount int
+	// answer is the user-provided answer.
+	answer textinput.Model
+}
+
+// NewTUI returns a new TUI.
+func NewTUI(lc LoadConfig) *TUI {
+	answer := textinput.New()
+	answer.Focus()
+
+	return &TUI{
+		LoadConfig: lc,
+		answer:     answer,
+	}
 }
 
 // Init loads flash cards to be reviewed.
@@ -28,18 +42,24 @@ func (t *TUI) Init() tea.Cmd {
 		return tea.Quit
 	}
 	t.flashcards = flashcards
-	return nil
+	return textinput.Blink
 }
 
 // Update updates the TUI's state based on user input.
 func (t *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var cmd tea.Cmd
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		switch msg.String() {
-		case "ctrl+c", "q":
+		switch msg.Type {
+		case tea.KeyCtrlC, tea.KeyEsc:
 			return t, tea.Quit
-		case "enter":
+		case tea.KeyEnter:
+			f := t.flashcards[t.cursor]
+			if f.Check(t.answer.Value()) {
+				t.correctCount++
+			}
 			t.viewCount++
+			t.answer.Reset()
 			if t.cursor < len(t.flashcards)-1 {
 				t.cursor++
 			} else {
@@ -47,7 +67,8 @@ func (t *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 	}
-	return t, nil
+	t.answer, cmd = t.answer.Update(msg)
+	return t, cmd
 }
 
 // View returns a string representation of the TUI's current state.
@@ -63,10 +84,13 @@ func (t *TUI) View() string {
 Correct: %d/%d (%d%%)
 
 %s
+
+%s
 	`,
 		t.correctCount,
 		t.viewCount,
 		correctPerc,
 		QualifiedPrompt(f.Prompt, f.Context),
+		t.answer.View(),
 	)
 }

@@ -39,6 +39,16 @@ func QualifiedPrompt(prompt, context string) string {
 	return prompt
 }
 
+// Check returns true if the provided answer matches one of the expected answers.
+func (f *Flashcard) Check(answer string) bool {
+	for _, expected := range f.Answers {
+		if expected == answer {
+			return true
+		}
+	}
+	return false
+}
+
 // LoadFromCSV loads flashcards from a CSV file.
 func LoadFromCSV(lc LoadConfig) ([]*Flashcard, error) {
 	var fcs []*Flashcard
