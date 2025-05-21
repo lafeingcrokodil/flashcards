@@ -3,6 +3,8 @@ package app
 import (
 	"fmt"
 
+	"github.com/charmbracelet/bubbles/help"
+	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -21,16 +23,33 @@ type TUI struct {
 	correctCount int
 	// answer is the user-provided answer.
 	answer textinput.Model
+	// help displays keybindings to the user.
+	help help.Model
+	// keys are the keybindings used by the UI.
+	keys keyMap
 }
 
 // NewTUI returns a new TUI.
 func NewTUI(lc LoadConfig) *TUI {
+	// The text input UI element doesn't handle IME input properly.
+	// https://github.com/charmbracelet/bubbletea/issues/874
 	answer := textinput.New()
 	answer.Focus()
 
 	return &TUI{
 		LoadConfig: lc,
 		answer:     answer,
+		help:       help.New(),
+		keys: keyMap{
+			Quit: key.NewBinding(
+				key.WithKeys("esc", "ctrl+c"),
+				key.WithHelp("ESC", "quit"),
+			),
+			Submit: key.NewBinding(
+				key.WithKeys("enter"),
+				key.WithHelp("ENTER", "submit"),
+			),
+		},
 	}
 }
 
@@ -50,10 +69,10 @@ func (t *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		switch msg.Type {
-		case tea.KeyCtrlC, tea.KeyEsc:
+		switch {
+		case key.Matches(msg, t.keys.Quit):
 			return t, tea.Quit
-		case tea.KeyEnter:
+		case key.Matches(msg, t.keys.Submit):
 			f := t.flashcards[t.cursor]
 			if f.Check(t.answer.Value()) {
 				t.correctCount++
@@ -80,17 +99,12 @@ func (t *TUI) View() string {
 		correctPerc = 100 * t.correctCount / t.viewCount
 	}
 
-	return fmt.Sprintf(`
-Correct: %d/%d (%d%%)
-
-%s
-
-%s
-	`,
+	return fmt.Sprintf("Correct: %d/%d (%d%%)\n\n%s\n\n%s\n\n%s",
 		t.correctCount,
 		t.viewCount,
 		correctPerc,
 		QualifiedPrompt(f.Prompt, f.Context),
 		t.answer.View(),
+		t.help.View(t.keys),
 	)
 }
