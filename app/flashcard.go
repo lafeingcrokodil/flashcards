@@ -15,6 +15,8 @@ type Flashcard struct {
 	Context string
 	// Answer is the set of accepted answers.
 	Answers []string
+	// deckIndex is the index of the deck containing this flashcard.
+	deckIndex int
 }
 
 // LoadConfig configures how to load flashcards from a file.
