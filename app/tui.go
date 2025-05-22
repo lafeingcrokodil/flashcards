@@ -196,7 +196,13 @@ func (t *TUI) View() string {
 		prompt += " > " + f.Answers[0]
 	}
 
-	output := fmt.Sprintf("Correct: %d/%d (%d%%)\n\n%s\n\n%s\n\n%s\n",
+	output := "Deck counts"
+	output += fmt.Sprintf(" · %d", len(t.Unreviewed))
+	output += fmt.Sprintf(" · %d", len(t.Current))
+	for _, deck := range t.Decks {
+		output += fmt.Sprintf(" · %d", len(deck))
+	}
+	output += fmt.Sprintf(" · Overall: %d/%d (%d%%)\n\n%s\n\n%s\n\n%s\n",
 		t.CorrectCount,
 		t.ViewCount,
 		percent(t.CorrectCount, t.ViewCount),
@@ -204,13 +210,6 @@ func (t *TUI) View() string {
 		t.answer.View(),
 		t.help.View(t.keys),
 	)
-
-	output += fmt.Sprintf("\nCurrent: %s", prompts(t.Current))
-	output += fmt.Sprintf("\nUnreviewed: %s", prompts(t.Unreviewed))
-	for i, deck := range t.Decks {
-		output += fmt.Sprintf("\n%d: %s", i, prompts(deck))
-	}
-
 	return output
 }
 
@@ -234,12 +233,4 @@ func pop[T any](queue []T, numElemsToPop int) ([]T, []T) {
 		return queue[0:numElemsToPop], queue[numElemsToPop:]
 	}
 	return queue, nil
-}
-
-func prompts(fs []*Flashcard) []string {
-	var prompts []string
-	for _, f := range fs {
-		prompts = append(prompts, QualifiedPrompt(f.Prompt, f.Context))
-	}
-	return prompts
 }
