@@ -10,13 +10,13 @@ import (
 // Flashcard stores the expected answer for a given prompt.
 type Flashcard struct {
 	// Prompt is the text to be shown to the user.
-	Prompt string
+	Prompt string `json:"prompt"`
 	// Context helps narrow down possible answers.
-	Context string
+	Context string `json:"context"`
 	// Answer is the set of accepted answers.
-	Answers []string
-	// deckIndex is the index of the deck containing this flashcard.
-	deckIndex int
+	Answers []string `json:"answers"`
+	// DeckIndex is the index of the deck containing this flashcard.
+	DeckIndex int `json:"deckIndex"`
 }
 
 // LoadConfig configures how to load flashcards from a file.
