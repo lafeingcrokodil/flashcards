@@ -22,6 +22,8 @@ type TUI struct {
 	unreviewed []*Flashcard
 	// decks are flashcards that have already been reviewed, grouped by accuracy.
 	decks [][]*Flashcard
+	// roundCount is the number of completed rounds.
+	round int
 	// viewCount is the number of flashcards that have been reviewed.
 	viewCount int
 	// correctCount is the number of correct answers so far.
@@ -140,10 +142,10 @@ func (t *TUI) handleSubmit() {
 
 		// Otherwise, we can start the next round by collecting flashcards from
 		// any decks that are scheduled for review.
+		t.round++
 		t.current = nil
-		round := t.viewCount / 10
 		for i, deck := range t.decks {
-			if round%int(math.Pow(2, float64(i))) == 0 {
+			if t.round%int(math.Pow(2, float64(i))) == 0 {
 				var popped []*Flashcard
 				popped, t.decks[i] = pop(deck, batchSize)
 				t.current = append(t.current, popped...)
