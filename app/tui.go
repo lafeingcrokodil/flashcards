@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
-	rand "math/rand/v2"
 	"os"
 
 	"github.com/charmbracelet/bubbles/help"
@@ -17,23 +16,13 @@ const batchSize = 10
 
 // TUI is a terminal user interface for reviewing flash cards.
 type TUI struct {
-	// Current is the list of flashcards currently being reviewed.
-	Current []*Flashcard `json:"current"`
-	// Unreviewed is a list of flashcards that haven't yet been reviewed.
-	Unreviewed []*Flashcard `json:"unreviewed"`
-	// Decks are flashcards that have already been reviewed, grouped by accuracy.
-	Decks [][]*Flashcard `json:"decks"`
-	// RoundCount is the number of completed rounds.
-	RoundCount int `json:"roundCount"`
-	// ViewCount is the number of flashcards that have been reviewed in this session.
-	viewCount int
-	// CorrectCount is the number of correct answers so far in this session.
-	correctCount int
+	// session is the current review session.
+	session *ReviewSession
 	// ShowExpected is true if the expected answer should be shown.
 	showExpected bool
-	// answer is the user-provided answer.
+	// answer is a text input field where the user should enter the answer.
 	answer textinput.Model
-	// help displays keybindings to the user.
+	// help is the state of the UI element for displaying keybindings.
 	help help.Model
 	// keys are the keybindings used by the UI.
 	keys KeyMap
@@ -50,27 +39,13 @@ func NewTUI(lc LoadConfig, backupPath string, log *os.File) (*TUI, error) {
 	answer := textinput.New()
 	answer.Focus()
 
-	flashcards, err := LoadFromCSV(lc)
+	session, err := NewReviewSession(lc)
 	if err != nil {
 		return nil, err
 	}
 
-	rand.Shuffle(len(flashcards), func(i, j int) {
-		flashcards[i], flashcards[j] = flashcards[j], flashcards[i]
-	})
-
-	current, unreviewed := pop(flashcards, batchSize)
-
 	return &TUI{
-		Current:    current,
-		Unreviewed: unreviewed,
-		Decks: [][]*Flashcard{
-			nil, // flashcards requiring the most repetition
-			nil,
-			nil,
-			nil,
-			nil, // flashcards requiring the least repetition
-		},
+		session:    session,
 		answer:     answer,
 		help:       help.New(),
 		keys:       NewKeyMap(),
@@ -81,27 +56,22 @@ func NewTUI(lc LoadConfig, backupPath string, log *os.File) (*TUI, error) {
 
 // LoadTUI loads a backed up TUI state from a file.
 func LoadTUI(backupPath string, log *os.File) (*TUI, error) {
-	b, err := os.ReadFile(backupPath)
-	if err != nil {
-		return nil, err
-	}
-
-	var t TUI
-	err = json.Unmarshal(b, &t)
-	if err != nil {
-		return nil, err
-	}
-
 	answer := textinput.New()
 	answer.Focus()
-	t.answer = answer
 
-	t.help = help.New()
-	t.keys = NewKeyMap()
-	t.backupPath = backupPath
-	t.log = log
+	session, err := LoadReviewSession(backupPath)
+	if err != nil {
+		return nil, err
+	}
 
-	return &t, nil
+	return &TUI{
+		session:    session,
+		answer:     answer,
+		help:       help.New(),
+		keys:       NewKeyMap(),
+		backupPath: backupPath,
+		log:        log,
+	}, nil
 }
 
 // Init loads flash cards to be reviewed.
@@ -127,7 +97,7 @@ func (t *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (t *TUI) handleSubmit() {
 	// Get the current flash card.
-	f := t.Current[0]
+	f := t.session.Current[0]
 
 	// Check if the submitted answer is correct.
 	isCorrect := f.Check(t.answer.Value())
@@ -136,8 +106,8 @@ func (t *TUI) handleSubmit() {
 	// then we need to update the stats and move the card to the appropriate deck.
 	if !t.showExpected {
 		if isCorrect {
-			t.correctCount++
-			if f.Proficiency < len(t.Decks)-1 {
+			t.session.correctCount++
+			if f.Proficiency < len(t.session.Decks)-1 {
 				f.Proficiency++
 			}
 		} else {
@@ -145,8 +115,8 @@ func (t *TUI) handleSubmit() {
 			f.Proficiency = 0
 		}
 		f.ViewCount++
-		t.viewCount++
-		t.Decks[f.Proficiency] = append(t.Decks[f.Proficiency], f)
+		t.session.viewCount++
+		t.session.Decks[f.Proficiency] = append(t.session.Decks[f.Proficiency], f)
 	}
 
 	// Once the user provides the correct answer, we can reset and select the next flashcard.
@@ -164,33 +134,33 @@ func (t *TUI) handleSubmit() {
 		t.answer.Reset()
 
 		// If the current round is still in progress, we can just continue.
-		if len(t.Current) > 1 {
-			t.Current = t.Current[1:]
+		if len(t.session.Current) > 1 {
+			t.session.Current = t.session.Current[1:]
 			return
 		}
 
 		// Otherwise, we can start the next round by collecting flashcards from
 		// any decks that are scheduled for review.
-		t.RoundCount++
-		t.Current = nil
-		for i, deck := range t.Decks {
-			if t.RoundCount%int(math.Pow(2, float64(i))) == 0 {
+		t.session.RoundCount++
+		t.session.Current = nil
+		for i, deck := range t.session.Decks {
+			if t.session.RoundCount%int(math.Pow(2, float64(i))) == 0 {
 				var popped []*Flashcard
-				popped, t.Decks[i] = pop(deck, batchSize)
-				t.Current = append(t.Current, popped...)
+				popped, t.session.Decks[i] = pop(deck, batchSize)
+				t.session.Current = append(t.session.Current, popped...)
 			}
 		}
 
 		// The next round will also always include some unreviewed flashcards, if any remain.
 		var popped []*Flashcard
-		popped, t.Unreviewed = pop(t.Unreviewed, batchSize)
-		t.Current = append(t.Current, popped...)
+		popped, t.session.Unreviewed = pop(t.session.Unreviewed, batchSize)
+		t.session.Current = append(t.session.Current, popped...)
 	}
 }
 
 // View returns a string representation of the TUI's current state.
 func (t *TUI) View() string {
-	f := t.Current[0]
+	f := t.session.Current[0]
 
 	prompt := QualifiedPrompt(f.Prompt, f.Context)
 	if t.showExpected {
@@ -198,15 +168,15 @@ func (t *TUI) View() string {
 	}
 
 	output := "Deck counts"
-	output += fmt.Sprintf(" · %d", len(t.Unreviewed))
-	output += fmt.Sprintf(" · %d", len(t.Current))
-	for _, deck := range t.Decks {
+	output += fmt.Sprintf(" · %d", len(t.session.Unreviewed))
+	output += fmt.Sprintf(" · %d", len(t.session.Current))
+	for _, deck := range t.session.Decks {
 		output += fmt.Sprintf(" · %d", len(deck))
 	}
 	output += fmt.Sprintf(" · Current session: %d/%d (%d%%)\n\n%s\n\n%s\n\n%s\n",
-		t.correctCount,
-		t.viewCount,
-		percent(t.correctCount, t.viewCount),
+		t.session.correctCount,
+		t.session.viewCount,
+		percent(t.session.correctCount, t.session.viewCount),
 		prompt,
 		t.answer.View(),
 		t.help.View(t.keys),
@@ -215,7 +185,7 @@ func (t *TUI) View() string {
 }
 
 func (t *TUI) saveToFile() error {
-	b, err := json.MarshalIndent(t, "", "  ")
+	b, err := json.MarshalIndent(t.session, "", "  ")
 	if err != nil {
 		return err
 	}
@@ -227,11 +197,4 @@ func percent(numerator, denominator int) int {
 		return 0
 	}
 	return 100 * numerator / denominator
-}
-
-func pop[T any](queue []T, numElemsToPop int) ([]T, []T) {
-	if len(queue) > numElemsToPop {
-		return queue[0:numElemsToPop], queue[numElemsToPop:]
-	}
-	return queue, nil
 }
