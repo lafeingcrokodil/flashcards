@@ -7,7 +7,7 @@ import (
 )
 
 func TestReadAllCSV(t *testing.T) {
-	actual, err := ReadAllCSV("testdata/test.tsv", '\t')
+	actual, err := ReadCSVFile("testdata/test.tsv", '\t')
 	if err != nil {
 		t.Fatal(err.Error())
 	}

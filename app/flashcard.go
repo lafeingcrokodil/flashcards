@@ -56,7 +56,7 @@ func LoadFromCSV(lc LoadConfig) ([]*Flashcard, error) {
 	var fs []*Flashcard
 
 	// Load records from a CSV file.
-	records, err := io.ReadAllCSV(lc.Filepath, lc.Delimiter)
+	records, err := io.ReadCSVFile(lc.Filepath, lc.Delimiter)
 	if err != nil {
 		return nil, err
 	}

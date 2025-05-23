@@ -6,11 +6,11 @@ import (
 	"os"
 )
 
-// ReadAllCSV parses the contents of a CSV file. The first line of the file
+// ReadCSVFile parses the contents of a CSV file. The first line of the file
 // must contain the column headers. The result is an array of records, one for
 // each line of the file (excluding the first line), with each record mapping
 // column headers to values.
-func ReadAllCSV(filepath string, delimiter rune) ([]map[string]string, error) {
+func ReadCSVFile(filepath string, delimiter rune) ([]map[string]string, error) {
 	var headers []string
 	var records []map[string]string
 
