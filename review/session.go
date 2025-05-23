@@ -1,4 +1,4 @@
-package app
+package review
 
 import (
 	"encoding/json"
@@ -10,8 +10,8 @@ import (
 const batchSize = 10
 const numProficiencyLevels = 5
 
-// ReviewSession is a flashcard review session.
-type ReviewSession struct {
+// Session is a flashcard review session.
+type Session struct {
 	// Current is the list of flashcards currently being reviewed.
 	Current []Flashcard `json:"current"`
 	// Unreviewed is a list of flashcards that haven't yet been reviewed.
@@ -26,8 +26,8 @@ type ReviewSession struct {
 	CorrectCount int
 }
 
-// NewReviewSession loads flashcards and initializes a new review session.
-func NewReviewSession(lc LoadConfig) (*ReviewSession, error) {
+// NewSession loads flashcards and initializes a new review session.
+func NewSession(lc LoadConfig) (*Session, error) {
 	flashcards, err := LoadFromCSV(lc)
 	if err != nil {
 		return nil, err
@@ -39,32 +39,32 @@ func NewReviewSession(lc LoadConfig) (*ReviewSession, error) {
 
 	current, unreviewed := pop(flashcards, batchSize)
 
-	return &ReviewSession{
+	return &Session{
 		Current:    current,
 		Unreviewed: unreviewed,
 		Decks:      make([][]Flashcard, numProficiencyLevels),
 	}, nil
 }
 
-// LoadReviewSession initializes a new review session picking up from where a
+// LoadSession initializes a new review session picking up from where a
 // previous review session left off.
-func LoadReviewSession(backupPath string) (*ReviewSession, error) {
+func LoadSession(backupPath string) (*Session, error) {
 	b, err := os.ReadFile(backupPath)
 	if err != nil {
 		return nil, err
 	}
 
-	var session ReviewSession
-	err = json.Unmarshal(b, &session)
+	var s Session
+	err = json.Unmarshal(b, &s)
 	if err != nil {
 		return nil, err
 	}
 
-	return &session, nil
+	return &s, nil
 }
 
 // Submit checks if the answer is correct and updates the review session's state accordingly.
-func (s *ReviewSession) Submit(answer string, isFirstGuess bool) (ok bool) {
+func (s *Session) Submit(answer string, isFirstGuess bool) (ok bool) {
 	// Get the current flash card.
 	f := s.Current[0]
 

@@ -9,14 +9,14 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/lafeingcrokodil/flashcards/app"
 	"github.com/lafeingcrokodil/flashcards/math"
+	"github.com/lafeingcrokodil/flashcards/review"
 )
 
 // TUI is a terminal user interface for reviewing flash cards.
 type TUI struct {
 	// session is the current review session.
-	session *app.ReviewSession
+	session *review.Session
 	// ShowExpected is true if the expected answer should be shown.
 	showExpected bool
 	// answer is a text input field where the user should enter the answer.
@@ -32,19 +32,19 @@ type TUI struct {
 }
 
 // New returns a new TUI.
-func New(lc app.LoadConfig, backupPath string, log *os.File) (*TUI, error) {
+func New(lc review.LoadConfig, backupPath string, log *os.File) (*TUI, error) {
 	// The text input UI element doesn't handle IME input properly.
 	// https://github.com/charmbracelet/bubbletea/issues/874
 	answer := textinput.New()
 	answer.Focus()
 
-	session, err := app.NewReviewSession(lc)
+	s, err := review.NewSession(lc)
 	if err != nil {
 		return nil, err
 	}
 
 	return &TUI{
-		session:    session,
+		session:    s,
 		answer:     answer,
 		help:       help.New(),
 		keys:       NewKeyMap(),
@@ -58,13 +58,13 @@ func Load(backupPath string, log *os.File) (*TUI, error) {
 	answer := textinput.New()
 	answer.Focus()
 
-	session, err := app.LoadReviewSession(backupPath)
+	s, err := review.LoadSession(backupPath)
 	if err != nil {
 		return nil, err
 	}
 
 	return &TUI{
-		session:    session,
+		session:    s,
 		answer:     answer,
 		help:       help.New(),
 		keys:       NewKeyMap(),
@@ -110,7 +110,7 @@ func (t *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (t *TUI) View() string {
 	f := t.session.Current[0]
 
-	prompt := app.QualifiedPrompt(f.Prompt, f.Context)
+	prompt := review.QualifiedPrompt(f.Prompt, f.Context)
 	if t.showExpected {
 		prompt += " > " + f.Answers[0]
 	}

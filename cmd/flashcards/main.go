@@ -6,7 +6,7 @@ import (
 	"os"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/lafeingcrokodil/flashcards/app"
+	"github.com/lafeingcrokodil/flashcards/review"
 	"github.com/lafeingcrokodil/flashcards/tui"
 )
 
@@ -35,7 +35,7 @@ func run() error {
 	var ui *tui.TUI
 	_, err = os.Stat(backupPath)
 	if errors.Is(err, os.ErrNotExist) {
-		lc := app.LoadConfig{
+		lc := review.LoadConfig{
 			Filepath:      "data/translations.tsv",
 			Delimiter:     '\t',
 			PromptHeader:  "english",
