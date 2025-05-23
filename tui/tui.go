@@ -110,6 +110,11 @@ func (t *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (t *TUI) View() string {
 	f := t.session.Current[0]
 
+	var proficiencyCounts string
+	for _, count := range t.session.CountByProficiency {
+		proficiencyCounts += fmt.Sprintf(" · %d", count)
+	}
+
 	var context string
 	if f.Context != "" {
 		context = contextStyle.Render(" (" + f.Context + ")")
@@ -120,7 +125,9 @@ func (t *TUI) View() string {
 		expected = expectedStyle.Render("Expected: " + f.Answers[0])
 	}
 
-	return fmt.Sprintf("%d 👁 · %d ✔ · %d ✖ · %d%%\n\n%s%s\n\n%s\n%s\n\n%s\n",
+	return fmt.Sprintf("%d%s | %d 👁 · %d ✔ · %d ✖ · %d%%\n\n%s%s\n\n%s\n%s\n\n%s\n",
+		len(t.session.Unreviewed),
+		proficiencyCounts,
 		t.session.ViewCount,
 		t.session.CorrectCount,
 		t.session.ViewCount-t.session.CorrectCount,

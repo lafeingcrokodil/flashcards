@@ -20,6 +20,8 @@ type Session struct {
 	Decks [][]Flashcard `json:"decks"`
 	// RoundCount is the number of completed rounds.
 	RoundCount int `json:"roundCount"`
+	// CountByProficiency is the number of flashcards for each proficiency level.
+	CountByProficiency []int `json:"countByProficiency"`
 	// ViewCount is the number of flashcards that have been reviewed in this session.
 	ViewCount int `json:"-"`
 	// CorrectCount is the number of correct answers so far in this session.
@@ -40,9 +42,10 @@ func NewSession(lc LoadConfig) (*Session, error) {
 	current, unreviewed := pop(flashcards, batchSize)
 
 	return &Session{
-		Current:    current,
-		Unreviewed: unreviewed,
-		Decks:      make([][]Flashcard, numProficiencyLevels),
+		Current:            current,
+		Unreviewed:         unreviewed,
+		Decks:              make([][]Flashcard, numProficiencyLevels),
+		CountByProficiency: make([]int, numProficiencyLevels),
 	}, nil
 }
 
@@ -74,6 +77,9 @@ func (s *Session) Submit(answer string, isFirstGuess bool) (ok bool) {
 	// If this is the first guess (not a correction to an incorrect answer),
 	// then we need to update the stats and move the card to the appropriate deck.
 	if isFirstGuess {
+		if f.ViewCount > 0 {
+			s.CountByProficiency[f.Proficiency]--
+		}
 		if ok {
 			s.CorrectCount++
 			if f.Proficiency < len(s.Decks)-1 {
@@ -82,6 +88,7 @@ func (s *Session) Submit(answer string, isFirstGuess bool) (ok bool) {
 		} else {
 			f.Proficiency = 0
 		}
+		s.CountByProficiency[f.Proficiency]++
 		f.ViewCount++
 		s.ViewCount++
 		s.Decks[f.Proficiency] = append(s.Decks[f.Proficiency], f)
