@@ -12,8 +12,8 @@ func TestReadAllCSV(t *testing.T) {
 		t.Fatal(err.Error())
 	}
 	expected := []map[string]string{
-		{"header1": "valueA1", "header2": "valueA2"},
-		{"header1": "valueB1", "header2": "valueB2"},
+		{"A": "A1", "B": "B1"},
+		{"A": "A2", "B": "B2"},
 	}
 	assert.Equal(t, expected, actual)
 }
