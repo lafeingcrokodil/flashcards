@@ -67,51 +67,50 @@ func LoadSession(backupPath string) (*Session, error) {
 }
 
 // Submit checks if the answer is correct and updates the review session's state accordingly.
-func (s *Session) Submit(answer string, isFirstGuess bool) (ok bool) {
+func (s *Session) Submit(answer string, isFirstGuess bool) bool {
 	// Get the current flash card.
 	f := s.Current[0]
 
-	// Check if the submitted answer is correct.
-	ok = f.Check(answer)
+	// If the user answered incorrectly, we'll stick with the current flashcard
+	// and leave the stats unchanged for now.
+	if !f.Check(answer) {
+		return false
+	}
 
-	// If this is the first guess (not a correction to an incorrect answer),
-	// then we need to update the stats and move the card to the appropriate deck.
+	// Remove the most recently reviewed flashcard from the current deck.
+	_, s.Current = pop(s.Current, 1)
+
+	// Update stats.
+	if f.ViewCount > 0 {
+		s.CountByProficiency[f.Proficiency]--
+	}
 	if isFirstGuess {
-		if f.ViewCount > 0 {
-			s.CountByProficiency[f.Proficiency]--
+		s.CorrectCount++
+		if f.Proficiency < len(s.Decks)-1 {
+			f.Proficiency++
 		}
-		if ok {
-			s.CorrectCount++
-			if f.Proficiency < len(s.Decks)-1 {
-				f.Proficiency++
-			}
-		} else {
-			f.Proficiency = 0
-		}
-		s.CountByProficiency[f.Proficiency]++
-		f.ViewCount++
-		s.ViewCount++
-		s.Decks[f.Proficiency] = append(s.Decks[f.Proficiency], f)
+	} else {
+		f.Proficiency = 0
+	}
+	s.CountByProficiency[f.Proficiency]++
+	f.ViewCount++
+	s.ViewCount++
+
+	// Move the most recently reviewed flashcard to the appropriate deck.
+	s.Decks[f.Proficiency] = append(s.Decks[f.Proficiency], f)
+
+	// If the current round is still in progress, we can just continue.
+	if len(s.Current) > 0 {
+		return true
 	}
 
-	// Once the user provides the correct answer, we can select the next flashcard.
-	if ok {
-		// Remove the most recently reviewed flashcard from the current deck.
-		_, s.Current = pop(s.Current, 1)
-
-		// If the current round is still in progress, we can just continue.
-		if len(s.Current) > 0 {
-			return
-		}
-
-		// Otherwise, we need to start the next round and add more flashcards to the current deck.
-		var replenishOK bool
-		for !replenishOK {
-			replenishOK = s.replenishCurrentDeck()
-		}
+	// Otherwise, we need to start the next round and add more flashcards to the current deck.
+	var replenishOK bool
+	for !replenishOK {
+		replenishOK = s.replenishCurrentDeck()
 	}
 
-	return
+	return true
 }
 
 // replenishCurrentDeck adds cards from other decks to the current deck.
