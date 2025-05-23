@@ -9,5 +9,8 @@ lint: ## Run linters.
 run: ## Run the application.
 	@ go run cmd/flashcards/main.go
 
-test: ## Run unit tests.
-	@ go test ./...
+test: tmp ## Run unit tests.
+	@ go test -coverprofile=tmp/cover.out  ./...
+
+tmp: ## Create a tmp directory.
+	@ mkdir -p tmp
