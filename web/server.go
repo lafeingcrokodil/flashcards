@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"os"
 
+	"github.com/lafeingcrokodil/flashcards/io"
 	"github.com/lafeingcrokodil/flashcards/review"
 )
 
@@ -57,7 +57,7 @@ func (s *Server) submit(w http.ResponseWriter, req *http.Request) {
 
 	ok := s.Session.Submit(answer, isFirstGuess)
 	if ok {
-		err := s.saveToFile()
+		err := io.WriteJSONFile(s.BackupPath, s.Session)
 		if err != nil {
 			fmt.Printf("ERROR: %v\n", err)
 		}
@@ -67,14 +67,6 @@ func (s *Server) submit(w http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		fmt.Printf("ERROR: %v\n", err)
 	}
-}
-
-func (s *Server) saveToFile() error {
-	b, err := json.MarshalIndent(s.Session, "", "  ")
-	if err != nil {
-		return err
-	}
-	return os.WriteFile(s.BackupPath, b, 0600)
 }
 
 func stringToBool(s string) (bool, error) {

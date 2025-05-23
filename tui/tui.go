@@ -1,7 +1,6 @@
 package tui
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 
@@ -9,6 +8,7 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/lafeingcrokodil/flashcards/io"
 	"github.com/lafeingcrokodil/flashcards/math"
 	"github.com/lafeingcrokodil/flashcards/review"
 )
@@ -76,7 +76,7 @@ func (t *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// Once the user provides the correct answer, we can reset the UI and back up the state.
 			t.showExpected = false
 			t.answer.Reset()
-			err := t.saveToFile()
+			err := io.WriteJSONFile(t.backupPath, t.session)
 			if err != nil {
 				fmt.Fprintf(t.log, "Couldn't save current state: %v", err) // nolint:errcheck
 			}
@@ -118,12 +118,4 @@ func (t *TUI) View() string {
 		expected,
 		t.help.View(t.keys),
 	)
-}
-
-func (t *TUI) saveToFile() error {
-	b, err := json.MarshalIndent(t.session, "", "  ")
-	if err != nil {
-		return err
-	}
-	return os.WriteFile(t.backupPath, b, 0600)
 }
