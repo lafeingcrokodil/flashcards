@@ -7,6 +7,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/lafeingcrokodil/flashcards/app"
+	"github.com/lafeingcrokodil/flashcards/tui"
 )
 
 const backupPath = "tmp/backup.json"
@@ -31,7 +32,7 @@ func run() error {
 	}
 	defer log.Close() // nolint:errcheck
 
-	var tui *app.TUI
+	var ui *tui.TUI
 	_, err = os.Stat(backupPath)
 	if errors.Is(err, os.ErrNotExist) {
 		lc := app.LoadConfig{
@@ -41,15 +42,15 @@ func run() error {
 			ContextHeader: "context",
 			AnswerHeader:  "korean",
 		}
-		tui, err = app.NewTUI(lc, backupPath, log)
+		ui, err = tui.New(lc, backupPath, log)
 	} else {
-		tui, err = app.LoadTUI(backupPath, log)
+		ui, err = tui.Load(backupPath, log)
 	}
 	if err != nil {
 		return err
 	}
 
-	p := tea.NewProgram(tui)
+	p := tea.NewProgram(ui)
 	_, err = p.Run()
 	return err
 }

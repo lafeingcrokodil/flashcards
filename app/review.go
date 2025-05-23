@@ -7,6 +7,7 @@ import (
 	"os"
 )
 
+const batchSize = 10
 const numProficiencyLevels = 5
 
 // ReviewSession is a flashcard review session.
@@ -20,9 +21,9 @@ type ReviewSession struct {
 	// RoundCount is the number of completed rounds.
 	RoundCount int `json:"roundCount"`
 	// ViewCount is the number of flashcards that have been reviewed in this session.
-	viewCount int
+	ViewCount int
 	// CorrectCount is the number of correct answers so far in this session.
-	correctCount int
+	CorrectCount int
 }
 
 // NewReviewSession loads flashcards and initializes a new review session.
@@ -74,7 +75,7 @@ func (s *ReviewSession) Submit(answer string, isFirstGuess bool) (ok bool) {
 	// then we need to update the stats and move the card to the appropriate deck.
 	if isFirstGuess {
 		if ok {
-			s.correctCount++
+			s.CorrectCount++
 			if f.Proficiency < len(s.Decks)-1 {
 				f.Proficiency++
 			}
@@ -82,7 +83,7 @@ func (s *ReviewSession) Submit(answer string, isFirstGuess bool) (ok bool) {
 			f.Proficiency = 0
 		}
 		f.ViewCount++
-		s.viewCount++
+		s.ViewCount++
 		s.Decks[f.Proficiency] = append(s.Decks[f.Proficiency], f)
 	}
 

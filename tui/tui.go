@@ -1,4 +1,4 @@
-package app
+package tui
 
 import (
 	"encoding/json"
@@ -9,15 +9,14 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/lafeingcrokodil/flashcards/app"
 	"github.com/lafeingcrokodil/flashcards/math"
 )
-
-const batchSize = 10
 
 // TUI is a terminal user interface for reviewing flash cards.
 type TUI struct {
 	// session is the current review session.
-	session *ReviewSession
+	session *app.ReviewSession
 	// ShowExpected is true if the expected answer should be shown.
 	showExpected bool
 	// answer is a text input field where the user should enter the answer.
@@ -32,14 +31,14 @@ type TUI struct {
 	log *os.File
 }
 
-// NewTUI returns a new TUI.
-func NewTUI(lc LoadConfig, backupPath string, log *os.File) (*TUI, error) {
+// New returns a new TUI.
+func New(lc app.LoadConfig, backupPath string, log *os.File) (*TUI, error) {
 	// The text input UI element doesn't handle IME input properly.
 	// https://github.com/charmbracelet/bubbletea/issues/874
 	answer := textinput.New()
 	answer.Focus()
 
-	session, err := NewReviewSession(lc)
+	session, err := app.NewReviewSession(lc)
 	if err != nil {
 		return nil, err
 	}
@@ -54,12 +53,12 @@ func NewTUI(lc LoadConfig, backupPath string, log *os.File) (*TUI, error) {
 	}, nil
 }
 
-// LoadTUI loads a backed up TUI state from a file.
-func LoadTUI(backupPath string, log *os.File) (*TUI, error) {
+// Load loads a backed up TUI state from a file.
+func Load(backupPath string, log *os.File) (*TUI, error) {
 	answer := textinput.New()
 	answer.Focus()
 
-	session, err := LoadReviewSession(backupPath)
+	session, err := app.LoadReviewSession(backupPath)
 	if err != nil {
 		return nil, err
 	}
@@ -111,7 +110,7 @@ func (t *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (t *TUI) View() string {
 	f := t.session.Current[0]
 
-	prompt := QualifiedPrompt(f.Prompt, f.Context)
+	prompt := app.QualifiedPrompt(f.Prompt, f.Context)
 	if t.showExpected {
 		prompt += " > " + f.Answers[0]
 	}
@@ -123,9 +122,9 @@ func (t *TUI) View() string {
 		output += fmt.Sprintf(" · %d", len(deck))
 	}
 	output += fmt.Sprintf(" · Current session: %d/%d (%d%%)\n\n%s\n\n%s\n\n%s\n",
-		t.session.correctCount,
-		t.session.viewCount,
-		math.Percent(t.session.correctCount, t.session.viewCount),
+		t.session.CorrectCount,
+		t.session.ViewCount,
+		math.Percent(t.session.CorrectCount, t.session.ViewCount),
 		prompt,
 		t.answer.View(),
 		t.help.View(t.keys),
