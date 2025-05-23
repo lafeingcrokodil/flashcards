@@ -8,6 +8,7 @@ import (
 // Start starts the server.
 func Start(addr string) error {
 	http.HandleFunc("/echo", echo)
+	http.Handle("/", http.FileServer(http.Dir("./public")))
 	return http.ListenAndServe(addr, nil)
 }
 
