@@ -56,7 +56,7 @@ korean	english	context
 거실	living room	
 방	room	
 지갑	wallet	
-키	key	
+키	key	loan word
 커피	coffee	
 공책	notebook	
 펜	pen	
@@ -96,7 +96,7 @@ korean	english	context
 여덟	eight	native
 아홉	nine	native
 열	ten	native
-계란	egg	
+계란	chicken egg	Sino-Korean
 스물	twenty	native
 서른	thirty	native
 마흔	forty	native
@@ -128,8 +128,8 @@ korean	english	context
 -에	location marker	
 -의	possessive particle	
 -도	too	
--와	and	after a vowel
--과	and	after a consonant
+-와	and	formal, after a vowel
+-과	and	formal, after a consonant
 -ㅂ니다	declarative sentence ending	formal, polite, after a vowel
 -습니다	declarative sentence ending	formal, polite, after a consonant
 -ㅂ니까	interrogative sentence ending	formal, polite, after a vowel
@@ -143,7 +143,7 @@ korean	english	context
 아닙니다	no	formal, polite
 저	I	humble
 제	my	
-우리	we	
+우리	we	plain
 이	this	
 그	that	
 저	that over there	
@@ -186,4 +186,211 @@ korean	english	context
 달리다	to run	
 오다	to come	
 가다	to go	
-안	not	
+안	not	negates a verb or adjective
+밥	rice	
+불고기	barbecued beef	
+함께	together	
+매일	every day	
+단어	word	
+어렵다	to be difficult	
+쉽다	to be easy	
+맞다	fits	
+대화	dialogue	
+러시아	Russia	
+한글	Korean alphabet	
+생각	idea, an idea, thought	
+적다	to be few	
+독일	German, Germany	
+말	horse	
+언어	language	
+베트남	vietnam	
+호텔	hotel, the hotel	
+춥다	to be cold	
+덥다	to be hot	
+건물	building	
+물건	item	
+무겁다	to be heavy	
+많다	to be plentiful	
+가볍다	to be light	
+로비	lobby	
+순서	order	
+저희	we	polite
+부르다	to call	
+기다리다	to wait	
+학원	cram school	
+수영	swimming	
+수영장	swimming pool	
+독서실	study room	
+기숙사	dormitory	
+배우다	to learn	
+기사	article	
+편지	letter	
+서점	bookstore	
+카페	cafe	
+쓰다	to write	
+아프다	to be sick	
+게으르다	to be lazy	
+아름답다	to be beautiful	
+바쁘다	to be busy	
+더럽다	to be dirty	
+귀엽다	to be cute	
+예쁘다	to be pretty	
+밀크셰이크	milkshake	
+생선	fish	
+스테이크	steak	
+음료	beverage	
+뜨겁다	to be hot	
+차갑다	to be cold	
+달걀	chicken egg	native
+김밥	kimbap	
+싸다	to be cheap	
+팔다	to sell	
+딸기	strawberry	
+수프	soup	
+토마토	tomato	
+햄버거	hamburger	
+비싸다	to be expensive	
+사다	to buy	
+차	vehicle	
+조금	a little	
+와인	wine	
+주스	juice	
+라면	ramen	
+야채	vegetable	
+과일	fruit	
+섬	island	
+우체국	post office	
+눕다	to lie down	
+대학교	university	
+줄	line	of people
+길	road	
+벤치	bench	
+탁자	table	
+서다	to stand	
+바닥	floor	
+자동차	car	
+앉다	to sit	
+가방	bag	
+바다	sea, ocean	
+나무	tree	
+산	mountain	
+운동장	sports grounds	
+-로	toward	
+시장	market	
+-까지	until	
+-지 않다	not	negates a clause
+손님	guest	
+에스컬레이터	escalator	
+걷다	to walk	
+노래방	karaoke	
+회사	company	
+식당	restaurant	
+-에서	from/in	
+집	house	
+같이	together	
+배우	actor	
+가수	singer	
+남아공	South Africa	
+이집트	Egypt, Egyptian	
+인도	Indian, India, the sidewalk	
+태국	Thailand, Thai	
+회사원	office worker	
+호주	Australia	
+아니요	no	informal, polite
+프랑스	France	
+출신	origin	
+-인	person	suffix
+브라질	Brazil	
+일본	Japan	
+영국	United Kingdom	
+영화	movie	
+게임	game	
+멋없다	to be uncool	
+재미있다	to be interesting	
+맛있다	to be delicious	
+멋있다	to be cool	
+음식	food	
+공	ball	
+돈	money	
+그녀	she	
+연필	pencil	
+-들	plural suffix	
+운동	exercise	
+이야기하다	to converse	
+느리다	to be slow	
+빠르다	to be fast	
+고양이	cat	
+개	dog	
+나쁘다	to be bad	
+좋다	to be good	
+작다	to be small	
+크다	to be big	
+전화	telephone, phone, call	
+지금	now	
+일	occurrence	
+공부하다	to study	
+처음 뵙겠습니다	nice to meet you	lit. first time seeing you
+안녕히 가세요	goodbye	said by the person staying
+안녕히 계세요	goodbye	said by the person leaving
+고맙다	to be thankful	less formal
+요즘	lately, recently	
+잘	well	
+어떻게	how	
+괜찮다	to be okay	
+지내다	to spend	one's time
+감사하다	to be thankful	more formal
+만나서 반갑습니다	pleased to meet you	
+하다	do	
+성	surname	
+별	star	
+입	mouth	
+뽀뽀	kiss	non-romantic
+낮	daytime	
+잎	leaf	
+밭	field	
+꽃	flower	
+알	egg	
+또는	or	
+두부	tofu	
+카메라	camera	
+까마귀	crow	
+워싱턴	Washington	
+쓰레기	trash	
+뉴욕	New York	
+런던	London	
+드레스	dress	
+부산	Busan	
+바지	pants	
+-하고	and	colloquial
+다이아몬드	diamond	
+베를린	Berlin	
+파티	party	
+도쿄	Tokyo	
+헤어	hair	
+골드	gold	
+실버	silver	
+블랙	black	
+화이트	white	
+모니터	monitor	
+폰	phone	
+티	tea	
+아메리카노	americano	
+아이스크림	ice cream	
+콜라	coke	
+아파트	apartment	
+시카고	Chicago	
+프린스턴	Princeton	
+파리	Paris	
+필라델피아	Philadelphia	
+보스턴	Boston	
+입구	entrance	
+열쇠	key	physical object
+요요	yo-yo	
+메시지	message	
+노래	song	
+도넛	doughnut	
+닭	chicken	
+여우	fox	
+개미	ant	
+오이	cucumber	
+아기	baby	
