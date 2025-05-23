@@ -21,9 +21,9 @@ type Session struct {
 	// RoundCount is the number of completed rounds.
 	RoundCount int `json:"roundCount"`
 	// ViewCount is the number of flashcards that have been reviewed in this session.
-	ViewCount int
+	ViewCount int `json:"-"`
 	// CorrectCount is the number of correct answers so far in this session.
-	CorrectCount int
+	CorrectCount int `json:"-"`
 }
 
 // NewSession loads flashcards and initializes a new review session.
