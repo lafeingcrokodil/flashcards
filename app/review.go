@@ -2,6 +2,7 @@ package app
 
 import (
 	"encoding/json"
+	"math"
 	rand "math/rand/v2"
 	"os"
 )
@@ -59,6 +60,59 @@ func LoadReviewSession(backupPath string) (*ReviewSession, error) {
 	}
 
 	return &session, nil
+}
+
+// Submit checks if the answer is correct and updates the review session's state accordingly.
+func (s *ReviewSession) Submit(answer string, isFirstGuess bool) (ok bool) {
+	// Get the current flash card.
+	f := s.Current[0]
+
+	// Check if the submitted answer is correct.
+	ok = f.Check(answer)
+
+	// If this is the first guess (not a correction to an incorrect answer),
+	// then we need to update the stats and move the card to the appropriate deck.
+	if isFirstGuess {
+		if ok {
+			s.correctCount++
+			if f.Proficiency < len(s.Decks)-1 {
+				f.Proficiency++
+			}
+		} else {
+			f.Proficiency = 0
+		}
+		f.ViewCount++
+		s.viewCount++
+		s.Decks[f.Proficiency] = append(s.Decks[f.Proficiency], f)
+	}
+
+	// Once the user provides the correct answer, we can select the next flashcard.
+	if ok {
+		// If the current round is still in progress, we can just continue.
+		if len(s.Current) > 1 {
+			s.Current = s.Current[1:]
+			return
+		}
+
+		// Otherwise, we can start the next round by collecting flashcards from
+		// any decks that are scheduled for review.
+		s.RoundCount++
+		s.Current = nil
+		for i, deck := range s.Decks {
+			if s.RoundCount%int(math.Pow(2, float64(i))) == 0 {
+				var popped []Flashcard
+				popped, s.Decks[i] = pop(deck, batchSize)
+				s.Current = append(s.Current, popped...)
+			}
+		}
+
+		// The next round will also always include some unreviewed flashcards, if any remain.
+		var popped []Flashcard
+		popped, s.Unreviewed = pop(s.Unreviewed, batchSize)
+		s.Current = append(s.Current, popped...)
+	}
+
+	return
 }
 
 // pop removes the specified number of elements from the front of the queue.

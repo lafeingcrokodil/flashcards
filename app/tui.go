@@ -3,8 +3,7 @@ package app
 import (
 	"encoding/json"
 	"fmt"
-	"math"
-	"os"
+		"os"
 
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
@@ -88,74 +87,23 @@ func (t *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, t.keys.Quit):
 			return t, tea.Quit
 		case key.Matches(msg, t.keys.Submit):
-			t.handleSubmit()
+			ok := t.session.Submit(t.answer.Value(), !t.showExpected)
+			if !ok {
+				t.showExpected = true
+				break
+			}
+
+			// Once the user provides the correct answer, we can reset the UI and back up the state.
+			t.showExpected = false
+			t.answer.Reset()
+			err := t.saveToFile()
+			if err != nil {
+				fmt.Fprintf(t.log, "Couldn't save current state: %v", err) // nolint:errcheck
+			}
 		}
 	}
 	t.answer, cmd = t.answer.Update(msg)
 	return t, cmd
-}
-
-func (t *TUI) handleSubmit() {
-	// Get the current flash card.
-	f := t.session.Current[0]
-
-	// Check if the submitted answer is correct.
-	isCorrect := f.Check(t.answer.Value())
-
-	// If this is a real guess (not a correction to an incorrect answer),
-	// then we need to update the stats and move the card to the appropriate deck.
-	if !t.showExpected {
-		if isCorrect {
-			t.session.correctCount++
-			if f.Proficiency < len(t.session.Decks)-1 {
-				f.Proficiency++
-			}
-		} else {
-			t.showExpected = true
-			f.Proficiency = 0
-		}
-		f.ViewCount++
-		t.session.viewCount++
-		t.session.Decks[f.Proficiency] = append(t.session.Decks[f.Proficiency], f)
-	}
-
-	// Once the user provides the correct answer, we can reset and select the next flashcard.
-	if isCorrect {
-		defer func() {
-			// Save the current state.
-			err := t.saveToFile()
-			if err != nil {
-				fmt.Printf("Couldn't save current state: %v", err)
-			}
-		}()
-
-		// First, some resetting.
-		t.showExpected = false
-		t.answer.Reset()
-
-		// If the current round is still in progress, we can just continue.
-		if len(t.session.Current) > 1 {
-			t.session.Current = t.session.Current[1:]
-			return
-		}
-
-		// Otherwise, we can start the next round by collecting flashcards from
-		// any decks that are scheduled for review.
-		t.session.RoundCount++
-		t.session.Current = nil
-		for i, deck := range t.session.Decks {
-			if t.session.RoundCount%int(math.Pow(2, float64(i))) == 0 {
-				var popped []Flashcard
-				popped, t.session.Decks[i] = pop(deck, batchSize)
-				t.session.Current = append(t.session.Current, popped...)
-			}
-		}
-
-		// The next round will also always include some unreviewed flashcards, if any remain.
-		var popped []Flashcard
-		popped, t.session.Unreviewed = pop(t.session.Unreviewed, batchSize)
-		t.session.Current = append(t.session.Current, popped...)
-	}
 }
 
 // View returns a string representation of the TUI's current state.
