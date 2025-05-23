@@ -17,6 +17,8 @@ type Flashcard struct {
 	Answers []string `json:"answers"`
 	// Proficiency indicates how reliably the user provides the correct answer.
 	Proficiency int `json:"proficiency"`
+	// ViewCount is the number of times the flashcard has been reviewed.
+	ViewCount int `json:"viewCount"`
 }
 
 // LoadConfig configures how to load flashcards from a file.

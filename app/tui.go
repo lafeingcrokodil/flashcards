@@ -144,6 +144,7 @@ func (t *TUI) handleSubmit() {
 			t.showExpected = true
 			f.Proficiency = 0
 		}
+		f.ViewCount++
 		t.viewCount++
 		t.Decks[f.Proficiency] = append(t.Decks[f.Proficiency], f)
 	}
