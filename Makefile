@@ -6,11 +6,14 @@ help: ## Show this help.
 lint: ## Run linters.
 	@ golangci-lint run
 
-run: ## Run the application.
-	@ go run cmd/flashcards/main.go
-
 test: tmp ## Run unit tests.
 	@ go test -coverprofile=tmp/cover.out  ./...
 
 tmp: ## Create a tmp directory.
 	@ mkdir -p tmp
+
+tui: ## Run the application using a terminal UI.
+	@ go run cmd/tui/main.go
+
+web: ## Run the application using a web UI.
+	@ go run cmd/web/main.go
