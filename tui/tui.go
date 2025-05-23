@@ -115,13 +115,7 @@ func (t *TUI) View() string {
 		prompt += " > " + f.Answers[0]
 	}
 
-	output := "Deck counts"
-	output += fmt.Sprintf(" · %d", len(t.session.Unreviewed))
-	output += fmt.Sprintf(" · %d", len(t.session.Current))
-	for _, deck := range t.session.Decks {
-		output += fmt.Sprintf(" · %d", len(deck))
-	}
-	output += fmt.Sprintf(" · Current session: %d/%d (%d%%)\n\n%s\n\n%s\n\n%s\n",
+	return fmt.Sprintf("Current session: %d/%d (%d%%)\n\n%s\n\n%s\n\n%s\n",
 		t.session.CorrectCount,
 		t.session.ViewCount,
 		math.Percent(t.session.CorrectCount, t.session.ViewCount),
@@ -129,7 +123,6 @@ func (t *TUI) View() string {
 		t.answer.View(),
 		t.help.View(t.keys),
 	)
-	return output
 }
 
 func (t *TUI) saveToFile() error {
