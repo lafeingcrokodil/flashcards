@@ -11,11 +11,11 @@ const numProficiencyLevels = 5
 // ReviewSession is a flashcard review session.
 type ReviewSession struct {
 	// Current is the list of flashcards currently being reviewed.
-	Current []*Flashcard `json:"current"`
+	Current []Flashcard `json:"current"`
 	// Unreviewed is a list of flashcards that haven't yet been reviewed.
-	Unreviewed []*Flashcard `json:"unreviewed"`
+	Unreviewed []Flashcard `json:"unreviewed"`
 	// Decks are flashcards that have already been reviewed, grouped by accuracy.
-	Decks [][]*Flashcard `json:"decks"`
+	Decks [][]Flashcard `json:"decks"`
 	// RoundCount is the number of completed rounds.
 	RoundCount int `json:"roundCount"`
 	// ViewCount is the number of flashcards that have been reviewed in this session.
@@ -40,7 +40,7 @@ func NewReviewSession(lc LoadConfig) (*ReviewSession, error) {
 	return &ReviewSession{
 		Current:    current,
 		Unreviewed: unreviewed,
-		Decks:      make([][]*Flashcard, numProficiencyLevels),
+		Decks:      make([][]Flashcard, numProficiencyLevels),
 	}, nil
 }
 

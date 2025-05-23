@@ -145,14 +145,14 @@ func (t *TUI) handleSubmit() {
 		t.session.Current = nil
 		for i, deck := range t.session.Decks {
 			if t.session.RoundCount%int(math.Pow(2, float64(i))) == 0 {
-				var popped []*Flashcard
+				var popped []Flashcard
 				popped, t.session.Decks[i] = pop(deck, batchSize)
 				t.session.Current = append(t.session.Current, popped...)
 			}
 		}
 
 		// The next round will also always include some unreviewed flashcards, if any remain.
-		var popped []*Flashcard
+		var popped []Flashcard
 		popped, t.session.Unreviewed = pop(t.session.Unreviewed, batchSize)
 		t.session.Current = append(t.session.Current, popped...)
 	}
