@@ -44,7 +44,7 @@ func qualifiedPrompt(prompt, context string) string {
 }
 
 // Check returns true if the provided answer matches one of the expected answers.
-func (f Flashcard) Check(answer string) bool {
+func (f *Flashcard) Check(answer string) bool {
 	for _, expected := range f.Answers {
 		if expected == answer {
 			return true
@@ -54,8 +54,8 @@ func (f Flashcard) Check(answer string) bool {
 }
 
 // LoadFromCSV loads flashcards from a CSV file.
-func LoadFromCSV(lc LoadConfig) ([]Flashcard, error) {
-	var fs []Flashcard
+func LoadFromCSV(lc LoadConfig) ([]*Flashcard, error) {
+	var fs []*Flashcard
 
 	// Load records from a CSV file.
 	records, err := io.ReadCSVFile(lc.Filepath, lc.Delimiter)
@@ -96,7 +96,7 @@ func LoadFromCSV(lc LoadConfig) ([]Flashcard, error) {
 				f.Answers = append(f.Answers, record[lc.AnswerHeader])
 			}
 		}
-		fs = append(fs, *f)
+		fs = append(fs, f)
 	}
 
 	return fs, nil

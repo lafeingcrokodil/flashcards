@@ -18,7 +18,7 @@ func TestLoadFromCSV(t *testing.T) {
 	if err != nil {
 		t.Fatal(err.Error())
 	}
-	expected := []Flashcard{
+	expected := []*Flashcard{
 		{Prompt: "P1", Context: "C1", Answers: []string{"A1", "A2"}},
 		{Prompt: "P1", Context: "C2", Answers: []string{"A3"}},
 		{Prompt: "P2", Answers: []string{"A4"}},

@@ -13,11 +13,11 @@ const numProficiencyLevels = 5
 // Session is a flashcard review session.
 type Session struct {
 	// Current is the list of flashcards currently being reviewed.
-	Current []Flashcard `json:"current"`
+	Current []*Flashcard `json:"current"`
 	// Unreviewed is a list of flashcards that haven't yet been reviewed.
-	Unreviewed []Flashcard `json:"unreviewed"`
+	Unreviewed []*Flashcard `json:"unreviewed"`
 	// Decks are flashcards that have already been reviewed, grouped by accuracy.
-	Decks [][]Flashcard `json:"decks"`
+	Decks [][]*Flashcard `json:"decks"`
 	// RoundCount is the number of completed rounds.
 	RoundCount int `json:"roundCount"`
 	// CountByProficiency is the number of flashcards for each proficiency level.
@@ -44,7 +44,7 @@ func NewSession(lc LoadConfig) (*Session, error) {
 	return &Session{
 		Current:            current,
 		Unreviewed:         unreviewed,
-		Decks:              make([][]Flashcard, numProficiencyLevels),
+		Decks:              make([][]*Flashcard, numProficiencyLevels),
 		CountByProficiency: make([]int, numProficiencyLevels),
 	}, nil
 }
@@ -108,14 +108,14 @@ func (s *Session) Submit(answer string, isFirstGuess bool) (ok bool) {
 		s.Current = nil
 		for i, deck := range s.Decks {
 			if s.RoundCount%int(math.Pow(2, float64(i))) == 0 {
-				var popped []Flashcard
+				var popped []*Flashcard
 				popped, s.Decks[i] = pop(deck, batchSize)
 				s.Current = append(s.Current, popped...)
 			}
 		}
 
 		// The next round will also always include some unreviewed flashcards, if any remain.
-		var popped []Flashcard
+		var popped []*Flashcard
 		popped, s.Unreviewed = pop(s.Unreviewed, batchSize)
 		s.Current = append(s.Current, popped...)
 	}
