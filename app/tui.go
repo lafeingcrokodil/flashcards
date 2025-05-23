@@ -137,15 +137,15 @@ func (t *TUI) handleSubmit() {
 	if !t.showExpected {
 		if isCorrect {
 			t.CorrectCount++
-			if f.DeckIndex < len(t.Decks)-1 {
-				f.DeckIndex++
+			if f.Proficiency < len(t.Decks)-1 {
+				f.Proficiency++
 			}
 		} else {
 			t.showExpected = true
-			f.DeckIndex = 0
+			f.Proficiency = 0
 		}
 		t.ViewCount++
-		t.Decks[f.DeckIndex] = append(t.Decks[f.DeckIndex], f)
+		t.Decks[f.Proficiency] = append(t.Decks[f.Proficiency], f)
 	}
 
 	// Once the user provides the correct answer, we can reset and select the next flashcard.

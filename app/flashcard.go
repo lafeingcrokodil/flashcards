@@ -15,8 +15,8 @@ type Flashcard struct {
 	Context string `json:"context"`
 	// Answer is the set of accepted answers.
 	Answers []string `json:"answers"`
-	// DeckIndex is the index of the deck containing this flashcard.
-	DeckIndex int `json:"deckIndex"`
+	// Proficiency indicates how reliably the user provides the correct answer.
+	Proficiency int `json:"proficiency"`
 }
 
 // LoadConfig configures how to load flashcards from a file.
