@@ -3,12 +3,13 @@ package app
 import (
 	"encoding/json"
 	"fmt"
-		"os"
+	"os"
 
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/lafeingcrokodil/flashcards/math"
 )
 
 const batchSize = 10
@@ -124,7 +125,7 @@ func (t *TUI) View() string {
 	output += fmt.Sprintf(" · Current session: %d/%d (%d%%)\n\n%s\n\n%s\n\n%s\n",
 		t.session.correctCount,
 		t.session.viewCount,
-		percent(t.session.correctCount, t.session.viewCount),
+		math.Percent(t.session.correctCount, t.session.viewCount),
 		prompt,
 		t.answer.View(),
 		t.help.View(t.keys),
@@ -138,11 +139,4 @@ func (t *TUI) saveToFile() error {
 		return err
 	}
 	return os.WriteFile(t.backupPath, b, 0600)
-}
-
-func percent(numerator, denominator int) int {
-	if denominator == 0 {
-		return 0
-	}
-	return 100 * numerator / denominator
 }
