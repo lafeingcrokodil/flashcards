@@ -96,31 +96,43 @@ func (s *Session) Submit(answer string, isFirstGuess bool) (ok bool) {
 
 	// Once the user provides the correct answer, we can select the next flashcard.
 	if ok {
+		// Remove the most recently reviewed flashcard from the current deck.
+		_, s.Current = pop(s.Current, 1)
+
 		// If the current round is still in progress, we can just continue.
-		if len(s.Current) > 1 {
-			s.Current = s.Current[1:]
+		if len(s.Current) > 0 {
 			return
 		}
 
-		// Otherwise, we can start the next round by collecting flashcards from
-		// any decks that are scheduled for review.
-		s.RoundCount++
-		s.Current = nil
-		for i, deck := range s.Decks {
-			if s.RoundCount%int(math.Pow(2, float64(i))) == 0 {
-				var popped []*Flashcard
-				popped, s.Decks[i] = pop(deck, batchSize)
-				s.Current = append(s.Current, popped...)
-			}
+		// Otherwise, we need to start the next round and add more flashcards to the current deck.
+		var replenishOK bool
+		for !replenishOK {
+			replenishOK = s.replenishCurrentDeck()
 		}
-
-		// The next round will also always include some unreviewed flashcards, if any remain.
-		var popped []*Flashcard
-		popped, s.Unreviewed = pop(s.Unreviewed, batchSize)
-		s.Current = append(s.Current, popped...)
 	}
 
 	return
+}
+
+// replenishCurrentDeck adds cards from other decks to the current deck.
+func (s *Session) replenishCurrentDeck() bool {
+	var popped []*Flashcard
+
+	s.RoundCount++
+
+	// Collect flashcards from any decks that are scheduled for review.
+	for i, deck := range s.Decks {
+		if s.RoundCount%int(math.Pow(2, float64(i))) == 0 {
+			popped, s.Decks[i] = pop(deck, batchSize)
+			s.Current = append(s.Current, popped...)
+		}
+	}
+
+	// Also include some unreviewed flashcards, if any remain.
+	popped, s.Unreviewed = pop(s.Unreviewed, batchSize)
+	s.Current = append(s.Current, popped...)
+
+	return len(s.Current) > 0
 }
 
 // pop removes the specified number of elements from the front of the queue.
