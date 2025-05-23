@@ -110,17 +110,25 @@ func (t *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (t *TUI) View() string {
 	f := t.session.Current[0]
 
-	prompt := review.QualifiedPrompt(f.Prompt, f.Context)
-	if t.showExpected {
-		prompt += " > " + f.Answers[0]
+	var context string
+	if f.Context != "" {
+		context = contextStyle.Render(" (" + f.Context + ")")
 	}
 
-	return fmt.Sprintf("Current session: %d/%d (%d%%)\n\n%s\n\n%s\n\n%s\n",
-		t.session.CorrectCount,
+	var expected string
+	if t.showExpected {
+		expected = expectedStyle.Render("Expected: " + f.Answers[0])
+	}
+
+	return fmt.Sprintf("%d 👁 · %d ✔ · %d ✖ · %d%%\n\n%s%s\n\n%s\n%s\n\n%s\n",
 		t.session.ViewCount,
+		t.session.CorrectCount,
+		t.session.ViewCount-t.session.CorrectCount,
 		math.Percent(t.session.CorrectCount, t.session.ViewCount),
-		prompt,
+		f.Prompt,
+		context,
 		t.answer.View(),
+		expected,
 		t.help.View(t.keys),
 	)
 }

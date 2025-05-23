@@ -35,8 +35,8 @@ type LoadConfig struct {
 	AnswerHeader string
 }
 
-// QualifiedPrompt returns a prompt together with the context (if there is one).
-func QualifiedPrompt(prompt, context string) string {
+// qualifiedPrompt returns a prompt together with the context (if there is one).
+func qualifiedPrompt(prompt, context string) string {
 	if context != "" {
 		return fmt.Sprintf("%s (%s)", prompt, context)
 	}
@@ -66,7 +66,7 @@ func LoadFromCSV(lc LoadConfig) ([]Flashcard, error) {
 	// Group CSV records by the qualified prompt (prompt + context).
 	recordsByPrompt := make(map[string][]map[string]string, len(records))
 	for _, record := range records {
-		prompt := QualifiedPrompt(record[lc.PromptHeader], record[lc.ContextHeader])
+		prompt := qualifiedPrompt(record[lc.PromptHeader], record[lc.ContextHeader])
 		if rs, ok := recordsByPrompt[prompt]; ok {
 			recordsByPrompt[prompt] = append(rs, record)
 		} else {
