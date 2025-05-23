@@ -25,10 +25,10 @@ type TUI struct {
 	Decks [][]*Flashcard `json:"decks"`
 	// roundCount is the number of completed rounds.
 	Round int `json:"round"`
-	// ViewCount is the number of flashcards that have been reviewed.
-	ViewCount int `json:"viewCount"`
-	// CorrectCount is the number of correct answers so far.
-	CorrectCount int `json:"correctCount"`
+	// ViewCount is the number of flashcards that have been reviewed in this session.
+	viewCount int
+	// CorrectCount is the number of correct answers so far in this session.
+	correctCount int
 	// ShowExpected is true if the expected answer should be shown.
 	showExpected bool
 	// answer is the user-provided answer.
@@ -136,7 +136,7 @@ func (t *TUI) handleSubmit() {
 	// then we need to update the stats and move the card to the appropriate deck.
 	if !t.showExpected {
 		if isCorrect {
-			t.CorrectCount++
+			t.correctCount++
 			if f.Proficiency < len(t.Decks)-1 {
 				f.Proficiency++
 			}
@@ -144,7 +144,7 @@ func (t *TUI) handleSubmit() {
 			t.showExpected = true
 			f.Proficiency = 0
 		}
-		t.ViewCount++
+		t.viewCount++
 		t.Decks[f.Proficiency] = append(t.Decks[f.Proficiency], f)
 	}
 
@@ -202,10 +202,10 @@ func (t *TUI) View() string {
 	for _, deck := range t.Decks {
 		output += fmt.Sprintf(" · %d", len(deck))
 	}
-	output += fmt.Sprintf(" · Overall: %d/%d (%d%%)\n\n%s\n\n%s\n\n%s\n",
-		t.CorrectCount,
-		t.ViewCount,
-		percent(t.CorrectCount, t.ViewCount),
+	output += fmt.Sprintf(" · Current session: %d/%d (%d%%)\n\n%s\n\n%s\n\n%s\n",
+		t.correctCount,
+		t.viewCount,
+		percent(t.correctCount, t.viewCount),
 		prompt,
 		t.answer.View(),
 		t.help.View(t.keys),
