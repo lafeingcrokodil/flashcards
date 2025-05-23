@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"os"
 
@@ -32,20 +31,15 @@ func run() error {
 	}
 	defer log.Close() // nolint:errcheck
 
-	var ui *tui.TUI
-	_, err = os.Stat(backupPath)
-	if errors.Is(err, os.ErrNotExist) {
-		lc := review.LoadConfig{
-			Filepath:      "data/translations.tsv",
-			Delimiter:     '\t',
-			PromptHeader:  "english",
-			ContextHeader: "context",
-			AnswerHeader:  "korean",
-		}
-		ui, err = tui.New(lc, backupPath, log)
-	} else {
-		ui, err = tui.Load(backupPath, log)
+	lc := review.LoadConfig{
+		Filepath:      "data/translations.tsv",
+		Delimiter:     '\t',
+		PromptHeader:  "english",
+		ContextHeader: "context",
+		AnswerHeader:  "korean",
 	}
+
+	ui, err := tui.New(lc, backupPath, log)
 	if err != nil {
 		return err
 	}

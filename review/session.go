@@ -2,6 +2,7 @@ package review
 
 import (
 	"encoding/json"
+	"errors"
 	"math"
 	rand "math/rand/v2"
 	"os"
@@ -28,8 +29,19 @@ type Session struct {
 	CorrectCount int `json:"-"`
 }
 
-// NewSession loads flashcards and initializes a new review session.
-func NewSession(lc LoadConfig) (*Session, error) {
+// NewSession initializes a new review session.
+func NewSession(lc LoadConfig, backupPath string) (s *Session, err error) {
+	_, err = os.Stat(backupPath)
+	if errors.Is(err, os.ErrNotExist) {
+		s, err = loadNew(lc)
+	} else {
+		s, err = loadExisting(backupPath)
+	}
+	return
+}
+
+// loadNew loads flashcards and initializes a new review session from scratch.
+func loadNew(lc LoadConfig) (*Session, error) {
 	flashcards, err := LoadFromCSV(lc)
 	if err != nil {
 		return nil, err
@@ -49,9 +61,9 @@ func NewSession(lc LoadConfig) (*Session, error) {
 	}, nil
 }
 
-// LoadSession initializes a new review session picking up from where a
+// loadExisting initializes a new review session picking up from where a
 // previous review session left off.
-func LoadSession(backupPath string) (*Session, error) {
+func loadExisting(backupPath string) (*Session, error) {
 	b, err := os.ReadFile(backupPath)
 	if err != nil {
 		return nil, err

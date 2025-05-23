@@ -38,27 +38,7 @@ func New(lc review.LoadConfig, backupPath string, log *os.File) (*TUI, error) {
 	answer := textinput.New()
 	answer.Focus()
 
-	s, err := review.NewSession(lc)
-	if err != nil {
-		return nil, err
-	}
-
-	return &TUI{
-		session:    s,
-		answer:     answer,
-		help:       help.New(),
-		keys:       NewKeyMap(),
-		backupPath: backupPath,
-		log:        log,
-	}, nil
-}
-
-// Load loads a backed up TUI state from a file.
-func Load(backupPath string, log *os.File) (*TUI, error) {
-	answer := textinput.New()
-	answer.Focus()
-
-	s, err := review.LoadSession(backupPath)
+	s, err := review.NewSession(lc, backupPath)
 	if err != nil {
 		return nil, err
 	}
