@@ -14,7 +14,7 @@ const debugPath = "tmp/debug.log"
 
 func main() {
 	if err := run(); err != nil {
-		fmt.Printf("ERROR: %v\n", err)
+		fmt.Printf("ERROR\t%v\n", err)
 		os.Exit(1)
 	}
 }

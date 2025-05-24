@@ -1,8 +1,8 @@
 window.addEventListener("load", () => {
-  fetchState()
+  getState()
     .then((state: State) => {
       let app = new App(state);
-      app.display();
+      app.display(true);
     })
     .catch((err: Error) => console.error(err.message));
 });
@@ -22,7 +22,7 @@ class App {
     this.ui.submit.addEventListener("click", this.handleSubmitClick.bind(this));
   }
 
-  display() {
+  display(isCorrect: boolean) {
     console.log(this.state);
 
     this.ui.unreviewedCount.textContent = this.state["unreviewed"].length.toString();
@@ -43,7 +43,13 @@ class App {
     const context = current["context"];
     this.ui.context.textContent = context ? `(${context})` : "";
 
-    if (!this.isFirstGuess) {
+    if (isCorrect) {
+      this.ui.answer.value = "";
+    }
+
+    if (this.isFirstGuess) {
+      this.ui.expected.textContent = "";
+    } else {
       this.ui.expected.textContent = current["answers"][0];
     }
   }
@@ -56,31 +62,26 @@ class App {
 
   handleSubmitClick() {
     const answer = this.ui.answer.value;
-    submit(answer, this.isFirstGuess)
-      .then((isCorrect: string) => {
-        switch (isCorrect) {
-          case "true":
-            if (this.isFirstGuess) {
-              this.correctCount++;
-            }
-            this.viewCount++;
-            this.isFirstGuess = true;
-            this.ui.reset();
-            break;
-          case "false":
-            this.isFirstGuess = false;
-            break;
-          default:
-            throw new Error(`Invalid submit response: ${isCorrect}`);
+    patchState(answer, this.isFirstGuess)
+      .then((state: State|null) => {
+        if (state) {
+          if (this.isFirstGuess) {
+            this.correctCount++;
+          }
+          this.viewCount++;
+          this.isFirstGuess = true;
+          this.state = state;
+          this.display(true);
+        } else {
+          this.isFirstGuess = false;
+          this.display(false);
         }
       })
-      .then(this.updateState.bind(this))
-      .then(this.display.bind(this));
   }
 
   updateState() {
-    return fetchState()
-      .then(state => this.state = state);
+    return getState()
+      .then((state: State) => this.state = state);
   }
 }
 
@@ -120,11 +121,6 @@ class UI {
       default: return "correct";
     };
   }
-
-  reset() {
-    this.answer.value = "";
-    this.expected.textContent = "";
-  }
 }
 
 interface State {
@@ -139,7 +135,7 @@ interface Flashcard {
   answers: string[];
 }
 
-function fetchState(): Promise<State> {
+function getState(): Promise<State> {
   return fetch("state")
     .then(response => {
       if (!response.ok) {
@@ -149,16 +145,27 @@ function fetchState(): Promise<State> {
     });
 }
 
-function submit(answer: string, isFirstGuess: boolean): Promise<string> {
-  return fetch("submit?" + new URLSearchParams({
-    "answer": answer,
-    "isFirstGuess": isFirstGuess.toString(),
-  }))
+function patchState(answer: string, isFirstGuess: boolean): Promise<State|null> {
+  return fetch("state", {
+    method: "PATCH",
+    body: JSON.stringify({
+      "answer": answer,
+      "isFirstGuess": isFirstGuess,
+    }),
+  })
     .then(response => {
+      // The answer was incorrect, so the state wasn't modified.
+      if (response.status == 304) {
+        return null
+      }
+
+      // The request failed for some reason.
       if (!response.ok) {
         throw new Error(`HTTP error: ${response.status}`);
       }
-      return response.text();
+
+      // The answer was correct and the state was modified.
+      return response.json();
     });
 }
 

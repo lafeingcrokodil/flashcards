@@ -3,9 +3,11 @@ package web
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 
-	"github.com/lafeingcrokodil/flashcards/io"
+	"github.com/gorilla/mux"
+	fio "github.com/lafeingcrokodil/flashcards/io"
 	"github.com/lafeingcrokodil/flashcards/review"
 )
 
@@ -17,68 +19,65 @@ type Server struct {
 	BackupPath string
 }
 
+// Submission is data submitted by the UI.
+type Submission struct {
+	// Answer is the answer provided by the user.
+	Answer string `json:"answer"`
+	// IsFirstGuess is true if the answer is the user's first guess.
+	IsFirstGuess bool `json:"isFirstGuess"`
+}
+
 // Start starts the server.
 func (s *Server) Start(port int) error {
-	http.HandleFunc("/state", s.state)
-	http.HandleFunc("/submit", s.submit)
-	http.Handle("/", http.FileServer(http.Dir("./public")))
+	r := mux.NewRouter()
+	r.HandleFunc("/state", s.getState).Methods("GET")
+	r.HandleFunc("/state", s.patchState).Methods("PATCH")
+	r.PathPrefix("/").Handler(http.FileServer(http.Dir("./public")))
 
 	addr := fmt.Sprintf("localhost:%d", port)
-	fmt.Printf("Starting server at http://%s...\n", addr)
-	return http.ListenAndServe(addr, nil)
+	fmt.Printf("INFO\tStarting server at http://%s...\n", addr)
+	return http.ListenAndServe(addr, r)
 }
 
-func (s *Server) state(w http.ResponseWriter, _ *http.Request) {
-	b, err := json.MarshalIndent(s.Session, "", "  ")
+func (s *Server) getState(w http.ResponseWriter, req *http.Request) {
+	fmt.Printf("INFO\t%s %s\n", req.Method, req.URL.Path)
+
+	err := json.NewEncoder(w).Encode(s.Session)
 	if err != nil {
-		fmt.Printf("ERROR: %v\n", err)
-		_, err := fmt.Fprint(w, "")
-		if err != nil {
-			fmt.Printf("ERROR: %v\n", err)
-		}
+		fmt.Printf("ERROR\t%v\n", err)
+	}
+}
+
+func (s *Server) patchState(w http.ResponseWriter, req *http.Request) {
+	fmt.Printf("INFO\t%s %s\n", req.Method, req.URL.Path)
+
+	var submission Submission
+
+	body, err := io.ReadAll(req.Body)
+	if err != nil {
+		fmt.Printf("ERROR\t%v\n", err)
 		return
 	}
 
-	_, err = fmt.Fprint(w, string(b))
+	err = json.Unmarshal(body, &submission)
 	if err != nil {
-		fmt.Printf("ERROR: %v\n", err)
-	}
-}
-
-func (s *Server) submit(w http.ResponseWriter, req *http.Request) {
-	query := req.URL.Query()
-	answer := query.Get("answer")
-	isFirstGuess, err := stringToBool(query.Get("isFirstGuess"))
-	if err != nil {
-		fmt.Printf("ERROR: %v\n", err)
-		_, err := fmt.Fprint(w, "")
-		if err != nil {
-			fmt.Printf("ERROR: %v\n", err)
-		}
+		fmt.Printf("ERROR\t%v\n", err)
 		return
 	}
 
-	ok := s.Session.Submit(answer, isFirstGuess)
-	if ok {
-		err := io.WriteJSONFile(s.BackupPath, s.Session)
-		if err != nil {
-			fmt.Printf("ERROR: %v\n", err)
-		}
+	ok := s.Session.Submit(submission.Answer, submission.IsFirstGuess)
+	if !ok {
+		w.WriteHeader(http.StatusNotModified)
+		return
 	}
 
-	_, err = fmt.Fprintf(w, "%v", ok)
+	err = fio.WriteJSONFile(s.BackupPath, s.Session)
 	if err != nil {
-		fmt.Printf("ERROR: %v\n", err)
+		fmt.Printf("ERROR\t%v\n", err)
 	}
-}
 
-func stringToBool(s string) (bool, error) {
-	switch s {
-	case "true":
-		return true, nil
-	case "false":
-		return false, nil
-	default:
-		return false, fmt.Errorf("invalid boolean string: %s", s)
+	err = json.NewEncoder(w).Encode(s.Session)
+	if err != nil {
+		fmt.Printf("ERROR\t%v\n", err)
 	}
 }
