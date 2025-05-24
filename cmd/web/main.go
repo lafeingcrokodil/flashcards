@@ -8,7 +8,7 @@ import (
 	"github.com/lafeingcrokodil/flashcards/web"
 )
 
-const addr = ":8080"
+const port = 8080
 const backupPath = "tmp/backup.json"
 
 func main() {
@@ -34,5 +34,5 @@ func run() error {
 
 	server := web.Server{Session: s, BackupPath: backupPath}
 
-	return server.Start(addr)
+	return server.Start(port)
 }

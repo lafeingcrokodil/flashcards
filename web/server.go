@@ -18,10 +18,13 @@ type Server struct {
 }
 
 // Start starts the server.
-func (s *Server) Start(addr string) error {
+func (s *Server) Start(port int) error {
 	http.HandleFunc("/state", s.state)
 	http.HandleFunc("/submit", s.submit)
 	http.Handle("/", http.FileServer(http.Dir("./public")))
+
+	addr := fmt.Sprintf("localhost:%d", port)
+	fmt.Printf("Starting server at http://%s...\n", addr)
 	return http.ListenAndServe(addr, nil)
 }
 
