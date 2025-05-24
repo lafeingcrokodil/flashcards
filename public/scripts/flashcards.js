@@ -1,46 +1,104 @@
-
 window.addEventListener("load", () => {
-  let isFirstGuess = true;
-  let viewCount = 0;
-  let correctCount = 0;
   fetchState()
     .then(state => {
-      display(state, isFirstGuess, viewCount, correctCount);
-      document.querySelector("#answer").addEventListener("keyup", event => {
-        if (event.key !== "Enter") return;
-        document.querySelector("#submit").click();
-        event.preventDefault();
-      });
-      document.querySelector("#submit").addEventListener("click", () => {
-        const answer = document.querySelector("#answer").value;
-        submit(answer, isFirstGuess)
-          .then(isCorrect => {
-            switch (isCorrect) {
-              case "true":
-                // Update session stats.
-                if (isFirstGuess) {
-                  correctCount++;
-                }
-                viewCount++;
-
-                // Reset UI.
-                isFirstGuess = true;
-                document.querySelector("#answer").value = "";
-                document.querySelector("#expected").textContent = "";
-                break;
-              case "false":
-                isFirstGuess = false;
-                break;
-              default:
-                throw new Error(`Invalid submit response: ${isCorrect}`);
-            }
-          })
-          .then(fetchState)
-          .then((state) => display(state, isFirstGuess, viewCount, correctCount));
-      });
+      let app = new App(state);
+      app.display();
     })
     .catch(err => console.error(err.message));
 });
+
+class App {
+  constructor(state) {
+    this.state = state;
+    this.isFirstGuess = true;
+    this.viewCount = 0;
+    this.correctCount = 0;
+    this.ui = new UI();
+    this.ui.answer.addEventListener("keyup", this.handleAnswerKeyup.bind(this));
+    this.ui.submit.addEventListener("click", this.handleSubmitClick.bind(this));
+  }
+
+  display() {
+    console.log(this.state);
+
+    this.ui.unreviewedCount.textContent = this.state["unreviewed"].length;
+
+    let proficiencyCounts = "";
+    for (const count of this.state["countByProficiency"]) {
+      proficiencyCounts += ` · ${count}`;
+    }
+    this.ui.proficiencyCounts.textContent = proficiencyCounts;
+
+    this.ui.viewCount.textContent = this.viewCount;
+    this.ui.correctCount.textContent = this.correctCount;
+    this.ui.incorrectCount.textContent = this.viewCount - this.correctCount;
+    this.ui.correctPerc.textContent = percent(this.correctCount, this.viewCount);
+
+    const current = this.state["current"][0];
+    this.ui.prompt.textContent = current["prompt"];
+    this.ui.context.textContent = current["context"];
+
+    if (!this.isFirstGuess) {
+      this.ui.expected.textContent = current["answers"][0];
+    }
+  }
+
+  handleAnswerKeyup(event) {
+    if (event.key !== "Enter") return;
+    this.ui.submit.click();
+    event.preventDefault();
+  }
+
+  handleSubmitClick() {
+    const answer = this.ui.answer.value;
+    submit(answer, this.isFirstGuess)
+      .then(isCorrect => {
+        switch (isCorrect) {
+          case "true":
+            if (this.isFirstGuess) {
+              this.correctCount++;
+            }
+            this.viewCount++;
+            this.isFirstGuess = true;
+            this.ui.reset();
+            break;
+          case "false":
+            this.isFirstGuess = false;
+            break;
+          default:
+            throw new Error(`Invalid submit response: ${isCorrect}`);
+        }
+      })
+      .then(this.updateState.bind(this))
+      .then(this.display.bind(this));
+  }
+
+  updateState() {
+    return fetchState()
+      .then(state => this.state = state);
+  }
+}
+
+class UI {
+  constructor() {
+    this.unreviewedCount = document.querySelector("#unreviewedCount");
+    this.proficiencyCounts = document.querySelector("#proficiencyCounts");
+    this.viewCount = document.querySelector("#viewCount");
+    this.correctCount = document.querySelector("#correctCount");
+    this.incorrectCount = document.querySelector("#incorrectCount");
+    this.correctPerc = document.querySelector("#correctPerc");
+    this.prompt = document.querySelector("#prompt");
+    this.context = document.querySelector("#context");
+    this.answer = document.querySelector("#answer");
+    this.submit = document.querySelector("#submit");
+    this.expected = document.querySelector("#expected");
+  }
+
+  reset() {
+    this.answer.value = "";
+    this.expected.textContent = "";
+  }
+}
 
 function fetchState() {
   return fetch("state")
@@ -50,31 +108,6 @@ function fetchState() {
       }
       return response.json();
     });
-}
-
-function display(state, isFirstGuess, viewCount, correctCount) {
-  console.log(state);
-
-  document.querySelector("#unreviewedCount").textContent = state["unreviewed"].length;
-
-  let proficiencyCounts = "";
-  for (const count of state["countByProficiency"]) {
-    proficiencyCounts += ` · ${count}`;
-  }
-  document.querySelector("#proficiencyCounts").textContent = proficiencyCounts;
-
-  document.querySelector("#viewCount").textContent = viewCount;
-  document.querySelector("#correctCount").textContent = correctCount;
-  document.querySelector("#incorrectCount").textContent = viewCount - correctCount;
-  document.querySelector("#correctPerc").textContent = percent(correctCount, viewCount);
-
-  const current = state["current"][0];
-  document.querySelector("#prompt").textContent = current["prompt"];
-  document.querySelector("#context").textContent = current["context"];
-
-  if (!isFirstGuess) {
-    document.querySelector("#expected").textContent = current["answers"][0];
-  }
 }
 
 function submit(answer, isFirstGuess) {
