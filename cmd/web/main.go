@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"path"
 
 	"github.com/lafeingcrokodil/flashcards/review"
 	"github.com/lafeingcrokodil/flashcards/web"
@@ -19,6 +20,11 @@ func main() {
 }
 
 func run() error {
+	err := os.MkdirAll(path.Base(backupPath), os.ModePerm)
+	if err != nil {
+		return err
+	}
+
 	lc := review.LoadConfig{
 		Filepath:      "data/translations.tsv",
 		Delimiter:     '\t',
@@ -27,12 +33,10 @@ func run() error {
 		AnswerHeader:  "korean",
 	}
 
-	s, err := review.NewSession(lc, backupPath)
+	server, err := web.New(lc, backupPath)
 	if err != nil {
 		return err
 	}
-
-	server := web.Server{Session: s, BackupPath: backupPath}
 
 	return server.Start(port)
 }

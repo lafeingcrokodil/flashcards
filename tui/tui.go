@@ -31,7 +31,7 @@ type TUI struct {
 	log *os.File
 }
 
-// New returns a new TUI.
+// New initializes a new TUI.
 func New(lc review.LoadConfig, backupPath string, log *os.File) (*TUI, error) {
 	// The text input UI element doesn't handle IME input properly.
 	// https://github.com/charmbracelet/bubbletea/issues/874

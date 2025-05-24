@@ -27,6 +27,15 @@ type Submission struct {
 	IsFirstGuess bool `json:"isFirstGuess"`
 }
 
+// New initializes a new server.
+func New(lc review.LoadConfig, backupPath string) (*Server, error) {
+	s, err := review.NewSession(lc, backupPath)
+	if err != nil {
+		return nil, err
+	}
+	return &Server{Session: s, BackupPath: backupPath}, nil
+}
+
 // Start starts the server.
 func (s *Server) Start(port int) error {
 	r := mux.NewRouter()

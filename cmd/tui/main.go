@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"path"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/lafeingcrokodil/flashcards/review"
@@ -20,9 +21,12 @@ func main() {
 }
 
 func run() error {
-	err := os.MkdirAll("tmp", os.ModePerm)
-	if err != nil {
-		return err
+	filepaths := []string{backupPath, debugPath}
+	for _, p := range filepaths {
+		err := os.MkdirAll(path.Base(p), os.ModePerm)
+		if err != nil {
+			return err
+		}
 	}
 
 	log, err := tea.LogToFile(debugPath, "")
