@@ -39,9 +39,7 @@ func (s *Server) Start(port int) error {
 	return http.ListenAndServe(addr, r)
 }
 
-func (s *Server) getState(w http.ResponseWriter, req *http.Request) {
-	fmt.Printf("INFO\t%s %s\n", req.Method, req.URL.Path)
-
+func (s *Server) getState(w http.ResponseWriter, _ *http.Request) {
 	err := json.NewEncoder(w).Encode(s.Session)
 	if err != nil {
 		fmt.Printf("ERROR\t%v\n", err)
@@ -49,8 +47,6 @@ func (s *Server) getState(w http.ResponseWriter, req *http.Request) {
 }
 
 func (s *Server) patchState(w http.ResponseWriter, req *http.Request) {
-	fmt.Printf("INFO\t%s %s\n", req.Method, req.URL.Path)
-
 	var submission Submission
 
 	body, err := io.ReadAll(req.Body)
