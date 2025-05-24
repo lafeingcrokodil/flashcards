@@ -36,7 +36,8 @@ class App {
 
     const current = this.state["current"][0];
     this.ui.prompt.textContent = current["prompt"];
-    this.ui.context.textContent = current["context"];
+    const context = current["context"];
+    this.ui.context.textContent = context ? `(${context})` : "";
 
     if (!this.isFirstGuess) {
       this.ui.expected.textContent = current["answers"][0];
