@@ -186,5 +186,5 @@ function percent(numerator: number, denominator: number): number {
   if (denominator === 0) {
     return 0;
   }
-  return Math.trunc(100*numerator/denominator);
+  return Math.floor(100*numerator/denominator);
 }
