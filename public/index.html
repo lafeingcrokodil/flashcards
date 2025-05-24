@@ -5,6 +5,19 @@
     <title>Flashcard Review</title>
   </head>
   <body>
-    <p>Contents go here.</p>
+    <p>
+      <span id="unreviewedCount">0</span>
+      <span id="proficiencyCounts"> · 0</span>
+      | <span id="viewedCount">0</span> 👁
+      · <span id="correctCount">0</span> ✔
+      · <span id="incorrectCount">0</span> ✖
+      · <span id="correctPerc">0</span>%
+    </p>
+    <p id="prompt">prompt</p>
+    <p id="context">context</p>
+    <input type="text" id="answer" name="answer" />
+    <p id="expected">expected</p>
+
+    <script src="scripts/flashcards.js"></script>
   </body>
 </html>
