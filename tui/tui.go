@@ -17,8 +17,8 @@ import (
 type TUI struct {
 	// session is the current review session.
 	session *review.Session
-	// ShowExpected is true if the expected answer should be shown.
-	showExpected bool
+	// isFirstGuess is true if the expected answer should be shown.
+	isFirstGuess bool
 	// answer is a text input field where the user should enter the answer.
 	answer textinput.Model
 	// help is the state of the UI element for displaying keybindings.
@@ -44,12 +44,13 @@ func New(lc review.LoadConfig, backupPath string, log *os.File) (*TUI, error) {
 	}
 
 	return &TUI{
-		session:    s,
-		answer:     answer,
-		help:       help.New(),
-		keys:       NewKeyMap(),
-		backupPath: backupPath,
-		log:        log,
+		session:      s,
+		isFirstGuess: true,
+		answer:       answer,
+		help:         help.New(),
+		keys:         NewKeyMap(),
+		backupPath:   backupPath,
+		log:          log,
 	}, nil
 }
 
@@ -67,14 +68,14 @@ func (t *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, t.keys.Quit):
 			return t, tea.Quit
 		case key.Matches(msg, t.keys.Submit):
-			ok := t.session.Submit(t.answer.Value(), !t.showExpected)
+			ok := t.session.Submit(t.answer.Value(), t.isFirstGuess)
 			if !ok {
-				t.showExpected = true
+				t.isFirstGuess = false
 				break
 			}
 
 			// Once the user provides the correct answer, we can reset the UI and back up the state.
-			t.showExpected = false
+			t.isFirstGuess = true
 			t.answer.Reset()
 			err := io.WriteJSONFile(t.backupPath, t.session)
 			if err != nil {
@@ -101,7 +102,7 @@ func (t *TUI) View() string {
 	}
 
 	var expected string
-	if t.showExpected {
+	if !t.isFirstGuess {
 		expected = expectedStyle.Render("Expected: " + f.Answers[0])
 	}
 
