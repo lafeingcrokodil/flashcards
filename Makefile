@@ -16,4 +16,8 @@ tui: ## Run the application using a terminal UI.
 	@ go run cmd/tui/main.go
 
 web: ## Run the application using a web UI.
+	@ . $(HOME)/.nvm/nvm.sh \
+		&& nvm install stable \
+		&& npm install \
+		&& npx tsc
 	@ go run cmd/web/main.go

@@ -1,18 +1,22 @@
 window.addEventListener("load", () => {
   fetchState()
-    .then(state => {
+    .then((state: State) => {
       let app = new App(state);
       app.display();
     })
-    .catch(err => console.error(err.message));
+    .catch((err: Error) => console.error(err.message));
 });
 
 class App {
-  constructor(state) {
+  state: State;
+  ui: UI;
+
+  isFirstGuess = true;
+  viewCount = 0;
+  correctCount = 0;
+
+  constructor(state: State) {
     this.state = state;
-    this.isFirstGuess = true;
-    this.viewCount = 0;
-    this.correctCount = 0;
     this.ui = new UI();
     this.ui.answer.addEventListener("keyup", this.handleAnswerKeyup.bind(this));
     this.ui.submit.addEventListener("click", this.handleSubmitClick.bind(this));
@@ -21,7 +25,7 @@ class App {
   display() {
     console.log(this.state);
 
-    this.ui.unreviewedCount.textContent = this.state["unreviewed"].length;
+    this.ui.unreviewedCount.textContent = this.state["unreviewed"].length.toString();
 
     let proficiencyCounts = "";
     this.state["countByProficiency"].forEach((count, i) => {
@@ -29,10 +33,10 @@ class App {
     });
     this.ui.proficiencyCounts.innerHTML = proficiencyCounts;
 
-    this.ui.viewCount.textContent = this.viewCount;
-    this.ui.correctCount.textContent = this.correctCount;
-    this.ui.incorrectCount.textContent = this.viewCount - this.correctCount;
-    this.ui.correctPerc.textContent = percent(this.correctCount, this.viewCount);
+    this.ui.viewCount.textContent = this.viewCount.toString();
+    this.ui.correctCount.textContent = this.correctCount.toString();
+    this.ui.incorrectCount.textContent = (this.viewCount - this.correctCount).toString();
+    this.ui.correctPerc.textContent = percent(this.correctCount, this.viewCount).toString();
 
     const current = this.state["current"][0];
     this.ui.prompt.textContent = current["prompt"];
@@ -44,7 +48,7 @@ class App {
     }
   }
 
-  handleAnswerKeyup(event) {
+  handleAnswerKeyup(event: KeyboardEvent) {
     if (event.key !== "Enter") return;
     this.ui.submit.click();
     event.preventDefault();
@@ -53,7 +57,7 @@ class App {
   handleSubmitClick() {
     const answer = this.ui.answer.value;
     submit(answer, this.isFirstGuess)
-      .then(isCorrect => {
+      .then((isCorrect: string) => {
         switch (isCorrect) {
           case "true":
             if (this.isFirstGuess) {
@@ -81,21 +85,33 @@ class App {
 }
 
 class UI {
+  unreviewedCount: Element;
+  proficiencyCounts: Element;
+  viewCount: Element;
+  correctCount: Element;
+  incorrectCount: Element;
+  correctPerc: Element;
+  prompt: Element;
+  context: Element;
+  answer: HTMLInputElement;
+  submit: HTMLInputElement;
+  expected: Element;
+
   constructor() {
-    this.unreviewedCount = document.querySelector("#unreviewedCount");
-    this.proficiencyCounts = document.querySelector("#proficiencyCounts");
-    this.viewCount = document.querySelector("#viewCount");
-    this.correctCount = document.querySelector("#correctCount");
-    this.incorrectCount = document.querySelector("#incorrectCount");
-    this.correctPerc = document.querySelector("#correctPerc");
-    this.prompt = document.querySelector("#prompt");
-    this.context = document.querySelector("#context");
-    this.answer = document.querySelector("#answer");
-    this.submit = document.querySelector("#submit");
-    this.expected = document.querySelector("#expected");
+    this.unreviewedCount = getElement("#unreviewedCount");
+    this.proficiencyCounts = getElement("#proficiencyCounts");
+    this.viewCount = getElement("#viewCount");
+    this.correctCount = getElement("#correctCount");
+    this.incorrectCount = getElement("#incorrectCount");
+    this.correctPerc = getElement("#correctPerc");
+    this.prompt = getElement("#prompt");
+    this.context = getElement("#context");
+    this.answer = getHTMLInputElement("#answer");
+    this.submit = getHTMLInputElement("#submit");
+    this.expected = getElement("#expected");
   }
 
-  getProficiencyClass(proficiency) {
+  getProficiencyClass(proficiency: number): string {
     switch (proficiency) {
       case 0: return "error";
       case 1: return "weak";
@@ -111,7 +127,19 @@ class UI {
   }
 }
 
-function fetchState() {
+interface State {
+  unreviewed: Flashcard[];
+  countByProficiency: number[];
+  current: Flashcard[];
+}
+
+interface Flashcard {
+  prompt: string;
+  context: string;
+  answers: string[];
+}
+
+function fetchState(): Promise<State> {
   return fetch("state")
     .then(response => {
       if (!response.ok) {
@@ -121,10 +149,10 @@ function fetchState() {
     });
 }
 
-function submit(answer, isFirstGuess) {
+function submit(answer: string, isFirstGuess: boolean): Promise<string> {
   return fetch("submit?" + new URLSearchParams({
     "answer": answer,
-    "isFirstGuess": isFirstGuess,
+    "isFirstGuess": isFirstGuess.toString(),
   }))
     .then(response => {
       if (!response.ok) {
@@ -134,7 +162,20 @@ function submit(answer, isFirstGuess) {
     });
 }
 
-function percent(numerator, denominator) {
+function getElement(selector: string): Element {
+  const elem = document.querySelector(selector);
+  if (!elem) {
+    throw new Error(`Element not found: ${selector}`);
+  }
+  return elem;
+}
+
+function getHTMLInputElement(selector: string): HTMLInputElement {
+  const elem = getElement(selector);
+  return elem as HTMLInputElement;
+}
+
+function percent(numerator: number, denominator: number): number {
   if (denominator === 0) {
     return 0;
   }
