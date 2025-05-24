@@ -1,0 +1,52 @@
+body {
+  font-family: 'Roboto Mono', monospace;
+  color: #d0d0d0;
+  background-color: #202020;
+  text-align: center;
+}
+
+input[type=text] {
+  font-family: 'Roboto Mono', monospace;
+  font-size: xx-large;
+  color: #d0d0d0;
+  background-color: #202020;
+  border: none;
+  border-bottom: 1px solid #d0d0d0;
+}
+
+input[type=text]:focus {
+  outline: none;
+}
+
+input[type=button] {
+  display: none;
+}
+
+.info {
+  font-style: italic;
+  color: #28b;
+}
+
+.error {
+  color: #c66;
+}
+
+.weak {
+  color: #a63;
+}
+
+.ok {
+  color: #aa2;
+}
+
+.strong {
+  color: #6a2;
+}
+
+.correct {
+  color: #192;
+}
+
+#expected {
+  font-size: larger;
+}

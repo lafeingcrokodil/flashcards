@@ -24,10 +24,10 @@ class App {
     this.ui.unreviewedCount.textContent = this.state["unreviewed"].length;
 
     let proficiencyCounts = "";
-    for (const count of this.state["countByProficiency"]) {
-      proficiencyCounts += ` · ${count}`;
-    }
-    this.ui.proficiencyCounts.textContent = proficiencyCounts;
+    this.state["countByProficiency"].forEach((count, i) => {
+      proficiencyCounts += ` · <span class=${this.ui.getProficiencyClass(i)}>${count}</span>`;
+    });
+    this.ui.proficiencyCounts.innerHTML = proficiencyCounts;
 
     this.ui.viewCount.textContent = this.viewCount;
     this.ui.correctCount.textContent = this.correctCount;
@@ -92,6 +92,16 @@ class UI {
     this.answer = document.querySelector("#answer");
     this.submit = document.querySelector("#submit");
     this.expected = document.querySelector("#expected");
+  }
+
+  getProficiencyClass(proficiency) {
+    switch (proficiency) {
+      case 0: return "error";
+      case 1: return "weak";
+      case 2: return "ok";
+      case 3: return "strong";
+      default: return "correct";
+    };
   }
 
   reset() {

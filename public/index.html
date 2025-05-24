@@ -1,24 +1,34 @@
 <!doctype html>
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <title>Flashcard Review</title>
-  </head>
-  <body>
-    <p>
-      <span id="unreviewedCount">0</span>
-      <span id="proficiencyCounts"> · 0</span>
-      | <span id="viewCount">0</span> 👁
-      · <span id="correctCount">0</span> ✔
-      · <span id="incorrectCount">0</span> ✖
-      · <span id="correctPerc">0</span>%
-    </p>
-    <p id="prompt"></p>
-    <p id="context"></p>
-    <input type="text" id="answer" name="answer" />
-    <input type="button" id="submit" value="Check" />
-    <p id="expected"></p>
 
-    <script src="flashcards.js"></script>
-  </body>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="description" content="Application for reviewing flashcards.">
+  <meta name="author" content="lafeingcrokodil">
+
+  <title>Flashcard Review</title>
+
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto+Mono&display=swap">
+  <link rel="stylesheet" href="main.css">
+</head>
+
+<body>
+  <p>
+    <span id="unreviewedCount">0</span>
+    <span id="proficiencyCounts"> · 0</span>
+    | <span id="viewCount">0</span> 👁
+    · <span class="correct"><span id="correctCount">0</span> ✔</span>
+    · <span class="error"><span id="incorrectCount">0</span> ✖</span>
+    · <span id="correctPerc">0</span>%
+  </p>
+  <h1 id="prompt"></h1>
+  <p class="info">(<span id="context"></span></span>)</p>
+  <input type="text" id="answer" name="answer" />
+  <input type="button" id="submit" value="Check" />
+  <p id="expected" class="error"></p>
+
+  <script src="flashcards.js"></script>
+</body>
+
 </html>
