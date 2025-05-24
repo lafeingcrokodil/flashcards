@@ -25,10 +25,10 @@ class App {
   display(isCorrect: boolean) {
     console.log(this.state);
 
-    this.ui.unreviewedCount.textContent = this.state["unreviewed"].length.toString();
+    this.ui.unreviewedCount.textContent = this.state.unreviewed.length.toString();
 
     let proficiencyCounts = "";
-    this.state["countByProficiency"].forEach((count, i) => {
+    this.state.countByProficiency.forEach((count, i) => {
       proficiencyCounts += ` · <span class=${this.ui.getProficiencyClass(i)}>${count}</span>`;
     });
     this.ui.proficiencyCounts.innerHTML = proficiencyCounts;
@@ -38,9 +38,12 @@ class App {
     this.ui.incorrectCount.textContent = (this.viewCount - this.correctCount).toString();
     this.ui.correctPerc.textContent = percent(this.correctCount, this.viewCount).toString();
 
-    const current = this.state["current"][0];
-    this.ui.prompt.textContent = current["prompt"];
-    const context = current["context"];
+    const current = this.state.current[0];
+    if (!current) {
+      throw new Error("Current deck is empty");
+    }
+    this.ui.prompt.textContent = current.prompt;
+    const context = current.context;
     this.ui.context.textContent = context ? `(${context})` : "";
 
     if (isCorrect) {
@@ -50,7 +53,11 @@ class App {
     if (this.isFirstGuess) {
       this.ui.expected.textContent = "";
     } else {
-      this.ui.expected.textContent = current["answers"][0];
+      const expected = current.answers[0];
+      if (!expected) {
+        throw new Error("Flashcard is missing answers");
+      }
+      this.ui.expected.textContent = expected;
     }
   }
 

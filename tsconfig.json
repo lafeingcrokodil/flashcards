@@ -2,12 +2,24 @@
   "include": ["client"],
   "compilerOptions": {
     "outDir": "./public",
-    "target": "es5",
+    "sourceMap": true,
+    "target": "es6",
     "module": "es6",
     "moduleResolution": "node",
     "allowJs": false,
     "strict": true,
-    "noImplicitAny": true,
-    "allowUnreachableCode": false
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false,
+    "exactOptionalPropertyTypes": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noUncheckedIndexedAccess": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "lib": ["ES6", "DOM", "DOM.Iterable"],
   }
 }
