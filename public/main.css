@@ -5,6 +5,17 @@ body {
   text-align: center;
 }
 
+input[type=button] {
+  font-family: 'Roboto Mono', monospace;
+  color: #aaa;
+  background-color: #202020;
+  border: none;
+}
+
+input[type=button] {
+  cursor: pointer;
+}
+
 input[type=text] {
   font-family: 'Roboto Mono', monospace;
   font-size: xx-large;
@@ -44,19 +55,15 @@ input[type=text]:focus {
 }
 
 #allAnswersToggle {
-  font-family: 'Roboto Mono', monospace;
-  color: #aaa;
-  background-color: #202020;
   margin-top: 100px;
-  border: none;
-}
-
-#allAnswersToggle:hover {
-  cursor: pointer;
 }
 
 #expected {
   font-size: larger;
+}
+
+#pronounce {
+  font-size: x-large;
 }
 
 #submit {

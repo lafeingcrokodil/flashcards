@@ -18,6 +18,7 @@ class App {
   constructor(state: State) {
     this.state = state;
     this.ui = new UI();
+    this.ui.pronounce.addEventListener("click", this.handlePronounceClick.bind(this));
     this.ui.answer.addEventListener("keyup", this.handleAnswerKeyup.bind(this));
     this.ui.submit.addEventListener("click", this.handleSubmitClick.bind(this));
     this.ui.allAnswersToggle.addEventListener("click", this.handleAllAnswersToggleClick.bind(this));
@@ -100,6 +101,15 @@ class App {
     return b.proficiency - a.proficiency
   }
 
+  handlePronounceClick() {
+    const current = this.state.current[0];
+    if (!current) {
+      throw new Error("Current deck is empty");
+    }
+    new Audio(`audio/${current.answer}.mp3`).play()
+      .catch((err: Error) => console.error(err.message));
+  }
+
   handleAnswerKeyup(event: KeyboardEvent) {
     if (event.key !== "Enter") return;
     this.ui.submit.click();
@@ -160,6 +170,7 @@ class UI {
   correctCount: HTMLElement;
   incorrectCount: HTMLElement;
   correctPerc: HTMLElement;
+  pronounce: HTMLInputElement;
   prompt: HTMLElement;
   context: HTMLElement;
   answer: HTMLInputElement;
@@ -175,6 +186,7 @@ class UI {
     this.correctCount = getHTMLElement("#correctCount");
     this.incorrectCount = getHTMLElement("#incorrectCount");
     this.correctPerc = getHTMLElement("#correctPerc");
+    this.pronounce = getHTMLInputElement("#pronounce");
     this.prompt = getHTMLElement("#prompt");
     this.context = getHTMLElement("#context");
     this.answer = getHTMLInputElement("#answer");
