@@ -26,7 +26,13 @@ class App {
   display(isCorrect: boolean) {
     console.log(this.state);
 
-    this.ui.unreviewedCount.textContent = this.state.unreviewed.length.toString();
+    let unreviewedCount = this.state.unreviewed.length;
+    for (const f of this.state.current) {
+      if (f.viewCount == 0) {
+        unreviewedCount++;
+      }
+    }
+    this.ui.unreviewedCount.textContent = unreviewedCount.toString();
 
     let proficiencyCounts = "";
     this.state.countByProficiency.forEach((count, i) => {

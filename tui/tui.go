@@ -107,7 +107,7 @@ func (t *TUI) View() string {
 	}
 
 	return fmt.Sprintf("%d%s | %d 👁 · %d ✔ · %d ✖ · %d%%\n\n%s%s\n\n%s\n%s\n\n%s\n",
-		len(t.session.Unreviewed),
+		t.session.UnreviewedCount(),
 		proficiencyCounts,
 		t.session.ViewCount,
 		t.session.CorrectCount,

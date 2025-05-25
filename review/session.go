@@ -125,6 +125,17 @@ func (s *Session) Submit(answer string, isFirstGuess bool) bool {
 	return true
 }
 
+// UnreviewedCount returns the number of flashcards that haven't yet been reviewed.
+func (s *Session) UnreviewedCount() int {
+	unreviewedCount := len(s.Unreviewed)
+	for _, f := range s.Current {
+		if f.ViewCount == 0 {
+			unreviewedCount++
+		}
+	}
+	return unreviewedCount
+}
+
 // replenishCurrentDeck adds cards from other decks to the current deck.
 func (s *Session) replenishCurrentDeck() bool {
 	var popped []*Flashcard
