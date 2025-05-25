@@ -1,5 +1,5 @@
 prompt	answer	context
 P1	A1	C1
-P1	A2	C1
-P1	A3	C2
-P2	A4	
+P1	A2	C2
+P1	A3	
+P2	A1	C1

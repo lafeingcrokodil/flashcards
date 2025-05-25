@@ -13,8 +13,8 @@ type Flashcard struct {
 	Prompt string `json:"prompt"`
 	// Context helps narrow down possible answers.
 	Context string `json:"context"`
-	// Answer is the set of accepted answers.
-	Answers []string `json:"answers"`
+	// Answer is the accepted answer.
+	Answer string `json:"answer"`
 	// Proficiency indicates how reliably the user provides the correct answer.
 	Proficiency int `json:"proficiency"`
 	// ViewCount is the number of times the flashcard has been reviewed.
@@ -43,14 +43,9 @@ func qualifiedPrompt(prompt, context string) string {
 	return prompt
 }
 
-// Check returns true if the provided answer matches one of the expected answers.
+// Check returns true if the provided answer matches the expected one.
 func (f *Flashcard) Check(answer string) bool {
-	for _, expected := range f.Answers {
-		if expected == answer {
-			return true
-		}
-	}
-	return false
+	return answer == f.Answer
 }
 
 // LoadFromCSV loads flashcards from a CSV file.
@@ -90,10 +85,10 @@ func LoadFromCSV(lc LoadConfig) ([]*Flashcard, error) {
 				f = &Flashcard{
 					Prompt:  record[lc.PromptHeader],
 					Context: record[lc.ContextHeader],
-					Answers: []string{record[lc.AnswerHeader]},
+					Answer:  record[lc.AnswerHeader],
 				}
 			} else {
-				f.Answers = append(f.Answers, record[lc.AnswerHeader])
+				return nil, fmt.Errorf("ambiguous answer for %s", qualifiedPrompt(f.Prompt, f.Context))
 			}
 		}
 		fs = append(fs, f)

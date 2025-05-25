@@ -103,7 +103,7 @@ func (t *TUI) View() string {
 
 	var expected string
 	if !t.isFirstGuess {
-		expected = expectedStyle.Render("Expected: " + f.Answers[0])
+		expected = expectedStyle.Render("Expected: " + f.Answer)
 	}
 
 	return fmt.Sprintf("%d%s | %d 👁 · %d ✔ · %d ✖ · %d%%\n\n%s%s\n\n%s\n%s\n\n%s\n",

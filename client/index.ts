@@ -54,23 +54,20 @@ class App {
     if (this.isFirstGuess) {
       this.ui.expected.textContent = "";
     } else {
-      const expected = current.answers[0];
-      if (!expected) {
-        throw new Error("Flashcard is missing answers");
+      if (!current.answer) {
+        throw new Error("Flashcard is missing an answer");
       }
-      this.ui.expected.textContent = expected;
+      this.ui.expected.textContent = current.answer;
     }
 
     const sortedFlashcards = this.getSortedFlashcards();
     this.ui.allAnswers.innerHTML = " · ";
-    for (const flashcard of sortedFlashcards) {
-      for (const answer of flashcard.answers) {
-        let proficiencyClass = "";
-        if (flashcard.viewCount > 0) {
-          proficiencyClass = this.getProficiencyClass(flashcard.proficiency);
-        }
-        this.ui.allAnswers.innerHTML += `<span class=${proficiencyClass}>${answer}</span> · `;
+    for (const f of sortedFlashcards) {
+      let proficiencyClass = "";
+      if (f.viewCount > 0) {
+        proficiencyClass = this.getProficiencyClass(f.proficiency);
       }
+      this.ui.allAnswers.innerHTML += `<span class=${proficiencyClass}>${f.answer}</span> · `;
     }
   }
 
@@ -183,7 +180,7 @@ interface State {
 interface Flashcard {
   prompt: string;
   context: string;
-  answers: string[];
+  answer: string;
   viewCount: number;
   proficiency: number;
 }
