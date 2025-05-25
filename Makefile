@@ -3,6 +3,9 @@
 help: ## Show this help.
 	@ sed -nEe '/@sed/!s/[^:#]*##\s*/ /p' $(MAKEFILE_LIST) | column -tl 2
 
+audio: ## Create MP3 files for text in a CSV file.
+	@ go run cmd/audio/main.go
+
 lint: ## Run linters.
 	@ golangci-lint run
 
