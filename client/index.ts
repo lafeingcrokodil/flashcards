@@ -98,30 +98,30 @@ class App {
 }
 
 class UI {
-  unreviewedCount: Element;
-  proficiencyCounts: Element;
-  viewCount: Element;
-  correctCount: Element;
-  incorrectCount: Element;
-  correctPerc: Element;
-  prompt: Element;
-  context: Element;
+  unreviewedCount: HTMLElement;
+  proficiencyCounts: HTMLElement;
+  viewCount: HTMLElement;
+  correctCount: HTMLElement;
+  incorrectCount: HTMLElement;
+  correctPerc: HTMLElement;
+  prompt: HTMLElement;
+  context: HTMLElement;
   answer: HTMLInputElement;
   submit: HTMLInputElement;
-  expected: Element;
+  expected: HTMLElement;
 
   constructor() {
-    this.unreviewedCount = getElement("#unreviewedCount");
-    this.proficiencyCounts = getElement("#proficiencyCounts");
-    this.viewCount = getElement("#viewCount");
-    this.correctCount = getElement("#correctCount");
-    this.incorrectCount = getElement("#incorrectCount");
-    this.correctPerc = getElement("#correctPerc");
-    this.prompt = getElement("#prompt");
-    this.context = getElement("#context");
+    this.unreviewedCount = getHTMLElement("#unreviewedCount");
+    this.proficiencyCounts = getHTMLElement("#proficiencyCounts");
+    this.viewCount = getHTMLElement("#viewCount");
+    this.correctCount = getHTMLElement("#correctCount");
+    this.incorrectCount = getHTMLElement("#incorrectCount");
+    this.correctPerc = getHTMLElement("#correctPerc");
+    this.prompt = getHTMLElement("#prompt");
+    this.context = getHTMLElement("#context");
     this.answer = getHTMLInputElement("#answer");
     this.submit = getHTMLInputElement("#submit");
-    this.expected = getElement("#expected");
+    this.expected = getHTMLElement("#expected");
   }
 }
 
@@ -168,16 +168,16 @@ async function patchState(answer: string, isFirstGuess: boolean): Promise<State|
   return response.json();
 }
 
-function getElement(selector: string): Element {
+function getHTMLElement(selector: string): HTMLElement {
   const elem = document.querySelector(selector);
   if (!elem) {
     throw new Error(`Element not found: ${selector}`);
   }
-  return elem;
+  return elem as HTMLElement;
 }
 
 function getHTMLInputElement(selector: string): HTMLInputElement {
-  const elem = getElement(selector);
+  const elem = getHTMLElement(selector);
   return elem as HTMLInputElement;
 }
 
