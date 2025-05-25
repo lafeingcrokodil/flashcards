@@ -7,7 +7,7 @@ korean	english	context
 여자	woman	
 남자	man	
 사과	apple	
-차	tea	
+차	tea	Sino-Korean
 우유	milk	
 컴퓨터	computer	
 사전	dictionary	
@@ -29,10 +29,10 @@ korean	english	context
 은행	bank	
 도서관	library	
 학교	school	
-검은색	black	
+검은색	black	native
 파란색	blue	
 보라색	purple	
-하얀색	white	
+하얀색	white	native
 빨간색	red	
 녹색	green	
 핑크색	pink	
@@ -189,7 +189,7 @@ korean	english	context
 안	not	negates a verb or adjective
 밥	rice	
 불고기	barbecued beef	
-함께	together	
+함께	together	more literary
 매일	every day	
 단어	word	
 어렵다	to be difficult	
@@ -205,8 +205,8 @@ korean	english	context
 언어	language	
 베트남	vietnam	
 호텔	hotel	
-춥다	to be cold	
-덥다	to be hot	
+춥다	to be cold	weather
+덥다	to be hot	weather
 건물	building	
 물건	item	
 무겁다	to be heavy	
@@ -239,8 +239,8 @@ korean	english	context
 생선	fish	
 스테이크	steak	
 음료	beverage	
-뜨겁다	to be hot	
-차갑다	to be cold	
+뜨겁다	to be hot	objects
+차갑다	to be cold	objects
 달걀	chicken egg	native
 김밥	kimbap	
 싸다	to be cheap	
@@ -287,7 +287,7 @@ korean	english	context
 식당	restaurant	
 -에서	from/in	
 집	house	
-같이	together	
+같이	together	etymology: same
 배우	actor	
 가수	singer	
 남아공	South Africa	
@@ -369,11 +369,11 @@ korean	english	context
 헤어	hair	
 골드	gold	
 실버	silver	
-블랙	black	
-화이트	white	
+블랙	black	loan word
+화이트	white	loan word
 모니터	monitor	
 폰	phone	loan word
-티	tea	
+티	tea	loan word
 아메리카노	americano	
 아이스크림	ice cream	
 콜라	coke	
