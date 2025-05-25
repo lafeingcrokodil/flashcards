@@ -55,10 +55,6 @@ input[type=text]:focus {
   cursor: pointer;
 }
 
-#allAnswers {
-  display: none;
-}
-
 #expected {
   font-size: larger;
 }

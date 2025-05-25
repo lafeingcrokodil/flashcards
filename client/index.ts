@@ -66,15 +66,7 @@ class App {
       this.ui.expected.textContent = current.answer;
     }
 
-    const sortedFlashcards = this.getSortedFlashcards();
-    this.ui.allAnswers.innerHTML = " · ";
-    for (const f of sortedFlashcards) {
-      let proficiencyClass = "";
-      if (f.viewCount > 0) {
-        proficiencyClass = this.getProficiencyClass(f.proficiency);
-      }
-      this.ui.allAnswers.innerHTML += `<span class=${proficiencyClass}>${f.answer}</span> · `;
-    }
+    this.hideAllAnswers();
   }
 
   getProficiencyClass(proficiency: number): string {
@@ -135,12 +127,29 @@ class App {
 
   handleAllAnswersToggleClick() {
     if (this.ui.allAnswers.style.display === "block") {
-      this.ui.allAnswers.style.display = "none";
-      this.ui.allAnswersToggle.value = "▸ Show all answers by proficiency";
+      this.hideAllAnswers();
     } else {
-      this.ui.allAnswers.style.display = "block";
-      this.ui.allAnswersToggle.value = "▾ Hide answers";
+      this.displayAllAnswers();
     }
+  }
+
+  displayAllAnswers() {
+    const sortedFlashcards = this.getSortedFlashcards();
+    this.ui.allAnswers.innerHTML = " · ";
+    for (const f of sortedFlashcards) {
+      let proficiencyClass = "";
+      if (f.viewCount > 0) {
+        proficiencyClass = this.getProficiencyClass(f.proficiency);
+      }
+      this.ui.allAnswers.innerHTML += `<span class=${proficiencyClass}>${f.answer}</span> · `;
+    }
+    this.ui.allAnswers.style.display = "block";
+    this.ui.allAnswersToggle.value = "▾ Hide answers";
+  }
+
+  hideAllAnswers() {
+    this.ui.allAnswers.style.display = "none";
+    this.ui.allAnswersToggle.value = "▸ Show all answers by proficiency";
   }
 }
 
