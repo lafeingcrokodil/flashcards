@@ -20,7 +20,7 @@ func main() {
 }
 
 func run() error {
-	err := os.MkdirAll(path.Base(backupPath), os.ModePerm)
+	err := os.MkdirAll(path.Dir(backupPath), os.ModePerm)
 	if err != nil {
 		return err
 	}

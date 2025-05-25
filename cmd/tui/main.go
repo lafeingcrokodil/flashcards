@@ -23,7 +23,7 @@ func main() {
 func run() error {
 	filepaths := []string{backupPath, debugPath}
 	for _, p := range filepaths {
-		err := os.MkdirAll(path.Base(p), os.ModePerm)
+		err := os.MkdirAll(path.Dir(p), os.ModePerm)
 		if err != nil {
 			return err
 		}
