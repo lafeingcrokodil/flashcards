@@ -29,7 +29,7 @@ class App {
 
     let proficiencyCounts = "";
     this.state.countByProficiency.forEach((count, i) => {
-      proficiencyCounts += ` · <span class=${this.ui.getProficiencyClass(i)}>${count}</span>`;
+      proficiencyCounts += ` · <span class=${this.getProficiencyClass(i)}>${count}</span>`;
     });
     this.ui.proficiencyCounts.innerHTML = proficiencyCounts;
 
@@ -59,6 +59,16 @@ class App {
       }
       this.ui.expected.textContent = expected;
     }
+  }
+
+  getProficiencyClass(proficiency: number): string {
+    switch (proficiency) {
+      case 0: return "error";
+      case 1: return "weak";
+      case 2: return "ok";
+      case 3: return "strong";
+      default: return "correct";
+    };
   }
 
   handleAnswerKeyup(event: KeyboardEvent) {
@@ -112,16 +122,6 @@ class UI {
     this.answer = getHTMLInputElement("#answer");
     this.submit = getHTMLInputElement("#submit");
     this.expected = getElement("#expected");
-  }
-
-  getProficiencyClass(proficiency: number): string {
-    switch (proficiency) {
-      case 0: return "error";
-      case 1: return "weak";
-      case 2: return "ok";
-      case 3: return "strong";
-      default: return "correct";
-    };
   }
 }
 
