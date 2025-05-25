@@ -18,10 +18,6 @@ input[type=text]:focus {
   outline: none;
 }
 
-input[type=button] {
-  display: none;
-}
-
 .info {
   font-style: italic;
   color: #28b;
@@ -47,6 +43,26 @@ input[type=button] {
   color: #192;
 }
 
+#allAnswersToggle {
+  font-family: 'Roboto Mono', monospace;
+  color: #aaa;
+  background-color: #202020;
+  margin-top: 100px;
+  border: none;
+}
+
+#allAnswersToggle:hover {
+  cursor: pointer;
+}
+
+#allAnswers {
+  display: none;
+}
+
 #expected {
   font-size: larger;
+}
+
+#submit {
+  display: none;
 }

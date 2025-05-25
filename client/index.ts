@@ -20,6 +20,7 @@ class App {
     this.ui = new UI();
     this.ui.answer.addEventListener("keyup", this.handleAnswerKeyup.bind(this));
     this.ui.submit.addEventListener("click", this.handleSubmitClick.bind(this));
+    this.ui.allAnswersToggle.addEventListener("click", this.handleAllAnswersToggleClick.bind(this));
   }
 
   display(isCorrect: boolean) {
@@ -59,6 +60,18 @@ class App {
       }
       this.ui.expected.textContent = expected;
     }
+
+    const sortedFlashcards = this.getSortedFlashcards();
+    this.ui.allAnswers.innerHTML = " · ";
+    for (const flashcard of sortedFlashcards) {
+      for (const answer of flashcard.answers) {
+        let proficiencyClass = "";
+        if (flashcard.viewCount > 0) {
+          proficiencyClass = this.getProficiencyClass(flashcard.proficiency);
+        }
+        this.ui.allAnswers.innerHTML += `<span class=${proficiencyClass}>${answer}</span> · `;
+      }
+    }
   }
 
   getProficiencyClass(proficiency: number): string {
@@ -69,6 +82,27 @@ class App {
       case 3: return "strong";
       default: return "correct";
     };
+  }
+
+  getSortedFlashcards(): Flashcard[] {
+    let flashcards = this.state.current.concat(this.state.unreviewed);
+    for (const deck of this.state.decks) {
+      if (deck) {
+        flashcards = flashcards.concat(deck);
+      }
+    }
+    flashcards.sort(this.compareProficiency);
+    return flashcards
+  }
+
+  compareProficiency(a: Flashcard, b: Flashcard): number {
+    if (a.viewCount > 0 && b.viewCount == 0) {
+      return -1
+    }
+    if (a.viewCount == 0 && b.viewCount > 0) {
+      return 1
+    }
+    return b.proficiency - a.proficiency
   }
 
   handleAnswerKeyup(event: KeyboardEvent) {
@@ -95,6 +129,16 @@ class App {
         }
       });
   }
+
+  handleAllAnswersToggleClick() {
+    if (this.ui.allAnswers.style.display === "block") {
+      this.ui.allAnswers.style.display = "none";
+      this.ui.allAnswersToggle.value = "▸ Show all answers by proficiency";
+    } else {
+      this.ui.allAnswers.style.display = "block";
+      this.ui.allAnswersToggle.value = "▾ Hide answers";
+    }
+  }
 }
 
 class UI {
@@ -109,6 +153,8 @@ class UI {
   answer: HTMLInputElement;
   submit: HTMLInputElement;
   expected: HTMLElement;
+  allAnswersToggle: HTMLInputElement;
+  allAnswers: HTMLElement;
 
   constructor() {
     this.unreviewedCount = getHTMLElement("#unreviewedCount");
@@ -122,19 +168,24 @@ class UI {
     this.answer = getHTMLInputElement("#answer");
     this.submit = getHTMLInputElement("#submit");
     this.expected = getHTMLElement("#expected");
+    this.allAnswersToggle = getHTMLInputElement("#allAnswersToggle");
+    this.allAnswers = getHTMLElement("#allAnswers");
   }
 }
 
 interface State {
-  unreviewed: Flashcard[];
-  countByProficiency: number[];
   current: Flashcard[];
+  unreviewed: Flashcard[];
+  decks: Flashcard[][];
+  countByProficiency: number[];
 }
 
 interface Flashcard {
   prompt: string;
   context: string;
   answers: string[];
+  viewCount: number;
+  proficiency: number;
 }
 
 async function getState(): Promise<State> {
