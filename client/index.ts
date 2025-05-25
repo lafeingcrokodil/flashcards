@@ -83,7 +83,7 @@ class App {
           this.isFirstGuess = false;
           this.display(false);
         }
-      })
+      });
   }
 }
 
@@ -137,38 +137,35 @@ interface Flashcard {
   answers: string[];
 }
 
-function getState(): Promise<State> {
-  return fetch("state")
-    .then(response => {
-      if (!response.ok) {
-        throw new Error(`HTTP error: ${response.status}`);
-      }
-      return response.json();
-    });
+async function getState(): Promise<State> {
+  const response = await fetch("state");
+  if (!response.ok) {
+    throw new Error(`HTTP error: ${response.status}`);
+  }
+  return response.json();
 }
 
-function patchState(answer: string, isFirstGuess: boolean): Promise<State|null> {
-  return fetch("state", {
+async function patchState(answer: string, isFirstGuess: boolean): Promise<State|null> {
+  const response = await fetch("state", {
     method: "PATCH",
     body: JSON.stringify({
       "answer": answer,
       "isFirstGuess": isFirstGuess,
     }),
-  })
-    .then(response => {
-      // The answer was incorrect, so the state wasn't modified.
-      if (response.status == 304) {
-        return null
-      }
+  });
 
-      // The request failed for some reason.
-      if (!response.ok) {
-        throw new Error(`HTTP error: ${response.status}`);
-      }
+  // The answer was incorrect, so the state wasn't modified.
+  if (response.status == 304) {
+    return null;
+  }
 
-      // The answer was correct and the state was modified.
-      return response.json();
-    });
+  // The request failed for some reason.
+  if (!response.ok) {
+    throw new Error(`HTTP error: ${response.status}`);
+  }
+
+  // The answer was correct and the state was modified.
+  return response.json();
 }
 
 function getElement(selector: string): Element {
