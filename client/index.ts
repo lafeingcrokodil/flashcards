@@ -85,11 +85,6 @@ class App {
         }
       })
   }
-
-  updateState() {
-    return getState()
-      .then((state: State) => this.state = state);
-  }
 }
 
 class UI {
