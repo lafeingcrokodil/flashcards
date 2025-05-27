@@ -162,7 +162,7 @@ korean	english	context
 만	ten thousand	
 얼마	how much	e.g. price
 몇	how many	e.g. age
-무슨	what	
+무슨	what kind of	
 오늘	today	
 내일	tomorrow	
 원	won	
@@ -236,7 +236,7 @@ korean	english	context
 귀엽다	to be cute	
 예쁘다	to be pretty	
 밀크셰이크	milkshake	
-생선	fish	
+생선	fish	food
 스테이크	steak	
 음료	beverage	
 뜨겁다	to be hot	objects
@@ -398,3 +398,13 @@ korean	english	context
 보리차	barley tea	
 생선회	sashimi	
 빵	bread	
+국수	noodles	
+잡지	magazine	
+샴페인	champagne	
+물고기	fish	living animal
+샌드위치	sandwich	
+소고기	beef	
+비빔밥	bibimbap	
+무엇	what	pronoun
+누구	who	without subect particle
+누가	who	with subject particle
