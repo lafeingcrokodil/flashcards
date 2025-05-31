@@ -275,9 +275,12 @@ korean	english	context
 나무	tree	
 산	mountain	
 운동장	sports grounds	
--로	toward	
+-로	toward	after a vowel
+-으로	toward	after a consonant
+-로	using	after a vowel
+-으로	using	after a consonant
 시장	market	
--까지	until	
+-까지	until	a location or time
 -지 않다	not	negates a clause
 손님	guest	
 에스컬레이터	escalator	
@@ -285,7 +288,8 @@ korean	english	context
 노래방	karaoke	
 회사	company	
 식당	restaurant	
--에서	from/in	
+-에서	from	a location or time
+-에서	in	a location
 집	house	
 같이	together	etymology: same
 배우	actor	
@@ -441,3 +445,14 @@ korean	english	context
 내리다	to get off	
 양치질하다	to brush one's teeth	
 자다	to sleep	
+일하다	to work	
+목욕하다	to take a bath	
+식사하다	to have a meal	polite
+피자	pizza	
+싫어하다	to dislike	
+케이크	cake	
+-에	time marker	
+-부터	from	starting time
+-께서	subject marker	honorific
+-시	honorific suffix	after a vowel
+-으시	honorific suffix	after a consonant
