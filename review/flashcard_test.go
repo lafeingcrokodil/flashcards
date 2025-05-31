@@ -19,10 +19,10 @@ func TestLoadFromCSV(t *testing.T) {
 		{
 			filepath: "testdata/unambiguous.tsv",
 			expectedFlashcards: []*Flashcard{
-				{Prompt: "P1", Answer: "A3"},
-				{Prompt: "P1", Context: "C1", Answer: "A1"},
-				{Prompt: "P1", Context: "C2", Answer: "A2"},
-				{Prompt: "P2", Context: "C1", Answer: "A1"},
+				{ID: "3", Prompt: "P1", Answer: "A3"},
+				{ID: "1", Prompt: "P1", Context: "C1", Answer: "A1"},
+				{ID: "2", Prompt: "P1", Context: "C2", Answer: "A2"},
+				{ID: "4", Prompt: "P2", Context: "C1", Answer: "A1"},
 			},
 		},
 	}
@@ -31,6 +31,7 @@ func TestLoadFromCSV(t *testing.T) {
 		lc := LoadConfig{
 			Filepath:      tc.filepath,
 			Delimiter:     '\t',
+			IDHeader:      "id",
 			PromptHeader:  "prompt",
 			ContextHeader: "context",
 			AnswerHeader:  "answer",

@@ -3,6 +3,7 @@ package review
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"math"
 	rand "math/rand/v2"
 	"os"
@@ -30,14 +31,25 @@ type Session struct {
 }
 
 // NewSession initializes a new review session.
-func NewSession(lc LoadConfig, backupPath string) (s *Session, err error) {
+func NewSession(lc LoadConfig, backupPath string) (*Session, error) {
+	newSession, err := loadNew(lc)
+	if err != nil {
+		return nil, err
+	}
+
 	_, err = os.Stat(backupPath)
 	if errors.Is(err, os.ErrNotExist) {
-		s, err = loadNew(lc)
-	} else {
-		s, err = loadExisting(backupPath)
+		return newSession, nil
 	}
-	return
+
+	existingSession, err := loadExisting(backupPath)
+	if err != nil {
+		return nil, err
+	}
+
+	existingSession.update(newSession)
+
+	return existingSession, nil
 }
 
 // loadNew loads flashcards and initializes a new review session from scratch.
@@ -155,6 +167,89 @@ func (s *Session) replenishCurrentDeck() bool {
 	s.Current = append(s.Current, popped...)
 
 	return len(s.Current) > 0
+}
+
+// update modifies this session to include exactly the set of flashcards that are
+// included in the new session.
+func (s *Session) update(newSession *Session) {
+	// Index the flashcards to make lookups easier.
+	existingFlashcards := s.flashcardsByID()
+	newFlashcards := newSession.flashcardsByID()
+
+	// Check for flashcards from the new session that don't exist in the existing session,
+	// and update flashcards that already exist.
+	var missingFlashcards []*Flashcard
+	for _, f := range newFlashcards {
+		e, ok := existingFlashcards[f.ID]
+		if !ok {
+			fmt.Printf("INFO\tAdding flashcard with ID %s (%s)\n", f.ID, f.Answer)
+			missingFlashcards = append(missingFlashcards, f)
+			continue
+		}
+		if e.Answer != f.Answer {
+			fmt.Printf("INFO\tUpdating answer for ID %s: %s > %s\n", f.ID, e.Answer, f.Answer)
+			e.Answer = f.Answer
+		}
+		if e.Prompt != f.Prompt {
+			fmt.Printf("INFO\tUpdating prompt for ID %s (%s): %s > %s\n", f.ID, e.Answer, e.Prompt, f.Prompt)
+			e.Prompt = f.Prompt
+		}
+		if e.Context != f.Context {
+			fmt.Printf("INFO\tUpdating context for ID %s (%s): %s > %s\n", f.ID, e.Answer, e.Context, f.Context)
+			e.Context = f.Context
+		}
+	}
+
+	// The newly added flashcards should be on top of the pile of flashcards
+	// to be reviewed next.
+	unreviewed := missingFlashcards
+
+	decks := make([][]*Flashcard, numProficiencyLevels)
+
+	// Filter out any flashcards from the existing session that aren't included
+	// in the new session, and populate the updated decks.
+	for _, f := range existingFlashcards {
+		if _, ok := newFlashcards[f.ID]; !ok {
+			fmt.Printf("INFO\tRemoving flashcard with ID %s (%s)\n", f.ID, f.Answer)
+			continue
+		}
+		if f.ViewCount > 0 {
+			decks[f.Proficiency] = append(decks[f.Proficiency], f)
+		} else {
+			unreviewed = append(unreviewed, f)
+		}
+	}
+
+	// Update the current round to include the top flashcards from the updated
+	// unreviewed deck.
+	current, unreviewed := pop(unreviewed, batchSize)
+
+	// Apply all of the changes to the existing session.
+	s.Current = current
+	s.Unreviewed = unreviewed
+	s.Decks = decks
+
+	// Ensure that the current deck isn't empty.
+	replenishOK := len(s.Current) > 0
+	for !replenishOK {
+		replenishOK = s.replenishCurrentDeck()
+	}
+}
+
+// flashcardsByID returns a map of all flashcards in this session,
+// indexed by their unique identifier.
+func (s *Session) flashcardsByID() map[string]*Flashcard {
+	allFlashcards := append(s.Current, s.Unreviewed...)
+	for _, deck := range s.Decks {
+		allFlashcards = append(allFlashcards, deck...)
+	}
+
+	flashcardsByID := make(map[string]*Flashcard, len(allFlashcards))
+	for _, f := range allFlashcards {
+		flashcardsByID[f.ID] = f
+	}
+
+	return flashcardsByID
 }
 
 // pop removes the specified number of elements from the front of the queue.

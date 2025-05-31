@@ -38,6 +38,7 @@ func run() error {
 	lc := review.LoadConfig{
 		Filepath:      "data/translations.tsv",
 		Delimiter:     '\t',
+		IDHeader:      "id",
 		PromptHeader:  "english",
 		ContextHeader: "context",
 		AnswerHeader:  "korean",

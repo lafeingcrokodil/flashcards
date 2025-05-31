@@ -9,6 +9,8 @@ import (
 
 // Flashcard stores the expected answer for a given prompt.
 type Flashcard struct {
+	// ID uniquely identifies a flashcard.
+	ID string `json:"id"`
 	// Prompt is the text to be shown to the user.
 	Prompt string `json:"prompt"`
 	// Context helps narrow down possible answers.
@@ -27,6 +29,8 @@ type LoadConfig struct {
 	Filepath string
 	// Delimiter is the character that separates values in the file.
 	Delimiter rune
+	// IDHeader is the name of the column containing unique IDs.
+	IDHeader string
 	// PromptHeader is the name of the column containing the prompts.
 	PromptHeader string
 	// ContextHeader is the name of the column containing the context (if any).
@@ -83,6 +87,7 @@ func LoadFromCSV(lc LoadConfig) ([]*Flashcard, error) {
 		for _, record := range records {
 			if f == nil {
 				f = &Flashcard{
+					ID:      record[lc.IDHeader],
 					Prompt:  record[lc.PromptHeader],
 					Context: record[lc.ContextHeader],
 					Answer:  record[lc.AnswerHeader],
