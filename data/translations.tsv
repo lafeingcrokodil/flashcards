@@ -160,7 +160,7 @@ id	korean	english	context
 159	목요일	Thursday	
 160	목욕하다	to take a bath	
 161	무겁다	to be heavy	
-162	무슨	what kind of	
+162	무슨	what	before a noun
 163	무엇	what	pronoun
 164	물	water	
 165	물건	item	
@@ -456,3 +456,11 @@ id	korean	english	context
 455	화장실	toilet	
 456	회사	company	
 457	회사원	office worker	
+458	나라	country	
+459	어느	which	
+460	어떤	what kind of	
+461	언제	when	
+462	농구	basketball	
+463	축구	football	
+464	탁구	table tennis	
+465	테니스	tennis	
