@@ -81,7 +81,7 @@ class App {
   }
 
   getSortedFlashcards(): Flashcard[] {
-    let flashcards = this.state.current.concat(this.state.unreviewed);
+    let flashcards = this.state.current.concat(this.state.unreviewed || []);
     for (const deck of this.state.decks) {
       if (deck) {
         flashcards = flashcards.concat(deck);
