@@ -27,7 +27,7 @@ class App {
   display(isCorrect: boolean) {
     console.log(this.state);
 
-    let unreviewedCount = this.state.unreviewed.length;
+    let unreviewedCount = this.state.unreviewed ? this.state.unreviewed.length : 0;
     for (const f of this.state.current) {
       if (f.viewCount == 0) {
         unreviewedCount++;
