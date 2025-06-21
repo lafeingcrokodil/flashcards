@@ -23,7 +23,7 @@ func run() error {
 	if err != nil {
 		return err
 	}
-	defer c.Close()
+	defer c.Close() // nolint:errcheck
 
 	cfg := audio.Config{
 		Client:       c,
