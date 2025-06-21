@@ -45,7 +45,7 @@ func CreateMP3FromCSV(ctx context.Context, cfg Config) error {
 	return nil
 }
 
-// CreateMP3FromCSV creates an MP3 file by converting the specified text to speech.
+// CreateMP3 creates an MP3 file by converting the specified text to speech.
 // If the MP3 file already exists, this function does nothing.
 func CreateMP3(ctx context.Context, text string, cfg Config) error {
 	outputPath := path.Join(cfg.OutputDir, fmt.Sprintf("%s.mp3", text))
