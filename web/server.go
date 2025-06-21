@@ -1,6 +1,7 @@
 package web
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -28,8 +29,8 @@ type Submission struct {
 }
 
 // New initializes a new server.
-func New(lc review.LoadConfig, backupPath string) (*Server, error) {
-	s, err := review.NewSession(lc, backupPath)
+func New(ctx context.Context, fr review.FlashcardReader, backupPath string) (*Server, error) {
+	s, err := review.NewSession(ctx, fr, backupPath)
 	if err != nil {
 		return nil, err
 	}

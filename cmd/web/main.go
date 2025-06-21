@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path"
@@ -20,12 +21,14 @@ func main() {
 }
 
 func run() error {
+	ctx := context.Background()
+
 	err := os.MkdirAll(path.Dir(backupPath), os.ModePerm)
 	if err != nil {
 		return err
 	}
 
-	lc := review.LoadConfig{
+	r := &review.CSVReader{
 		Filepath:      "data/translations.tsv",
 		Delimiter:     '\t',
 		IDHeader:      "id",
@@ -34,7 +37,7 @@ func run() error {
 		AnswerHeader:  "korean",
 	}
 
-	server, err := web.New(lc, backupPath)
+	server, err := web.New(ctx, r, backupPath)
 	if err != nil {
 		return err
 	}

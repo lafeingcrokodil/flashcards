@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path"
@@ -21,6 +22,8 @@ func main() {
 }
 
 func run() error {
+	ctx := context.Background()
+
 	filepaths := []string{backupPath, debugPath}
 	for _, p := range filepaths {
 		err := os.MkdirAll(path.Dir(p), os.ModePerm)
@@ -35,7 +38,7 @@ func run() error {
 	}
 	defer log.Close() // nolint:errcheck
 
-	lc := review.LoadConfig{
+	r := &review.CSVReader{
 		Filepath:      "data/translations.tsv",
 		Delimiter:     '\t',
 		IDHeader:      "id",
@@ -44,7 +47,7 @@ func run() error {
 		AnswerHeader:  "korean",
 	}
 
-	ui, err := tui.New(lc, backupPath, log)
+	ui, err := tui.New(ctx, r, backupPath, log)
 	if err != nil {
 		return err
 	}

@@ -1,6 +1,7 @@
 package review
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -30,9 +31,15 @@ type Session struct {
 	CorrectCount int `json:"-"`
 }
 
+// FlashcardReader reads flashcard data from a data source.
+type FlashcardReader interface {
+	// Read returns a list of flashcards.
+	Read(ctx context.Context) ([]*Flashcard, error)
+}
+
 // NewSession initializes a new review session.
-func NewSession(lc LoadConfig, backupPath string) (*Session, error) {
-	newSession, err := loadNew(lc)
+func NewSession(ctx context.Context, fr FlashcardReader, backupPath string) (*Session, error) {
+	newSession, err := loadNew(ctx, fr)
 	if err != nil {
 		return nil, err
 	}
@@ -53,16 +60,29 @@ func NewSession(lc LoadConfig, backupPath string) (*Session, error) {
 }
 
 // loadNew loads flashcards and initializes a new review session from scratch.
-func loadNew(lc LoadConfig) (*Session, error) {
-	flashcards, err := LoadFromCSV(lc)
+func loadNew(ctx context.Context, fr FlashcardReader) (*Session, error) {
+	// Get the raw flashcard data.
+	flashcards, err := fr.Read(ctx)
 	if err != nil {
 		return nil, err
 	}
 
+	// Check for ambiguous qualified prompts (prompt + context).
+	flashcardsByPrompt := make(map[string]*Flashcard, len(flashcards))
+	for _, f := range flashcards {
+		prompt := f.QualifiedPrompt()
+		if _, ok := flashcardsByPrompt[prompt]; ok {
+			return nil, fmt.Errorf("ambiguous answer for %s", prompt)
+		}
+		flashcardsByPrompt[prompt] = f
+	}
+
+	// Randomize the order of the flashcards.
 	rand.Shuffle(len(flashcards), func(i, j int) {
 		flashcards[i], flashcards[j] = flashcards[j], flashcards[i]
 	})
 
+	// Pick the first batch of flashcards to review.
 	current, unreviewed := pop(flashcards, batchSize)
 
 	return &Session{

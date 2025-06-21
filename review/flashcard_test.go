@@ -6,42 +6,60 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestLoadFromCSV(t *testing.T) {
+func TestFlashcard_Check(t *testing.T) {
 	testCases := []struct {
-		filepath           string
-		expectedFlashcards []*Flashcard
-		expectedErr        string
+		prompt    string
+		answer    string
+		submitted string
+		expected  bool
 	}{
 		{
-			filepath:    "testdata/ambiguous.tsv",
-			expectedErr: "ambiguous answer for P1 (C1)",
+			prompt:    "P1",
+			answer:    "A1",
+			submitted: "A1",
+			expected:  true,
 		},
 		{
-			filepath: "testdata/unambiguous.tsv",
-			expectedFlashcards: []*Flashcard{
-				{ID: "3", Prompt: "P1", Answer: "A3"},
-				{ID: "1", Prompt: "P1", Context: "C1", Answer: "A1"},
-				{ID: "2", Prompt: "P1", Context: "C2", Answer: "A2"},
-				{ID: "4", Prompt: "P2", Context: "C1", Answer: "A1"},
-			},
+			prompt:    "P1",
+			answer:    "A1",
+			submitted: "A2",
+			expected:  false,
 		},
 	}
 
 	for _, tc := range testCases {
-		lc := LoadConfig{
-			Filepath:      tc.filepath,
-			Delimiter:     '\t',
-			IDHeader:      "id",
-			PromptHeader:  "prompt",
-			ContextHeader: "context",
-			AnswerHeader:  "answer",
+		f := &Flashcard{
+			Prompt: tc.prompt,
+			Answer: tc.answer,
 		}
-		actualFlashcards, actualErr := LoadFromCSV(lc)
-		if tc.expectedErr != "" {
-			assert.EqualError(t, actualErr, tc.expectedErr)
-		} else {
-			assert.NoError(t, actualErr)
+		actual := f.Check(tc.submitted)
+		assert.Equal(t, tc.expected, actual)
+	}
+}
+
+func TestFlashcard_QualifiedPrompt(t *testing.T) {
+	testCases := []struct {
+		prompt                  string
+		context                 string
+		expectedQualifiedPrompt string
+	}{
+		{
+			prompt:                  "P1",
+			context:                 "C1",
+			expectedQualifiedPrompt: "P1 (C1)",
+		},
+		{
+			prompt:                  "P1",
+			expectedQualifiedPrompt: "P1",
+		},
+	}
+
+	for _, tc := range testCases {
+		f := &Flashcard{
+			Prompt:  tc.prompt,
+			Context: tc.context,
 		}
-		assert.Equal(t, tc.expectedFlashcards, actualFlashcards)
+		actual := f.QualifiedPrompt()
+		assert.Equal(t, tc.expectedQualifiedPrompt, actual)
 	}
 }

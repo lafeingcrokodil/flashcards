@@ -1,6 +1,7 @@
 package tui
 
 import (
+	"context"
 	"fmt"
 	"os"
 
@@ -32,13 +33,13 @@ type TUI struct {
 }
 
 // New initializes a new TUI.
-func New(lc review.LoadConfig, backupPath string, log *os.File) (*TUI, error) {
+func New(ctx context.Context, fr review.FlashcardReader, backupPath string, log *os.File) (*TUI, error) {
 	// The text input UI element doesn't handle IME input properly.
 	// https://github.com/charmbracelet/bubbletea/issues/874
 	answer := textinput.New()
 	answer.Focus()
 
-	s, err := review.NewSession(lc, backupPath)
+	s, err := review.NewSession(ctx, fr, backupPath)
 	if err != nil {
 		return nil, err
 	}
