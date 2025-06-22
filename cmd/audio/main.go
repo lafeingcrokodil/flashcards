@@ -25,14 +25,17 @@ func run() error {
 	}
 	defer c.Close() // nolint:errcheck
 
-	cfg := audio.Config{
+	r := &audio.CSVReader{
+		CSVPath:    "data/translations.tsv",
+		Delimiter:  '\t',
+		ColumnName: "korean",
+	}
+
+	s := &audio.Synthesizer{
 		Client:       c,
-		CSVPath:      "data/translations.tsv",
-		Delimiter:    '\t',
-		ColumnName:   "korean",
 		LanguageCode: "ko-KR",
 		OutputDir:    "public/audio",
 	}
 
-	return audio.CreateMP3FromCSV(ctx, cfg)
+	return s.CreateMP3s(ctx, r)
 }

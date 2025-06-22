@@ -9,34 +9,33 @@ import (
 
 	texttospeech "cloud.google.com/go/texttospeech/apiv1"
 	"cloud.google.com/go/texttospeech/apiv1/texttospeechpb"
-	"github.com/lafeingcrokodil/flashcards/io"
 )
 
-// Config configures how to generate MP3 files from text in a CSV file.
-type Config struct {
+// InputReader reads input text for which audio should be generated.
+type InputReader interface {
+	// Read returns a list of strings for which audio should be generated.
+	Read(ctx context.Context) ([]string, error)
+}
+
+// Synthesizer generates MP3 files from text.
+type Synthesizer struct {
 	// Client is a text to speech client.
 	Client *texttospeech.Client
-	// CSVPath is the path to the CSV file containing the text to be converted to speech.
-	CSVPath string
-	// Delimiter is the character that separates values in the file.
-	Delimiter rune
-	// ColumnName is the name of the column containing the text to be converted to speech.
-	ColumnName string
 	// LanguageCode is the xx-XX code for the language that the text is in.
 	LanguageCode string
 	// OutputDir is the directory to which the MP3 files should be written.
 	OutputDir string
 }
 
-// CreateMP3FromCSV creates MP3 files by converting text in a CSV file to speech.
-func CreateMP3FromCSV(ctx context.Context, cfg Config) error {
-	records, err := io.ReadCSVFile(cfg.CSVPath, cfg.Delimiter)
+// CreateMP3s creates MP3 files by converting input text to speech.
+func (s *Synthesizer) CreateMP3s(ctx context.Context, r InputReader) error {
+	inputs, err := r.Read(ctx)
 	if err != nil {
 		return err
 	}
 
-	for _, record := range records {
-		err = CreateMP3(ctx, record[cfg.ColumnName], cfg)
+	for _, input := range inputs {
+		err = s.createMP3(ctx, input)
 		if err != nil {
 			return err
 		}
@@ -45,10 +44,10 @@ func CreateMP3FromCSV(ctx context.Context, cfg Config) error {
 	return nil
 }
 
-// CreateMP3 creates an MP3 file by converting the specified text to speech.
+// createMP3 creates an MP3 file by converting the specified text to speech.
 // If the MP3 file already exists, this function does nothing.
-func CreateMP3(ctx context.Context, text string, cfg Config) error {
-	outputPath := path.Join(cfg.OutputDir, fmt.Sprintf("%s.mp3", text))
+func (s *Synthesizer) createMP3(ctx context.Context, text string) error {
+	outputPath := path.Join(s.OutputDir, fmt.Sprintf("%s.mp3", text))
 
 	_, err := os.Stat(outputPath)
 	if !errors.Is(err, os.ErrNotExist) {
@@ -61,7 +60,7 @@ func CreateMP3(ctx context.Context, text string, cfg Config) error {
 			InputSource: &texttospeechpb.SynthesisInput_Text{Text: text},
 		},
 		Voice: &texttospeechpb.VoiceSelectionParams{
-			LanguageCode: cfg.LanguageCode,
+			LanguageCode: s.LanguageCode,
 			SsmlGender:   texttospeechpb.SsmlVoiceGender_MALE,
 		},
 		AudioConfig: &texttospeechpb.AudioConfig{
@@ -69,7 +68,7 @@ func CreateMP3(ctx context.Context, text string, cfg Config) error {
 		},
 	}
 
-	resp, err := cfg.Client.SynthesizeSpeech(ctx, &req)
+	resp, err := s.Client.SynthesizeSpeech(ctx, &req)
 	if err != nil {
 		return err
 	}
