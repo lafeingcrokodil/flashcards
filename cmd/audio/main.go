@@ -25,10 +25,10 @@ func run() error {
 	}
 	defer c.Close() // nolint:errcheck
 
-	r := &audio.CSVReader{
-		CSVPath:    "data/translations.tsv",
-		Delimiter:  '\t',
-		ColumnName: "korean",
+	r := &audio.SheetReader{
+		SpreadsheetID: "17P6QomOB46SemEFlUhcyzB8fycqltQBjfC4ELzOEy6s",
+		CellRange:     "Korean!A:F",
+		ColumnName:    "korean",
 	}
 
 	s := &audio.Synthesizer{

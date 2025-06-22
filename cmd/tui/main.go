@@ -38,9 +38,9 @@ func run() error {
 	}
 	defer log.Close() // nolint:errcheck
 
-	r := &review.CSVReader{
-		Filepath:      "data/translations.tsv",
-		Delimiter:     '\t',
+	r := &review.SheetReader{
+		SpreadsheetID: "17P6QomOB46SemEFlUhcyzB8fycqltQBjfC4ELzOEy6s",
+		CellRange:     "Korean!A:F",
 		IDHeader:      "id",
 		PromptHeader:  "english",
 		ContextHeader: "context",
