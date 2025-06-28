@@ -2,12 +2,9 @@ package review
 
 import (
 	"context"
-	"encoding/json"
-	"errors"
 	"fmt"
 	"math"
 	rand "math/rand/v2"
-	"os"
 )
 
 const batchSize = 10
@@ -37,21 +34,28 @@ type FlashcardReader interface {
 	Read(ctx context.Context) ([]*Flashcard, error)
 }
 
+// SessionStore stores session data.
+type SessionStore interface {
+	// Load loads an existing session's data.
+	Load(ctx context.Context) (*Session, error)
+	// Write overwrites the stored session data with the latest state.
+	Write(ctx context.Context, s *Session) error
+}
+
 // NewSession initializes a new review session.
-func NewSession(ctx context.Context, fr FlashcardReader, backupPath string) (*Session, error) {
+func NewSession(ctx context.Context, fr FlashcardReader, store SessionStore) (*Session, error) {
 	newSession, err := loadNew(ctx, fr)
 	if err != nil {
 		return nil, err
 	}
 
-	_, err = os.Stat(backupPath)
-	if errors.Is(err, os.ErrNotExist) {
-		return newSession, nil
-	}
-
-	existingSession, err := loadExisting(backupPath)
+	existingSession, err := store.Load(ctx)
 	if err != nil {
 		return nil, err
+	}
+
+	if existingSession == nil {
+		return newSession, nil
 	}
 
 	existingSession.update(newSession)
@@ -91,23 +95,6 @@ func loadNew(ctx context.Context, fr FlashcardReader) (*Session, error) {
 		Decks:              make([][]*Flashcard, numProficiencyLevels),
 		CountByProficiency: make([]int, numProficiencyLevels),
 	}, nil
-}
-
-// loadExisting initializes a new review session picking up from where a
-// previous review session left off.
-func loadExisting(backupPath string) (*Session, error) {
-	b, err := os.ReadFile(backupPath)
-	if err != nil {
-		return nil, err
-	}
-
-	var s Session
-	err = json.Unmarshal(b, &s)
-	if err != nil {
-		return nil, err
-	}
-
-	return &s, nil
 }
 
 // Submit checks if the answer is correct and updates the review session's state accordingly.

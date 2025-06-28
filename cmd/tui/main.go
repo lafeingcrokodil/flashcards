@@ -47,7 +47,11 @@ func run() error {
 		AnswerHeader:  "korean",
 	}
 
-	ui, err := tui.New(ctx, r, backupPath, log)
+	store := &review.LocalJSONStore{
+		Path: backupPath,
+	}
+
+	ui, err := tui.New(ctx, r, store, log)
 	if err != nil {
 		return err
 	}

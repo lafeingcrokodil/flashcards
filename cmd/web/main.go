@@ -37,7 +37,11 @@ func run() error {
 		AnswerHeader:  "korean",
 	}
 
-	server, err := web.New(ctx, r, backupPath)
+	store := &review.LocalJSONStore{
+		Path: backupPath,
+	}
+
+	server, err := web.New(ctx, r, store)
 	if err != nil {
 		return err
 	}

@@ -9,7 +9,6 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/lafeingcrokodil/flashcards/io"
 	"github.com/lafeingcrokodil/flashcards/math"
 	"github.com/lafeingcrokodil/flashcards/review"
 )
@@ -26,20 +25,20 @@ type TUI struct {
 	help help.Model
 	// keys are the keybindings used by the UI.
 	keys KeyMap
-	// backupPath is the file path where the TUI state will be backed up.
-	backupPath string
+	// store is where the TUI state will be backed up.
+	store review.SessionStore
 	// log can be used to write logs to a file.
 	log *os.File
 }
 
 // New initializes a new TUI.
-func New(ctx context.Context, fr review.FlashcardReader, backupPath string, log *os.File) (*TUI, error) {
+func New(ctx context.Context, fr review.FlashcardReader, store review.SessionStore, log *os.File) (*TUI, error) {
 	// The text input UI element doesn't handle IME input properly.
 	// https://github.com/charmbracelet/bubbletea/issues/874
 	answer := textinput.New()
 	answer.Focus()
 
-	s, err := review.NewSession(ctx, fr, backupPath)
+	s, err := review.NewSession(ctx, fr, store)
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +49,7 @@ func New(ctx context.Context, fr review.FlashcardReader, backupPath string, log 
 		answer:       answer,
 		help:         help.New(),
 		keys:         NewKeyMap(),
-		backupPath:   backupPath,
+		store:        store,
 		log:          log,
 	}, nil
 }
@@ -78,7 +77,7 @@ func (t *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// Once the user provides the correct answer, we can reset the UI and back up the state.
 			t.isFirstGuess = true
 			t.answer.Reset()
-			err := io.WriteJSONFile(t.backupPath, t.session)
+			err := t.store.Write(context.Background(), t.session)
 			if err != nil {
 				fmt.Fprintf(t.log, "Couldn't save current state: %v", err) // nolint:errcheck
 			}

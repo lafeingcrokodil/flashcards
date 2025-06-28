@@ -8,7 +8,6 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	fio "github.com/lafeingcrokodil/flashcards/io"
 	"github.com/lafeingcrokodil/flashcards/review"
 )
 
@@ -16,8 +15,8 @@ import (
 type Server struct {
 	// session is the current review session.
 	session *review.Session
-	// backupPath is the file path where the state will be backed up.
-	backupPath string
+	// store is where the session state will be backed up.
+	store review.SessionStore
 }
 
 // Submission is data submitted by the UI.
@@ -29,12 +28,12 @@ type Submission struct {
 }
 
 // New initializes a new server.
-func New(ctx context.Context, fr review.FlashcardReader, backupPath string) (*Server, error) {
-	s, err := review.NewSession(ctx, fr, backupPath)
+func New(ctx context.Context, fr review.FlashcardReader, store review.SessionStore) (*Server, error) {
+	s, err := review.NewSession(ctx, fr, store)
 	if err != nil {
 		return nil, err
 	}
-	return &Server{session: s, backupPath: backupPath}, nil
+	return &Server{session: s, store: store}, nil
 }
 
 // Start starts the server.
@@ -77,7 +76,7 @@ func (s *Server) patchState(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	err = fio.WriteJSONFile(s.backupPath, s.session)
+	err = s.store.Write(req.Context(), s.session)
 	if err != nil {
 		fmt.Printf("ERROR\t%v\n", err)
 	}
