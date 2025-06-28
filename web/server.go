@@ -14,10 +14,10 @@ import (
 
 // Server is a web server for reviewing flashcards.
 type Server struct {
-	// Session is the current review session.
-	Session *review.Session
-	// BackupPath is the file path where the state will be backed up.
-	BackupPath string
+	// session is the current review session.
+	session *review.Session
+	// backupPath is the file path where the state will be backed up.
+	backupPath string
 }
 
 // Submission is data submitted by the UI.
@@ -34,7 +34,7 @@ func New(ctx context.Context, fr review.FlashcardReader, backupPath string) (*Se
 	if err != nil {
 		return nil, err
 	}
-	return &Server{Session: s, BackupPath: backupPath}, nil
+	return &Server{session: s, backupPath: backupPath}, nil
 }
 
 // Start starts the server.
@@ -50,7 +50,7 @@ func (s *Server) Start(port int) error {
 }
 
 func (s *Server) getState(w http.ResponseWriter, _ *http.Request) {
-	err := json.NewEncoder(w).Encode(s.Session)
+	err := json.NewEncoder(w).Encode(s.session)
 	if err != nil {
 		fmt.Printf("ERROR\t%v\n", err)
 	}
@@ -71,18 +71,18 @@ func (s *Server) patchState(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	ok := s.Session.Submit(submission.Answer, submission.IsFirstGuess)
+	ok := s.session.Submit(submission.Answer, submission.IsFirstGuess)
 	if !ok {
 		w.WriteHeader(http.StatusNotModified)
 		return
 	}
 
-	err = fio.WriteJSONFile(s.BackupPath, s.Session)
+	err = fio.WriteJSONFile(s.backupPath, s.session)
 	if err != nil {
 		fmt.Printf("ERROR\t%v\n", err)
 	}
 
-	err = json.NewEncoder(w).Encode(s.Session)
+	err = json.NewEncoder(w).Encode(s.session)
 	if err != nil {
 		fmt.Printf("ERROR\t%v\n", err)
 	}
