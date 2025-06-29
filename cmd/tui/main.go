@@ -47,8 +47,9 @@ func run() error {
 		AnswerHeader:  "korean",
 	}
 
-	store := &review.LocalJSONStore{
-		Path: backupPath,
+	store := &review.SheetStore{
+		SpreadsheetID: "17P6QomOB46SemEFlUhcyzB8fycqltQBjfC4ELzOEy6s",
+		CellRange:     "Session!A:H",
 	}
 
 	ui, err := tui.New(ctx, r, store, log)
