@@ -45,3 +45,25 @@ func ReadSheet(ctx context.Context, spreadsheetID string, cellRange string) ([]m
 
 	return records, nil
 }
+
+// WriteSheet writes values to a Google spreadsheet.
+func WriteSheet(ctx context.Context, spreadsheetID string, cellRange string, values [][]any) error {
+	client, err := sheets.NewService(ctx, option.WithScopes(sheets.SpreadsheetsScope))
+	if err != nil {
+		return err
+	}
+
+	_, err = client.Spreadsheets.Values.
+		Clear(spreadsheetID, cellRange, &sheets.ClearValuesRequest{}).
+		Do()
+	if err != nil {
+		return err
+	}
+
+	_, err = client.Spreadsheets.Values.
+		Update(spreadsheetID, cellRange, &sheets.ValueRange{Values: values}).
+		ValueInputOption("RAW").
+		Do()
+
+	return err
+}
