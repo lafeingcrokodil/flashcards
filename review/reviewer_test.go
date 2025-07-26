@@ -11,83 +11,116 @@ import (
 )
 
 func TestReviewer(t *testing.T) {
-	expectedFlashcards := []*Flashcard{
-		// Round 0
+	expectedStates := []struct {
+		stats     *SessionStats
+		flashcard *Flashcard
+	}{
 		{
-			Metadata: flashcardMetadata(1),
-		},
-		// Round 1
-		{
-			Metadata: flashcardMetadata(2),
-		},
-		{
-			Metadata: flashcardMetadata(1),
-			Stats: FlashcardStats{
-				ViewCount:   1,
-				Repetitions: 1,
-				NextReview:  1,
-			},
-		},
-		// Round 2
-		{
-			Metadata: flashcardMetadata(3),
-		},
-		{
-			Metadata: flashcardMetadata(2),
-			Stats: FlashcardStats{
-				ViewCount:   1,
-				Repetitions: 1,
-				NextReview:  2,
-			},
-		},
-		// Round 3
-		{
-			Metadata: flashcardMetadata(1),
-			Stats: FlashcardStats{
-				ViewCount:   2,
-				Repetitions: 2,
-				NextReview:  3,
+			stats: &SessionStats{Round: 0, New: true},
+			flashcard: &Flashcard{
+				Metadata: flashcardMetadata(1),
 			},
 		},
 		{
-			Metadata: flashcardMetadata(3),
-			Stats: FlashcardStats{
-				ViewCount:   1,
-				Repetitions: 1,
-				NextReview:  3,
+			stats: &SessionStats{Round: 0, New: false},
+			flashcard: &Flashcard{
+				Metadata: flashcardMetadata(2),
 			},
 		},
-		// Round 4
 		{
-			Metadata: flashcardMetadata(2),
-			Stats: FlashcardStats{
-				ViewCount:   2,
-				Repetitions: 2,
-				NextReview:  4,
+			stats: &SessionStats{Round: 1, New: false},
+			flashcard: &Flashcard{
+				Metadata: flashcardMetadata(1),
+				Stats: FlashcardStats{
+					ViewCount:   1,
+					Repetitions: 1,
+					NextReview:  1,
+				},
 			},
 		},
-		// Round 5
 		{
-			Metadata: flashcardMetadata(3),
-			Stats: FlashcardStats{
-				ViewCount:   2,
-				Repetitions: 2,
-				NextReview:  5,
+			stats: &SessionStats{Round: 1, New: false},
+			flashcard: &Flashcard{
+				Metadata: flashcardMetadata(3),
 			},
 		},
-		// Round 6 - no cards to review
-		// Round 7
 		{
-			Metadata: flashcardMetadata(1),
-			Stats: FlashcardStats{
-				ViewCount:   3,
-				Repetitions: 3,
-				NextReview:  7,
+			stats: &SessionStats{Round: 2, New: false},
+			flashcard: &Flashcard{
+				Metadata: flashcardMetadata(2),
+				Stats: FlashcardStats{
+					ViewCount:   1,
+					Repetitions: 1,
+					NextReview:  2,
+				},
+			},
+		},
+		{
+			stats: &SessionStats{Round: 2, New: false},
+			flashcard: &Flashcard{
+				Metadata: flashcardMetadata(1),
+				Stats: FlashcardStats{
+					ViewCount:   2,
+					Repetitions: 2,
+					NextReview:  3,
+				},
+			},
+		},
+		{
+			stats: &SessionStats{Round: 3, New: false},
+			flashcard: &Flashcard{
+				Metadata: flashcardMetadata(3),
+				Stats: FlashcardStats{
+					ViewCount:   1,
+					Repetitions: 1,
+					NextReview:  3,
+				},
+			},
+		},
+		{
+			stats: &SessionStats{Round: 3, New: false},
+			flashcard: &Flashcard{
+				Metadata: flashcardMetadata(2),
+				Stats: FlashcardStats{
+					ViewCount:   2,
+					Repetitions: 2,
+					NextReview:  4,
+				},
+			},
+		},
+		{
+			stats: &SessionStats{Round: 4, New: false},
+			flashcard: &Flashcard{
+				Metadata: flashcardMetadata(3),
+				Stats: FlashcardStats{
+					ViewCount:   2,
+					Repetitions: 2,
+					NextReview:  5,
+				},
+			},
+		},
+		// No cards to review in round 6.
+		{
+			stats: &SessionStats{Round: 5, New: false},
+			flashcard: &Flashcard{
+				Metadata: flashcardMetadata(1),
+				Stats: FlashcardStats{
+					ViewCount:   3,
+					Repetitions: 3,
+					NextReview:  7,
+				},
 			},
 		},
 	}
 
 	ctx := context.Background()
+
+	memSource := &MemorySource{}
+
+	for i := 1; i <= 3; i++ {
+		metadata := flashcardMetadata(int64(i))
+		memSource.metadata = append(memSource.metadata, &metadata)
+	}
 
 	projectID := os.Getenv("FLASHCARDS_FIRESTORE_PROJECT")
 	databaseID := os.Getenv("FLASHCARDS_FIRESTORE_DATABASE")
@@ -99,35 +132,39 @@ func TestReviewer(t *testing.T) {
 	}
 	defer fsClient.Close() // nolint:errcheck
 
-	stores := []FlashcardStore{
-		&MemoryStore{},
-		&FireStore{
-			client:     fsClient,
-			collection: collection,
-		},
+	fsStore, err := NewFireStore(ctx, fsClient, collection, "")
+	if !assert.NoError(t, err) {
+		return
 	}
 
-	for _, store := range stores {
-		for i := 1; i <= 3; i++ {
-			f := &Flashcard{Metadata: flashcardMetadata(int64(i))}
-			err := store.Upsert(ctx, f)
-			if !assert.NoError(t, err, f.Metadata.ID) {
-				return
-			}
+	stores := map[string]SessionStore{
+		"memory":    NewMemoryStore(),
+		"firestore": fsStore,
+	}
+
+	for i, store := range stores {
+		r, err := NewReviewer(ctx, memSource, store)
+		if !assert.NoError(t, err, i) {
+			continue
 		}
 
-		r := NewReviewer(store)
-
-		for i, expected := range expectedFlashcards {
-			f, err := r.Next(ctx)
-			if !assert.NoError(t, err, i) {
+		for j, expected := range expectedStates {
+			stats, err := r.store.SessionStats(ctx)
+			if !assert.NoError(t, err, i, j) {
 				return
 			}
-			if !assert.Equal(t, expected, f, i) {
+			if !assert.Equal(t, expected.stats, stats, i, j) {
+				return
+			}
+			f, err := r.Next(ctx)
+			if !assert.NoError(t, err, i, j) {
+				return
+			}
+			if !assert.Equal(t, expected.flashcard, f, i, j) {
 				return
 			}
 			err = r.Submit(ctx, f, true)
-			if !assert.NoError(t, err, i) {
+			if !assert.NoError(t, err, i, j) {
 				return
 			}
 		}

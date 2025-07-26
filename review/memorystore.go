@@ -1,13 +1,80 @@
 package review
 
-import "context"
+import (
+	"cmp"
+	"context"
+	"fmt"
+	"slices"
+)
 
-// MemoryStore stores flashcards in memory. It's unoptimized and mainly
-// intended for use in tests.
+// MemoryStore stores a review session's state in memory. It's unoptimized and
+// mainly intended for use in tests.
 type MemoryStore struct {
+	stats      *SessionStats
 	flashcards []*Flashcard
 }
 
+// NewMemoryStore returns a new empty MemoryStore.
+func NewMemoryStore() *MemoryStore {
+	return &MemoryStore{
+		stats: &SessionStats{
+			Round: 0,
+			New:   true,
+		},
+	}
+}
+
+// BulkSyncFlashcards aligns the session data with the source of truth for the flashcard metadata.
+func (s *MemoryStore) BulkSyncFlashcards(_ context.Context, metadata []*FlashcardMetadata) error {
+	var syncedFlashcards []*Flashcard
+
+	existingFlashcardsByID := make(map[int64]*Flashcard, len(s.flashcards))
+	for _, f := range s.flashcards {
+		existingFlashcardsByID[f.Metadata.ID] = f
+	}
+
+	metadataByID := make(map[int64]*FlashcardMetadata, len(metadata))
+	for _, m := range metadata {
+		metadataByID[m.ID] = m
+	}
+
+	// Update and clean up existing flashcards.
+	for _, e := range existingFlashcardsByID {
+		m, ok := metadataByID[e.Metadata.ID]
+		if !ok {
+			fmt.Printf("INFO\tRemoving flashcard with ID %d (%s)\n", e.Metadata.ID, e.Metadata.Answer)
+			continue
+		}
+
+		if e.Metadata != *m {
+			fmt.Printf("INFO\tUpdating metadata for ID %d: %v > %v\n", m.ID, e.Metadata, m)
+			e.Metadata = *m
+			e.Stats = FlashcardStats{}
+		}
+
+		syncedFlashcards = append(syncedFlashcards, e)
+
+		// The flashcard should now be fully synced, so no further processing is required.
+		delete(metadataByID, e.Metadata.ID)
+	}
+
+	// Add any missing flashcards.
+	for _, m := range metadataByID {
+		fmt.Printf("INFO\tAdding flashcard with ID %d (%s)\n", m.ID, m.Answer)
+		syncedFlashcards = append(syncedFlashcards, &Flashcard{Metadata: *m})
+	}
+
+	// Ensure deterministic ordering.
+	slices.SortFunc(syncedFlashcards, func(a, b *Flashcard) int {
+		return cmp.Compare(a.Metadata.ID, b.Metadata.ID)
+	})
+
+	s.flashcards = syncedFlashcards
+
+	return nil
+}
+
+// NextReviewed returns a flashcard that is due to be reviewed again.
 func (s *MemoryStore) NextReviewed(_ context.Context, round int) (*Flashcard, error) {
 	for _, f := range s.flashcards {
 		if f.Stats.ViewCount > 0 && f.Stats.NextReview == round {
@@ -17,6 +84,7 @@ func (s *MemoryStore) NextReviewed(_ context.Context, round int) (*Flashcard, er
 	return nil, nil
 }
 
+// NextUnreviewed returns a flashcard that has never been reviewed before.
 func (s *MemoryStore) NextUnreviewed(_ context.Context) (*Flashcard, error) {
 	for _, f := range s.flashcards {
 		if f.Stats.ViewCount == 0 {
@@ -26,16 +94,23 @@ func (s *MemoryStore) NextUnreviewed(_ context.Context) (*Flashcard, error) {
 	return nil, nil
 }
 
-func (s *MemoryStore) Upsert(_ context.Context, f *Flashcard) error {
-	var found bool
-	for i, existing := range s.flashcards {
-		if existing.Metadata.ID == f.Metadata.ID {
-			s.flashcards[i] = f
-			found = true
+// SessionStats returns the current session stats.
+func (s *MemoryStore) SessionStats(_ context.Context) (*SessionStats, error) {
+	return s.stats, nil
+}
+
+// UpdateFlashcardStats updates a flashcard's stats.
+func (s *MemoryStore) UpdateFlashcardStats(_ context.Context, flashcardID int64, stats *FlashcardStats) error {
+	for _, existing := range s.flashcards {
+		if existing.Metadata.ID == flashcardID {
+			existing.Stats = *stats
 		}
 	}
-	if !found {
-		s.flashcards = append(s.flashcards, f)
-	}
+	return nil
+}
+
+// UpdateSessionStats updates the session stats.
+func (s *MemoryStore) UpdateSessionStats(_ context.Context, stats *SessionStats) error {
+	s.stats = stats
 	return nil
 }

@@ -1,58 +1,110 @@
 package review
 
-import "context"
+import (
+	"context"
+)
 
-// FlashcardStore stores a set of flashcards.
-type FlashcardStore interface {
+// FlashcardMetadataSource is the source of truth for flashcard metadata.
+type FlashcardMetadataSource interface {
+	// ReadAll returns the metadata for all flashcards.
+	ReadAll(ctx context.Context) ([]*FlashcardMetadata, error)
+}
+
+// SessionStats represents review session stats.
+type SessionStats struct {
+	// Round is an incrementing counter that identifies the current round.
+	Round int `firestore:"round"`
+	// New is true if and only if the round has just started.
+	New bool `firestore:"new"`
+}
+
+// SessionStore stores the state of a review session.
+type SessionStore interface {
+	// BulkSyncFlashcards aligns the session data with the source of truth for the flashcard metadata.
+	BulkSyncFlashcards(ctx context.Context, metadata []*FlashcardMetadata) error
 	// NextReviewed returns a flashcard that is due to be reviewed again.
 	NextReviewed(ctx context.Context, round int) (*Flashcard, error)
 	// NextUnreviewed returns a flashcard that has never been reviewed before.
 	NextUnreviewed(ctx context.Context) (*Flashcard, error)
-	// Upsert stores the specified flashcard, overwriting the previous state if any.
-	Upsert(ctx context.Context, f *Flashcard) error
+	// SessionStats returns the current session stats.
+	SessionStats(ctx context.Context) (*SessionStats, error)
+	// UpdateFlashcardStats updates a flashcard's stats.
+	UpdateFlashcardStats(ctx context.Context, flashcardID int64, stats *FlashcardStats) error
+	// UpdateSessionStats updates the session stats.
+	UpdateSessionStats(ctx context.Context, stats *SessionStats) error
 }
 
 // Reviewer manages the review of a set of flashcards.
 type Reviewer struct {
-	// store stores the flashcards to be reviewed.
-	store FlashcardStore
-	// round identifies the current round, starting with 0 and incrementing from there.
-	round int
-	// new is true if and only if the round has just started.
-	new bool
+	store SessionStore
 }
 
-// NewReviewer returns a new reviewer that uses the specified flashcard store.
-func NewReviewer(store FlashcardStore) *Reviewer {
+// NewReviewer returns a new reviewer. Flashcards are loaded from the source
+// and the session state is persisted in the store.
+func NewReviewer(ctx context.Context, source FlashcardMetadataSource, store SessionStore) (*Reviewer, error) {
+	metadata, err := source.ReadAll(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	err = store.BulkSyncFlashcards(ctx, metadata)
+	if err != nil {
+		return nil, err
+	}
+
 	return &Reviewer{
 		store: store,
-		new:   true,
-	}
+	}, nil
 }
 
 // Next returns the next flashcard to be reviewed.
 func (r *Reviewer) Next(ctx context.Context) (*Flashcard, error) {
-	if r.new {
-		r.new = false
+	stats, err := r.store.SessionStats(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if stats.New {
 		f, err := r.store.NextUnreviewed(ctx)
 		if f != nil || err != nil {
 			return f, err
 		}
 	}
 
-	f, err := r.store.NextReviewed(ctx, r.round)
+	f, err := r.store.NextReviewed(ctx, stats.Round)
 	if f != nil || err != nil {
 		return f, err
 	}
 
-	r.round++
-	r.new = true
+	err = r.store.UpdateSessionStats(ctx, &SessionStats{
+		Round: stats.Round + 1,
+		New:   true,
+	})
+	if err != nil {
+		return nil, err
+	}
 
 	return r.Next(ctx)
 }
 
-// Submit updates a flashcard's state based on whether it was answered correctly or not.
+// Submit updates the session state following the review of a flashcard.
 func (r *Reviewer) Submit(ctx context.Context, f *Flashcard, correct bool) error {
-	f.Update(correct, r.round)
-	return r.store.Upsert(ctx, f)
+	stats, err := r.store.SessionStats(ctx)
+	if err != nil {
+		return err
+	}
+
+	if stats.New {
+		err = r.store.UpdateSessionStats(ctx, &SessionStats{
+			Round: stats.Round,
+			New:   false,
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	f.Update(correct, stats.Round)
+
+	return r.store.UpdateFlashcardStats(ctx, f.Metadata.ID, &f.Stats)
 }
