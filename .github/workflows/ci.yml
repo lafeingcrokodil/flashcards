@@ -12,7 +12,7 @@ jobs:
     - name: Authenticate to Google Cloud
       uses: google-github-actions/auth@v2
       with:
-        token_format: id_token
+        token_format: access_token
         workload_identity_provider: projects/180491781668/locations/global/workloadIdentityPools/github/providers/github
         service_account: github-actions@lafeingcrokodil-sandbox.iam.gserviceaccount.com
     - name: Set up Go
