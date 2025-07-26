@@ -7,31 +7,31 @@ import (
 // Flashcard represents the state of a flashcard.
 type Flashcard struct {
 	// Metadata stores immutable data like the prompt and answer.
-	Metadata FlashcardMetadata `json:"metadata"`
+	Metadata FlashcardMetadata `firestore:"metadata"`
 	// Stats stores mutable data like the view count.
-	Stats FlashcardStats `json:"stats"`
+	Stats FlashcardStats `firestore:"stats"`
 }
 
 // FlashcardMetadata stores immutable flashcard data like the prompt.
 type FlashcardMetadata struct {
 	// ID uniquely identifies the flashcard.
-	ID int64 `json:"id"`
+	ID int64 `firestore:"id"`
 	// Prompt is the text to be shown to the user.
-	Prompt string `json:"prompt"`
+	Prompt string `firestore:"prompt"`
 	// Context helps narrow down possible answers.
-	Context string `json:"context"`
+	Context string `firestore:"context,omitempty"`
 	// Answer is the accepted answer.
-	Answer string `json:"answer"`
+	Answer string `firestore:"answer"`
 }
 
 // FlashcardStats stores mutable flashcard data like the view count.
 type FlashcardStats struct {
 	// ViewCount is the number of times the flashcard has been reviewed.
-	ViewCount int `json:"viewCount"`
+	ViewCount int `firestore:"viewCount"`
 	// Repetitions is the number of successful reviews in a row.
-	Repetitions int `json:"repetitions"`
+	Repetitions int `firestore:"repetitions,omitempty"`
 	// NextReview is the round in which the card is due to be reviewed next.
-	NextReview int `json:"nextReview"`
+	NextReview int `firestore:"nextReview,omitempty"`
 }
 
 // Update updates the flashcard's stats after being reviewed.

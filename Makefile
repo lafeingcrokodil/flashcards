@@ -7,7 +7,9 @@ lint: ## Run linters.
 	@ golangci-lint run
 
 test: tmp ## Run unit tests.
-	@ go test -coverprofile=tmp/cover.out  ./...
+	@ set -a \
+		&& . ./env.test \
+		&& go test -coverprofile=tmp/cover.out  ./...
 
 tmp: ## Create a tmp directory.
 	@ mkdir -p tmp

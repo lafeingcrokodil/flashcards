@@ -2,59 +2,26 @@ package review
 
 import (
 	"context"
+	"fmt"
+	"os"
 	"testing"
 
+	"cloud.google.com/go/firestore"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestReviewer(t *testing.T) {
-	flashcards := []*Flashcard{
-		{
-			Metadata: FlashcardMetadata{
-				ID:     1,
-				Prompt: "What is A?",
-				Answer: "A",
-			},
-		},
-		{
-			Metadata: FlashcardMetadata{
-				ID:     2,
-				Prompt: "What is B?",
-				Answer: "B",
-			},
-		},
-		{
-			Metadata: FlashcardMetadata{
-				ID:     3,
-				Prompt: "What is C?",
-				Answer: "C",
-			},
-		},
-	}
-
 	expectedFlashcards := []*Flashcard{
 		// Round 0
 		{
-			Metadata: FlashcardMetadata{
-				ID:     1,
-				Prompt: "What is A?",
-				Answer: "A",
-			},
+			Metadata: flashcardMetadata(1),
 		},
 		// Round 1
 		{
-			Metadata: FlashcardMetadata{
-				ID:     2,
-				Prompt: "What is B?",
-				Answer: "B",
-			},
+			Metadata: flashcardMetadata(2),
 		},
 		{
-			Metadata: FlashcardMetadata{
-				ID:     1,
-				Prompt: "What is A?",
-				Answer: "A",
-			},
+			Metadata: flashcardMetadata(1),
 			Stats: FlashcardStats{
 				ViewCount:   1,
 				Repetitions: 1,
@@ -63,18 +30,10 @@ func TestReviewer(t *testing.T) {
 		},
 		// Round 2
 		{
-			Metadata: FlashcardMetadata{
-				ID:     3,
-				Prompt: "What is C?",
-				Answer: "C",
-			},
+			Metadata: flashcardMetadata(3),
 		},
 		{
-			Metadata: FlashcardMetadata{
-				ID:     2,
-				Prompt: "What is B?",
-				Answer: "B",
-			},
+			Metadata: flashcardMetadata(2),
 			Stats: FlashcardStats{
 				ViewCount:   1,
 				Repetitions: 1,
@@ -83,11 +42,7 @@ func TestReviewer(t *testing.T) {
 		},
 		// Round 3
 		{
-			Metadata: FlashcardMetadata{
-				ID:     1,
-				Prompt: "What is A?",
-				Answer: "A",
-			},
+			Metadata: flashcardMetadata(1),
 			Stats: FlashcardStats{
 				ViewCount:   2,
 				Repetitions: 2,
@@ -95,11 +50,7 @@ func TestReviewer(t *testing.T) {
 			},
 		},
 		{
-			Metadata: FlashcardMetadata{
-				ID:     3,
-				Prompt: "What is C?",
-				Answer: "C",
-			},
+			Metadata: flashcardMetadata(3),
 			Stats: FlashcardStats{
 				ViewCount:   1,
 				Repetitions: 1,
@@ -108,11 +59,7 @@ func TestReviewer(t *testing.T) {
 		},
 		// Round 4
 		{
-			Metadata: FlashcardMetadata{
-				ID:     2,
-				Prompt: "What is B?",
-				Answer: "B",
-			},
+			Metadata: flashcardMetadata(2),
 			Stats: FlashcardStats{
 				ViewCount:   2,
 				Repetitions: 2,
@@ -121,11 +68,7 @@ func TestReviewer(t *testing.T) {
 		},
 		// Round 5
 		{
-			Metadata: FlashcardMetadata{
-				ID:     3,
-				Prompt: "What is C?",
-				Answer: "C",
-			},
+			Metadata: flashcardMetadata(3),
 			Stats: FlashcardStats{
 				ViewCount:   2,
 				Repetitions: 2,
@@ -135,11 +78,7 @@ func TestReviewer(t *testing.T) {
 		// Round 6 - no cards to review
 		// Round 7
 		{
-			Metadata: FlashcardMetadata{
-				ID:     1,
-				Prompt: "What is A?",
-				Answer: "A",
-			},
+			Metadata: flashcardMetadata(1),
 			Stats: FlashcardStats{
 				ViewCount:   3,
 				Repetitions: 3,
@@ -150,18 +89,55 @@ func TestReviewer(t *testing.T) {
 
 	ctx := context.Background()
 
-	r := NewReviewer(&MemoryStore{})
+	projectID := os.Getenv("FLASHCARDS_FIRESTORE_PROJECT")
+	databaseID := os.Getenv("FLASHCARDS_FIRESTORE_DATABASE")
+	collection := os.Getenv("FLASHCARDS_FIRESTORE_COLLECTION")
 
-	for _, f := range flashcards {
-		err := r.Upsert(ctx, f)
-		assert.NoError(t, err, f.Metadata.ID)
+	fsClient, err := firestore.NewClientWithDatabase(ctx, projectID, databaseID)
+	if !assert.NoError(t, err) {
+		return
+	}
+	defer fsClient.Close()
+
+	stores := []FlashcardStore{
+		&MemoryStore{},
+		&FireStore{
+			client:     fsClient,
+			collection: collection,
+		},
 	}
 
-	for i, expected := range expectedFlashcards {
-		f, err := r.Next(ctx)
-		assert.NoError(t, err, i)
-		assert.Equal(t, expected, f, i)
-		err = r.Submit(ctx, f, true)
-		assert.NoError(t, err, i)
+	for _, store := range stores {
+		r := NewReviewer(store)
+
+		for i := 1; i <= 3; i++ {
+			f := &Flashcard{Metadata: flashcardMetadata(int64(i))}
+			err := r.Upsert(ctx, f)
+			if !assert.NoError(t, err, f.Metadata.ID) {
+				return
+			}
+		}
+
+		for i, expected := range expectedFlashcards {
+			f, err := r.Next(ctx)
+			if !assert.NoError(t, err, i) {
+				return
+			}
+			if !assert.Equal(t, expected, f, i) {
+				return
+			}
+			err = r.Submit(ctx, f, true)
+			if !assert.NoError(t, err, i) {
+				return
+			}
+		}
+	}
+}
+
+func flashcardMetadata(id int64) FlashcardMetadata {
+	return FlashcardMetadata{
+		ID:     id,
+		Prompt: fmt.Sprintf("What is %d?", id),
+		Answer: fmt.Sprintf("%d", id),
 	}
 }
