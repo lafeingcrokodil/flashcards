@@ -97,7 +97,7 @@ func TestReviewer(t *testing.T) {
 	if !assert.NoError(t, err) {
 		return
 	}
-	defer fsClient.Close()
+	defer fsClient.Close() // nolint:errcheck
 
 	stores := []FlashcardStore{
 		&MemoryStore{},
