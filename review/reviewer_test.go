@@ -7,28 +7,26 @@ import (
 )
 
 func TestReviewer(t *testing.T) {
-	s := &MemoryStore{
-		flashcards: []*Flashcard{
-			{
-				Metadata: FlashcardMetadata{
-					ID:     1,
-					Prompt: "What is A?",
-					Answer: "A",
-				},
+	flashcards := []*Flashcard{
+		{
+			Metadata: FlashcardMetadata{
+				ID:     1,
+				Prompt: "What is A?",
+				Answer: "A",
 			},
-			{
-				Metadata: FlashcardMetadata{
-					ID:     2,
-					Prompt: "What is B?",
-					Answer: "B",
-				},
+		},
+		{
+			Metadata: FlashcardMetadata{
+				ID:     2,
+				Prompt: "What is B?",
+				Answer: "B",
 			},
-			{
-				Metadata: FlashcardMetadata{
-					ID:     3,
-					Prompt: "What is C?",
-					Answer: "C",
-				},
+		},
+		{
+			Metadata: FlashcardMetadata{
+				ID:     3,
+				Prompt: "What is C?",
+				Answer: "C",
 			},
 		},
 	}
@@ -149,7 +147,12 @@ func TestReviewer(t *testing.T) {
 		},
 	}
 
-	r := NewReviewer(s)
+	r := NewReviewer(&MemoryStore{})
+
+	for _, f := range flashcards {
+		err := r.Upsert(f)
+		assert.NoError(t, err, f.Metadata.ID)
+	}
 
 	for i, expected := range expectedFlashcards {
 		f, err := r.Next()

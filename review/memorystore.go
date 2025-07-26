@@ -24,11 +24,16 @@ func (s *MemoryStore) NextUnreviewed() (*Flashcard, error) {
 	return nil, nil
 }
 
-func (s *MemoryStore) Update(newState *Flashcard) error {
-	for i, f := range s.flashcards {
-		if f.Metadata.ID == newState.Metadata.ID {
-			s.flashcards[i] = newState
+func (s *MemoryStore) Upsert(f *Flashcard) error {
+	var found bool
+	for i, existing := range s.flashcards {
+		if existing.Metadata.ID == f.Metadata.ID {
+			s.flashcards[i] = f
+			found = true
 		}
+	}
+	if !found {
+		s.flashcards = append(s.flashcards, f)
 	}
 	return nil
 }

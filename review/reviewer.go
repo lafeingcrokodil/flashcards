@@ -6,8 +6,8 @@ type FlashcardStore interface {
 	NextReviewed(round int) (*Flashcard, error)
 	// NextUnreviewed returns a flashcard that has never been reviewed before.
 	NextUnreviewed() (*Flashcard, error)
-	// Update updates the state of the specified flashcard.
-	Update(f *Flashcard) error
+	// Upsert stores the specified flashcard, overwriting the previous state if any.
+	Upsert(f *Flashcard) error
 }
 
 // Reviewer manages the review of a set of flashcards.
@@ -52,5 +52,10 @@ func (r *Reviewer) Next() (*Flashcard, error) {
 // Submit updates a flashcard's state based on whether it was answered correctly or not.
 func (r *Reviewer) Submit(f *Flashcard, correct bool) error {
 	f.Update(correct, r.round)
-	return r.store.Update(f)
+	return r.store.Upsert(f)
+}
+
+// Upsert updates the set of flashcards to include the specified flashcard.
+func (r *Reviewer) Upsert(f *Flashcard) error {
+	return r.store.Upsert(f)
 }
