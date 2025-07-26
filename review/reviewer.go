@@ -1,13 +1,15 @@
 package review
 
+import "context"
+
 // FlashcardStore stores a set of flashcards.
 type FlashcardStore interface {
 	// NextReviewed returns a flashcard that is due to be reviewed again.
-	NextReviewed(round int) (*Flashcard, error)
+	NextReviewed(ctx context.Context, round int) (*Flashcard, error)
 	// NextUnreviewed returns a flashcard that has never been reviewed before.
-	NextUnreviewed() (*Flashcard, error)
+	NextUnreviewed(ctx context.Context) (*Flashcard, error)
 	// Upsert stores the specified flashcard, overwriting the previous state if any.
-	Upsert(f *Flashcard) error
+	Upsert(ctx context.Context, f *Flashcard) error
 }
 
 // Reviewer manages the review of a set of flashcards.
@@ -29,16 +31,16 @@ func NewReviewer(store FlashcardStore) *Reviewer {
 }
 
 // Next returns the next flashcard to be reviewed.
-func (r *Reviewer) Next() (*Flashcard, error) {
+func (r *Reviewer) Next(ctx context.Context) (*Flashcard, error) {
 	if r.new {
 		r.new = false
-		f, err := r.store.NextUnreviewed()
+		f, err := r.store.NextUnreviewed(ctx)
 		if f != nil || err != nil {
 			return f, err
 		}
 	}
 
-	f, err := r.store.NextReviewed(r.round)
+	f, err := r.store.NextReviewed(ctx, r.round)
 	if f != nil || err != nil {
 		return f, err
 	}
@@ -46,16 +48,16 @@ func (r *Reviewer) Next() (*Flashcard, error) {
 	r.round++
 	r.new = true
 
-	return r.Next()
+	return r.Next(ctx)
 }
 
 // Submit updates a flashcard's state based on whether it was answered correctly or not.
-func (r *Reviewer) Submit(f *Flashcard, correct bool) error {
+func (r *Reviewer) Submit(ctx context.Context, f *Flashcard, correct bool) error {
 	f.Update(correct, r.round)
-	return r.store.Upsert(f)
+	return r.store.Upsert(ctx, f)
 }
 
 // Upsert updates the set of flashcards to include the specified flashcard.
-func (r *Reviewer) Upsert(f *Flashcard) error {
-	return r.store.Upsert(f)
+func (r *Reviewer) Upsert(ctx context.Context, f *Flashcard) error {
+	return r.store.Upsert(ctx, f)
 }

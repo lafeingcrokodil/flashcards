@@ -1,6 +1,7 @@
 package review
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -147,18 +148,20 @@ func TestReviewer(t *testing.T) {
 		},
 	}
 
+	ctx := context.Background()
+
 	r := NewReviewer(&MemoryStore{})
 
 	for _, f := range flashcards {
-		err := r.Upsert(f)
+		err := r.Upsert(ctx, f)
 		assert.NoError(t, err, f.Metadata.ID)
 	}
 
 	for i, expected := range expectedFlashcards {
-		f, err := r.Next()
+		f, err := r.Next(ctx)
 		assert.NoError(t, err, i)
 		assert.Equal(t, expected, f, i)
-		err = r.Submit(f, true)
+		err = r.Submit(ctx, f, true)
 		assert.NoError(t, err, i)
 	}
 }
