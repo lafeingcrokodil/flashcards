@@ -56,8 +56,3 @@ func (r *Reviewer) Submit(ctx context.Context, f *Flashcard, correct bool) error
 	f.Update(correct, r.round)
 	return r.store.Upsert(ctx, f)
 }
-
-// Upsert updates the set of flashcards to include the specified flashcard.
-func (r *Reviewer) Upsert(ctx context.Context, f *Flashcard) error {
-	return r.store.Upsert(ctx, f)
-}

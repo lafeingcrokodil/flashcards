@@ -108,15 +108,15 @@ func TestReviewer(t *testing.T) {
 	}
 
 	for _, store := range stores {
-		r := NewReviewer(store)
-
 		for i := 1; i <= 3; i++ {
 			f := &Flashcard{Metadata: flashcardMetadata(int64(i))}
-			err := r.Upsert(ctx, f)
+			err := store.Upsert(ctx, f)
 			if !assert.NoError(t, err, f.Metadata.ID) {
 				return
 			}
 		}
+
+		r := NewReviewer(store)
 
 		for i, expected := range expectedFlashcards {
 			f, err := r.Next(ctx)
