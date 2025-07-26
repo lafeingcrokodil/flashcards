@@ -2,7 +2,6 @@ package review
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"testing"
 
@@ -115,30 +114,17 @@ func TestReviewer(t *testing.T) {
 
 	ctx := context.Background()
 
-	memSource := &MemorySource{}
+	memSource := memorySource(3)
+	memStore := NewMemoryStore()
 
-	for i := 1; i <= 3; i++ {
-		metadata := flashcardMetadata(int64(i))
-		memSource.metadata = append(memSource.metadata, &metadata)
-	}
-
-	projectID := os.Getenv("FLASHCARDS_FIRESTORE_PROJECT")
-	databaseID := os.Getenv("FLASHCARDS_FIRESTORE_DATABASE")
-	collection := os.Getenv("FLASHCARDS_FIRESTORE_COLLECTION")
-
-	fsClient, err := firestore.NewClientWithDatabase(ctx, projectID, databaseID)
+	fsStore, closeFunc, err := firestoreStore(ctx)
 	if !assert.NoError(t, err) {
 		return
 	}
-	defer fsClient.Close() // nolint:errcheck
-
-	fsStore, err := NewFireStore(ctx, fsClient, collection, "")
-	if !assert.NoError(t, err) {
-		return
-	}
+	defer closeFunc() // nolint:errcheck
 
 	stores := map[string]SessionStore{
-		"memory":    NewMemoryStore(),
+		"memory":    memStore,
 		"firestore": fsStore,
 	}
 
@@ -171,10 +157,108 @@ func TestReviewer(t *testing.T) {
 	}
 }
 
-func flashcardMetadata(id int64) FlashcardMetadata {
-	return FlashcardMetadata{
-		ID:     id,
-		Prompt: fmt.Sprintf("What is %d?", id),
-		Answer: fmt.Sprintf("%d", id),
+func TestSessionStore_BulkSyncFlashcards(t *testing.T) {
+	expectedFlashcards := []*Flashcard{
+		{
+			Metadata: FlashcardMetadata{ID: 1, Prompt: "What is 1?", Answer: "1"},
+			Stats:    FlashcardStats{ViewCount: 1, Repetitions: 1, NextReview: 1},
+		},
+		{
+			Metadata: FlashcardMetadata{ID: 2, Prompt: "What is B?", Answer: "2"},
+		},
+		{
+			Metadata: FlashcardMetadata{ID: 3, Prompt: "What is 3?", Answer: "C"},
+		},
+		{
+			Metadata: FlashcardMetadata{ID: 4, Prompt: "What is 4?", Answer: "4", Context: "ctx"},
+		},
+		{
+			Metadata: FlashcardMetadata{ID: 6, Prompt: "What is 6?", Answer: "6"},
+		},
 	}
+
+	ctx := context.Background()
+
+	memSource := memorySource(5)
+
+	metadata, err := memSource.ReadAll(ctx)
+	if !assert.NoError(t, err) {
+		return
+	}
+
+	memStore := NewMemoryStore()
+
+	fsStore, closeFunc, err := firestoreStore(ctx)
+	if !assert.NoError(t, err) {
+		return
+	}
+	defer closeFunc() // nolint:errcheck
+
+	stores := map[string]SessionStore{
+		"memory":    memStore,
+		"firestore": fsStore,
+	}
+
+	for i, store := range stores {
+		err := store.BulkSyncFlashcards(ctx, metadata)
+		if !assert.NoError(t, err, i) {
+			return
+		}
+
+		for j := 1; j < 5; j++ {
+			stats := flashcardStats(j)
+			err := store.UpdateFlashcardStats(ctx, int64(j), &stats)
+			if !assert.NoError(t, err, i, j) {
+				return
+			}
+		}
+
+		err = store.BulkSyncFlashcards(ctx, []*FlashcardMetadata{
+			{ID: 1, Prompt: "What is 1?", Answer: "1"},
+			{ID: 2, Prompt: "What is B?", Answer: "2"},
+			{ID: 3, Prompt: "What is 3?", Answer: "C"},
+			{ID: 4, Prompt: "What is 4?", Answer: "4", Context: "ctx"},
+			{ID: 6, Prompt: "What is 6?", Answer: "6"},
+		})
+		if !assert.NoError(t, err, i) {
+			return
+		}
+
+		flashcards, err := store.GetFlashcards(ctx)
+		if !assert.NoError(t, err, i) {
+			return
+		}
+
+		assert.Equal(t, expectedFlashcards, flashcards)
+	}
+}
+
+func firestoreStore(ctx context.Context) (*FireStore, func() error, error) {
+	projectID := os.Getenv("FLASHCARDS_FIRESTORE_PROJECT")
+	databaseID := os.Getenv("FLASHCARDS_FIRESTORE_DATABASE")
+	collection := os.Getenv("FLASHCARDS_FIRESTORE_COLLECTION")
+
+	client, err := firestore.NewClientWithDatabase(ctx, projectID, databaseID)
+	if err != nil {
+		return nil, nil, err
+	}
+	closeFunc := client.Close
+
+	s, err := NewFireStore(ctx, client, collection, "")
+	if err != nil {
+		return nil, closeFunc, err
+	}
+
+	return s, closeFunc, nil
+}
+
+func memorySource(maxID int) *MemorySource {
+	memSource := &MemorySource{}
+
+	for i := 1; i <= maxID; i++ {
+		metadata := flashcardMetadata(i)
+		memSource.metadata = append(memSource.metadata, &metadata)
+	}
+
+	return memSource
 }

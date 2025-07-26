@@ -1,6 +1,7 @@
 package review
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -94,5 +95,21 @@ func TestFlashcard_Update(t *testing.T) {
 	for _, update := range updates {
 		f.Update(update.correct, update.round)
 		assert.Equal(t, update.expectedState, f, update.id)
+	}
+}
+
+func flashcardMetadata(i int) FlashcardMetadata {
+	return FlashcardMetadata{
+		ID:     int64(i),
+		Prompt: fmt.Sprintf("What is %d?", i),
+		Answer: fmt.Sprintf("%d", i),
+	}
+}
+
+func flashcardStats(i int) FlashcardStats {
+	return FlashcardStats{
+		ViewCount:   i,
+		Repetitions: i,
+		NextReview:  i,
 	}
 }

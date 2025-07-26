@@ -22,6 +22,8 @@ type SessionStats struct {
 type SessionStore interface {
 	// BulkSyncFlashcards aligns the session data with the source of truth for the flashcard metadata.
 	BulkSyncFlashcards(ctx context.Context, metadata []*FlashcardMetadata) error
+	// GetFlashcards returns all flashcards.
+	GetFlashcards(ctx context.Context) ([]*Flashcard, error)
 	// NextReviewed returns a flashcard that is due to be reviewed again.
 	NextReviewed(ctx context.Context, round int) (*Flashcard, error)
 	// NextUnreviewed returns a flashcard that has never been reviewed before.

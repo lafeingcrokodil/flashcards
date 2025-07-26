@@ -74,6 +74,11 @@ func (s *MemoryStore) BulkSyncFlashcards(_ context.Context, metadata []*Flashcar
 	return nil
 }
 
+// GetFlashcards returns all flashcards.
+func (s *MemoryStore) GetFlashcards(ctx context.Context) ([]*Flashcard, error) {
+	return s.flashcards, nil
+}
+
 // NextReviewed returns a flashcard that is due to be reviewed again.
 func (s *MemoryStore) NextReviewed(_ context.Context, round int) (*Flashcard, error) {
 	for _, f := range s.flashcards {

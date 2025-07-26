@@ -86,6 +86,7 @@ func (s *FireStore) BulkSyncFlashcards(ctx context.Context, metadata []*Flashcar
 			if err != nil {
 				return
 			}
+			continue
 		}
 
 		if e.Metadata != *m {
@@ -113,6 +114,15 @@ func (s *FireStore) BulkSyncFlashcards(ctx context.Context, metadata []*Flashcar
 	}
 
 	return
+}
+
+// GetFlashcards returns all flashcards.
+func (s *FireStore) GetFlashcards(ctx context.Context) ([]*Flashcard, error) {
+	q := s.client.Collection(s.collection).
+		Doc(s.sessionID).
+		Collection("flashcards").
+		OrderBy("metadata.id", firestore.Asc)
+	return s.lookupFlashcards(ctx, q)
 }
 
 // NextReviewed returns a flashcard that is due to be reviewed again.
@@ -184,23 +194,39 @@ func (s *FireStore) flashcardRef(flashcardID int64) *firestore.DocumentRef {
 }
 
 func (s *FireStore) lookupFlashcard(ctx context.Context, q firestore.Query) (*Flashcard, error) {
-	var f Flashcard
-
-	iter := q.Documents(ctx)
-
-	docs, err := iter.GetAll()
+	flashcards, err := s.lookupFlashcards(ctx, q)
 	if err != nil {
-		return nil, fmt.Errorf("failed to lookup flashcard: %w", err)
+		return nil, err
 	}
 
-	if len(docs) == 0 {
+	if len(flashcards) == 0 {
 		return nil, nil
 	}
 
-	err = docs[0].DataTo(&f)
-	if err != nil {
-		return nil, fmt.Errorf("failed to deserialize flashcard: %w", err)
+	return flashcards[0], nil
+}
+
+func (s *FireStore) lookupFlashcards(ctx context.Context, q firestore.Query) ([]*Flashcard, error) {
+	var flashcards []*Flashcard
+
+	iter := q.Documents(ctx)
+
+	for {
+		doc, err := iter.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			return nil, err
+		}
+
+		var f Flashcard
+		if err = doc.DataTo(&f); err != nil {
+			return nil, err
+		}
+
+		flashcards = append(flashcards, &f)
 	}
 
-	return &f, nil
+	return flashcards, nil
 }
