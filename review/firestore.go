@@ -17,57 +17,21 @@ type FireStore struct {
 }
 
 func (s *FireStore) NextReviewed(ctx context.Context, round int) (*Flashcard, error) {
-	var f Flashcard
-
-	iter := s.client.Collection(s.collection).
+	q := s.client.Collection(s.collection).
 		Where("stats.viewCount", ">", 0).
 		Where("stats.nextReview", "==", round).
 		OrderBy("stats.viewCount", firestore.Desc).
 		OrderBy(firestore.DocumentID, firestore.Asc).
-		Limit(1).
-		Documents(ctx)
-
-	docs, err := iter.GetAll()
-	if err != nil {
-		return nil, fmt.Errorf("failed to lookup flashcard: %w", err)
-	}
-
-	if len(docs) == 0 {
-		return nil, nil
-	}
-
-	err = docs[0].DataTo(&f)
-	if err != nil {
-		return nil, fmt.Errorf("failed to deserialize flashcard: %w", err)
-	}
-
-	return &f, nil
+		Limit(1)
+	return s.lookup(ctx, q)
 }
 
 func (s *FireStore) NextUnreviewed(ctx context.Context) (*Flashcard, error) {
-	var f Flashcard
-
-	iter := s.client.Collection(s.collection).
+	q := s.client.Collection(s.collection).
 		Where("stats.viewCount", "==", 0).
 		OrderBy(firestore.DocumentID, firestore.Asc).
-		Limit(1).
-		Documents(ctx)
-
-	docs, err := iter.GetAll()
-	if err != nil {
-		return nil, fmt.Errorf("failed to lookup flashcard: %w", err)
-	}
-
-	if len(docs) == 0 {
-		return nil, nil
-	}
-
-	err = docs[0].DataTo(&f)
-	if err != nil {
-		return nil, fmt.Errorf("failed to deserialize flashcard: %w", err)
-	}
-
-	return &f, nil
+		Limit(1)
+	return s.lookup(ctx, q)
 }
 
 func (s *FireStore) Upsert(ctx context.Context, f *Flashcard) error {
@@ -75,4 +39,26 @@ func (s *FireStore) Upsert(ctx context.Context, f *Flashcard) error {
 		Doc(strconv.FormatInt(f.Metadata.ID, 10)).
 		Set(ctx, f)
 	return err
+}
+
+func (s *FireStore) lookup(ctx context.Context, q firestore.Query) (*Flashcard, error) {
+	var f Flashcard
+
+	iter := q.Documents(ctx)
+
+	docs, err := iter.GetAll()
+	if err != nil {
+		return nil, fmt.Errorf("failed to lookup flashcard: %w", err)
+	}
+
+	if len(docs) == 0 {
+		return nil, nil
+	}
+
+	err = docs[0].DataTo(&f)
+	if err != nil {
+		return nil, fmt.Errorf("failed to deserialize flashcard: %w", err)
+	}
+
+	return &f, nil
 }
