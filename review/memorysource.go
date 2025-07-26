@@ -2,6 +2,7 @@ package review
 
 import "context"
 
+// MemorySource stores flashcard metadata in memory.
 type MemorySource struct {
 	metadata []*FlashcardMetadata
 }
