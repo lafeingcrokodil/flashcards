@@ -10,8 +10,8 @@ import (
 	"google.golang.org/api/iterator"
 )
 
-// FireStore stores a review session's state in a Cloud Firestore database.
-type FireStore struct {
+// FirestoreStore stores a review session's state in a Cloud Firestore database.
+type FirestoreStore struct {
 	// client handles communication with the Firestore database.
 	client *firestore.Client
 	// collection is the name of the Firestore collection containing the sessions.
@@ -20,9 +20,9 @@ type FireStore struct {
 	sessionID string
 }
 
-// NewFireStore returns a FireStore for a new or existing session.
-func NewFireStore(ctx context.Context, client *firestore.Client, collection, sessionID string) (*FireStore, error) {
-	s := &FireStore{
+// NewFirestoreStore returns a FirestoreStore for a new or existing session.
+func NewFirestoreStore(ctx context.Context, client *firestore.Client, collection, sessionID string) (*FirestoreStore, error) {
+	s := &FirestoreStore{
 		client:     client,
 		collection: collection,
 		sessionID:  sessionID,
@@ -42,7 +42,7 @@ func NewFireStore(ctx context.Context, client *firestore.Client, collection, ses
 }
 
 // BulkSyncFlashcards aligns the session data with the source of truth for the flashcard metadata.
-func (s *FireStore) BulkSyncFlashcards(ctx context.Context, metadata []*FlashcardMetadata) (err error) {
+func (s *FirestoreStore) BulkSyncFlashcards(ctx context.Context, metadata []*FlashcardMetadata) (err error) {
 	metadataByID := make(map[int64]*FlashcardMetadata, len(metadata))
 	for _, m := range metadata {
 		metadataByID[m.ID] = m
@@ -117,7 +117,7 @@ func (s *FireStore) BulkSyncFlashcards(ctx context.Context, metadata []*Flashcar
 }
 
 // GetFlashcards returns all flashcards.
-func (s *FireStore) GetFlashcards(ctx context.Context) ([]*Flashcard, error) {
+func (s *FirestoreStore) GetFlashcards(ctx context.Context) ([]*Flashcard, error) {
 	q := s.client.Collection(s.collection).
 		Doc(s.sessionID).
 		Collection("flashcards").
@@ -126,7 +126,7 @@ func (s *FireStore) GetFlashcards(ctx context.Context) ([]*Flashcard, error) {
 }
 
 // NextReviewed returns a flashcard that is due to be reviewed again.
-func (s *FireStore) NextReviewed(ctx context.Context, round int) (*Flashcard, error) {
+func (s *FirestoreStore) NextReviewed(ctx context.Context, round int) (*Flashcard, error) {
 	q := s.client.Collection(s.collection).
 		Doc(s.sessionID).
 		Collection("flashcards").
@@ -139,7 +139,7 @@ func (s *FireStore) NextReviewed(ctx context.Context, round int) (*Flashcard, er
 }
 
 // NextUnreviewed returns a flashcard that has never been reviewed before.
-func (s *FireStore) NextUnreviewed(ctx context.Context) (*Flashcard, error) {
+func (s *FirestoreStore) NextUnreviewed(ctx context.Context) (*Flashcard, error) {
 	q := s.client.Collection(s.collection).
 		Doc(s.sessionID).
 		Collection("flashcards").
@@ -150,7 +150,7 @@ func (s *FireStore) NextUnreviewed(ctx context.Context) (*Flashcard, error) {
 }
 
 // SessionStats returns the current session stats.
-func (s *FireStore) SessionStats(ctx context.Context) (*SessionStats, error) {
+func (s *FirestoreStore) SessionStats(ctx context.Context) (*SessionStats, error) {
 	var stats SessionStats
 
 	doc, err := s.client.Collection(s.collection).
@@ -169,7 +169,7 @@ func (s *FireStore) SessionStats(ctx context.Context) (*SessionStats, error) {
 }
 
 // UpdateFlashcardStats updates a flashcard's stats.
-func (s *FireStore) UpdateFlashcardStats(ctx context.Context, flashcardID int64, stats *FlashcardStats) error {
+func (s *FirestoreStore) UpdateFlashcardStats(ctx context.Context, flashcardID int64, stats *FlashcardStats) error {
 	_, err := s.client.Collection(s.collection).
 		Doc(s.sessionID).
 		Collection("flashcards").
@@ -179,21 +179,21 @@ func (s *FireStore) UpdateFlashcardStats(ctx context.Context, flashcardID int64,
 }
 
 // UpdateSessionStats updates the session stats.
-func (s *FireStore) UpdateSessionStats(ctx context.Context, stats *SessionStats) error {
+func (s *FirestoreStore) UpdateSessionStats(ctx context.Context, stats *SessionStats) error {
 	_, err := s.client.Collection(s.collection).
 		Doc(s.sessionID).
 		Set(ctx, stats)
 	return err
 }
 
-func (s *FireStore) flashcardRef(flashcardID int64) *firestore.DocumentRef {
+func (s *FirestoreStore) flashcardRef(flashcardID int64) *firestore.DocumentRef {
 	return s.client.Collection(s.collection).
 		Doc(s.sessionID).
 		Collection("flashcards").
 		Doc(strconv.FormatInt(flashcardID, 10))
 }
 
-func (s *FireStore) lookupFlashcard(ctx context.Context, q firestore.Query) (*Flashcard, error) {
+func (s *FirestoreStore) lookupFlashcard(ctx context.Context, q firestore.Query) (*Flashcard, error) {
 	flashcards, err := s.lookupFlashcards(ctx, q)
 	if err != nil {
 		return nil, err
@@ -206,7 +206,7 @@ func (s *FireStore) lookupFlashcard(ctx context.Context, q firestore.Query) (*Fl
 	return flashcards[0], nil
 }
 
-func (s *FireStore) lookupFlashcards(ctx context.Context, q firestore.Query) ([]*Flashcard, error) {
+func (s *FirestoreStore) lookupFlashcards(ctx context.Context, q firestore.Query) ([]*Flashcard, error) {
 	var flashcards []*Flashcard
 
 	iter := q.Documents(ctx)
