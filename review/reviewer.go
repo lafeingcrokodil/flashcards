@@ -2,6 +2,7 @@ package review
 
 import (
 	"context"
+	"fmt"
 )
 
 // FlashcardMetadataSource is the source of truth for flashcard metadata.
@@ -44,7 +45,7 @@ type Reviewer struct {
 // NewReviewer returns a new reviewer. Flashcards are loaded from the source
 // and the session state is persisted in the store.
 func NewReviewer(ctx context.Context, source FlashcardMetadataSource, store SessionStore) (*Reviewer, error) {
-	metadata, err := source.ReadAll(ctx)
+	metadata, err := getFlashcardMetadata(ctx, source)
 	if err != nil {
 		return nil, err
 	}
@@ -109,4 +110,27 @@ func (r *Reviewer) Submit(ctx context.Context, f *Flashcard, correct bool) error
 	f.Update(correct, stats.Round)
 
 	return r.store.UpdateFlashcardStats(ctx, f.Metadata.ID, &f.Stats)
+}
+
+func getFlashcardMetadata(ctx context.Context, source FlashcardMetadataSource) ([]*FlashcardMetadata, error) {
+	metadata, err := source.ReadAll(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	metadataByPrompt := make(map[string]*FlashcardMetadata)
+
+	for _, m := range metadata {
+		e, ok := metadataByPrompt[m.Prompt]
+		if ok && e.Answer != m.Answer {
+			return nil, fmt.Errorf("ambiguous answers for prompt %s: %s and %s",
+				m.Prompt,
+				e.Answer,
+				m.Answer,
+			)
+		}
+		metadataByPrompt[m.Prompt] = m
+	}
+
+	return metadata, nil
 }

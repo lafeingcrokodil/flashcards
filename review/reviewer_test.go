@@ -7,6 +7,22 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestNewReviewer_Ambiguous(t *testing.T) {
+	expectedErr := "ambiguous answers for prompt P1: A1 and A2"
+
+	ctx := context.Background()
+
+	source := &MemorySource{
+		metadata: []*FlashcardMetadata{
+			{ID: 1, Prompt: "P1", Answer: "A1", Context: "C1"},
+			{ID: 2, Prompt: "P1", Answer: "A2", Context: "C1"},
+		},
+	}
+
+	_, err := NewReviewer(ctx, source, NewMemoryStore())
+	require.EqualError(t, err, expectedErr)
+}
+
 func TestReviewer_Next(t *testing.T) {
 	expectedStates := []struct {
 		stats     *SessionStats
