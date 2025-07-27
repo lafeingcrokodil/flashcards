@@ -10,14 +10,14 @@ import (
 // MemoryStore stores a review session's state in memory. It's unoptimized and
 // mainly intended for use in tests.
 type MemoryStore struct {
-	stats      *SessionStats
+	metadata   *SessionMetadata
 	flashcards []*Flashcard
 }
 
 // NewMemoryStore returns a new empty MemoryStore.
 func NewMemoryStore() *MemoryStore {
 	return &MemoryStore{
-		stats: &SessionStats{
+		metadata: &SessionMetadata{
 			Round: 0,
 			New:   true,
 		},
@@ -94,9 +94,9 @@ func (s *MemoryStore) NextUnreviewed(_ context.Context) (*Flashcard, error) {
 	return nil, nil
 }
 
-// SessionStats returns the current session stats.
-func (s *MemoryStore) SessionStats(_ context.Context) (*SessionStats, error) {
-	return s.stats, nil
+// GetSessionMetadata returns the current session metadata.
+func (s *MemoryStore) GetSessionMetadata(_ context.Context) (*SessionMetadata, error) {
+	return s.metadata, nil
 }
 
 // UpdateFlashcardStats updates a flashcard's stats.
@@ -109,8 +109,8 @@ func (s *MemoryStore) UpdateFlashcardStats(_ context.Context, flashcardID int64,
 	return nil
 }
 
-// UpdateSessionStats updates the session stats.
-func (s *MemoryStore) UpdateSessionStats(_ context.Context, stats *SessionStats) error {
-	s.stats = stats
+// SetSessionMetadata updates the session metadata.
+func (s *MemoryStore) SetSessionMetadata(_ context.Context, metadata *SessionMetadata) error {
+	s.metadata = metadata
 	return nil
 }

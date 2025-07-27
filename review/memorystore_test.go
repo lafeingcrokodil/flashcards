@@ -21,7 +21,7 @@ func testSessionStore(t *testing.T, ctx context.Context, store SessionStore) {
 		Stats:    FlashcardStats{ViewCount: 1, Repetitions: 1, NextReview: 1},
 	}
 
-	expectedSessionStats := &SessionStats{Round: 1, New: true}
+	expectedSessionMetadata := &SessionMetadata{Round: 1, New: true}
 
 	expectedFlashcards := []*Flashcard{
 		{
@@ -62,12 +62,12 @@ func testSessionStore(t *testing.T, ctx context.Context, store SessionStore) {
 		require.NoError(t, err, i)
 	}
 
-	err = store.UpdateSessionStats(ctx, expectedSessionStats)
+	err = store.SetSessionMetadata(ctx, expectedSessionMetadata)
 	require.NoError(t, err)
 
-	sessionStats, err := store.SessionStats(ctx)
+	sessionMetadata, err := store.GetSessionMetadata(ctx)
 	require.NoError(t, err)
-	require.Equal(t, expectedSessionStats, sessionStats)
+	require.Equal(t, expectedSessionMetadata, sessionMetadata)
 
 	secondUnreviewed, err := store.NextUnreviewed(ctx)
 	require.NoError(t, err)

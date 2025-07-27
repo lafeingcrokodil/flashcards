@@ -11,8 +11,8 @@ type FlashcardMetadataSource interface {
 	GetAll(ctx context.Context) ([]*FlashcardMetadata, error)
 }
 
-// SessionStats represents review session stats.
-type SessionStats struct {
+// SessionMetadata represents review session metadata.
+type SessionMetadata struct {
 	// Round is an incrementing counter that identifies the current round.
 	Round int `firestore:"round"`
 	// New is true if and only if the round has just started.
@@ -29,12 +29,12 @@ type SessionStore interface {
 	NextReviewed(ctx context.Context, round int) (*Flashcard, error)
 	// NextUnreviewed returns a flashcard that has never been reviewed before.
 	NextUnreviewed(ctx context.Context) (*Flashcard, error)
-	// SessionStats returns the current session stats.
-	SessionStats(ctx context.Context) (*SessionStats, error)
+	// GetSessionMetadata returns the current session metadata.
+	GetSessionMetadata(ctx context.Context) (*SessionMetadata, error)
 	// UpdateFlashcardStats updates a flashcard's stats.
 	UpdateFlashcardStats(ctx context.Context, flashcardID int64, stats *FlashcardStats) error
-	// UpdateSessionStats updates the session stats.
-	UpdateSessionStats(ctx context.Context, stats *SessionStats) error
+	// SetSessionMetadata updates the session metadata.
+	SetSessionMetadata(ctx context.Context, metadata *SessionMetadata) error
 }
 
 // Reviewer manages the review of a set of flashcards.
@@ -62,25 +62,25 @@ func NewReviewer(ctx context.Context, source FlashcardMetadataSource, store Sess
 
 // Next returns the next flashcard to be reviewed.
 func (r *Reviewer) Next(ctx context.Context) (*Flashcard, error) {
-	stats, err := r.store.SessionStats(ctx)
+	metadata, err := r.store.GetSessionMetadata(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	if stats.New {
+	if metadata.New {
 		f, err := r.store.NextUnreviewed(ctx)
 		if f != nil || err != nil {
 			return f, err
 		}
 	}
 
-	f, err := r.store.NextReviewed(ctx, stats.Round)
+	f, err := r.store.NextReviewed(ctx, metadata.Round)
 	if f != nil || err != nil {
 		return f, err
 	}
 
-	err = r.store.UpdateSessionStats(ctx, &SessionStats{
-		Round: stats.Round + 1,
+	err = r.store.SetSessionMetadata(ctx, &SessionMetadata{
+		Round: metadata.Round + 1,
 		New:   true,
 	})
 	if err != nil {
@@ -92,14 +92,14 @@ func (r *Reviewer) Next(ctx context.Context) (*Flashcard, error) {
 
 // Submit updates the session state following the review of a flashcard.
 func (r *Reviewer) Submit(ctx context.Context, f *Flashcard, correct bool) error {
-	stats, err := r.store.SessionStats(ctx)
+	metadata, err := r.store.GetSessionMetadata(ctx)
 	if err != nil {
 		return err
 	}
 
-	if stats.New {
-		err = r.store.UpdateSessionStats(ctx, &SessionStats{
-			Round: stats.Round,
+	if metadata.New {
+		err = r.store.SetSessionMetadata(ctx, &SessionMetadata{
+			Round: metadata.Round,
 			New:   false,
 		})
 		if err != nil {
@@ -107,7 +107,7 @@ func (r *Reviewer) Submit(ctx context.Context, f *Flashcard, correct bool) error
 		}
 	}
 
-	f.Update(correct, stats.Round)
+	f.Update(correct, metadata.Round)
 
 	return r.store.UpdateFlashcardStats(ctx, f.Metadata.ID, &f.Stats)
 }

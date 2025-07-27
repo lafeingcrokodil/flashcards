@@ -32,7 +32,7 @@ func NewFirestoreStore(ctx context.Context, client *firestore.Client, collection
 	if s.sessionID == "" {
 		s.sessionID = uuid.NewString()
 		fmt.Printf("INFO\tCreating new session with ID %s\n", s.sessionID)
-		err := s.UpdateSessionStats(ctx, &SessionStats{New: true})
+		err := s.SetSessionMetadata(ctx, &SessionMetadata{New: true})
 		if err != nil {
 			return nil, err
 		}
@@ -137,9 +137,9 @@ func (s *FirestoreStore) NextUnreviewed(ctx context.Context) (*Flashcard, error)
 	return s.lookupFirstFlashcard(ctx, iter)
 }
 
-// SessionStats returns the current session stats.
-func (s *FirestoreStore) SessionStats(ctx context.Context) (*SessionStats, error) {
-	var stats SessionStats
+// GetSessionMetadata returns the current session metadata.
+func (s *FirestoreStore) GetSessionMetadata(ctx context.Context) (*SessionMetadata, error) {
+	var metadata SessionMetadata
 
 	doc, err := s.sessionRef().
 		Get(ctx)
@@ -147,12 +147,12 @@ func (s *FirestoreStore) SessionStats(ctx context.Context) (*SessionStats, error
 		return nil, err
 	}
 
-	err = doc.DataTo(&stats)
+	err = doc.DataTo(&metadata)
 	if err != nil {
 		return nil, err
 	}
 
-	return &stats, nil
+	return &metadata, nil
 }
 
 // UpdateFlashcardStats updates a flashcard's stats.
@@ -162,10 +162,10 @@ func (s *FirestoreStore) UpdateFlashcardStats(ctx context.Context, flashcardID i
 	return err
 }
 
-// UpdateSessionStats updates the session stats.
-func (s *FirestoreStore) UpdateSessionStats(ctx context.Context, stats *SessionStats) error {
+// SetSessionMetadata updates the session metadata.
+func (s *FirestoreStore) SetSessionMetadata(ctx context.Context, metadata *SessionMetadata) error {
 	_, err := s.sessionRef().
-		Set(ctx, stats)
+		Set(ctx, metadata)
 	return err
 }
 
