@@ -7,7 +7,7 @@ type MemorySource struct {
 	metadata []*FlashcardMetadata
 }
 
-// ReadAll returns the metadata for all flashcards.
-func (s *MemorySource) ReadAll(ctx context.Context) ([]*FlashcardMetadata, error) {
+// GetAll returns the metadata for all flashcards.
+func (s *MemorySource) GetAll(ctx context.Context) ([]*FlashcardMetadata, error) {
 	return s.metadata, nil
 }

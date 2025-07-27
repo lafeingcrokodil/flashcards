@@ -23,8 +23,8 @@ type SheetSource struct {
 	AnswerHeader string
 }
 
-// ReadAll returns the metadata for all flashcards.
-func (s *SheetSource) ReadAll(ctx context.Context) ([]*FlashcardMetadata, error) {
+// GetAll returns the metadata for all flashcards.
+func (s *SheetSource) GetAll(ctx context.Context) ([]*FlashcardMetadata, error) {
 	var metadata []*FlashcardMetadata
 
 	records, err := io.ReadSheet(ctx, s.SpreadsheetID, s.CellRange)

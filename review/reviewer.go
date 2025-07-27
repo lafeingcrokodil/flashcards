@@ -7,8 +7,8 @@ import (
 
 // FlashcardMetadataSource is the source of truth for flashcard metadata.
 type FlashcardMetadataSource interface {
-	// ReadAll returns the metadata for all flashcards.
-	ReadAll(ctx context.Context) ([]*FlashcardMetadata, error)
+	// GetAll returns the metadata for all flashcards.
+	GetAll(ctx context.Context) ([]*FlashcardMetadata, error)
 }
 
 // SessionStats represents review session stats.
@@ -113,7 +113,7 @@ func (r *Reviewer) Submit(ctx context.Context, f *Flashcard, correct bool) error
 }
 
 func getFlashcardMetadata(ctx context.Context, source FlashcardMetadataSource) ([]*FlashcardMetadata, error) {
-	metadata, err := source.ReadAll(ctx)
+	metadata, err := source.GetAll(ctx)
 	if err != nil {
 		return nil, err
 	}

@@ -46,7 +46,7 @@ func testSessionStore(t *testing.T, ctx context.Context, store SessionStore) {
 
 	source := newMemorySource(initialFlashcardCount)
 
-	metadata, err := source.ReadAll(ctx)
+	metadata, err := source.GetAll(ctx)
 	require.NoError(t, err)
 
 	err = store.BulkSyncFlashcards(ctx, metadata)

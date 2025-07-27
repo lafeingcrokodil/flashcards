@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Test_SheetStore_ReadAll(t *testing.T) {
+func Test_SheetStore_GetAll(t *testing.T) {
 	expectedFlashcards := []*FlashcardMetadata{
 		{ID: 1, Prompt: "P1", Context: "C1", Answer: "A1"},
 		{ID: 2, Prompt: "P1", Context: "C2", Answer: "A2"},
@@ -27,7 +27,7 @@ func Test_SheetStore_ReadAll(t *testing.T) {
 
 	ctx := context.Background()
 
-	flashcards, err := s.ReadAll(ctx)
+	flashcards, err := s.GetAll(ctx)
 	require.NoError(t, err)
 	require.Equal(t, expectedFlashcards, flashcards)
 }
