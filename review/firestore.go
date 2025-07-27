@@ -117,7 +117,8 @@ func (s *FirestoreStore) NextReviewed(ctx context.Context, round int) (*Flashcar
 	iter := s.sessionRef().
 		Collection("flashcards").
 		Where("stats.viewCount", ">", 0).
-		Where("stats.nextReview", "==", round).
+		Where("stats.nextReview", "<=", round).
+		OrderBy("stats.nextReview", firestore.Asc).
 		OrderBy("stats.viewCount", firestore.Desc).
 		OrderBy(firestore.DocumentID, firestore.Asc).
 		Limit(1).

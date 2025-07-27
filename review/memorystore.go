@@ -77,7 +77,7 @@ func (s *MemoryStore) GetFlashcards(ctx context.Context) ([]*Flashcard, error) {
 // NextReviewed returns a flashcard that is due to be reviewed again.
 func (s *MemoryStore) NextReviewed(_ context.Context, round int) (*Flashcard, error) {
 	for _, f := range s.flashcards {
-		if f.Stats.ViewCount > 0 && f.Stats.NextReview == round {
+		if f.Stats.ViewCount > 0 && f.Stats.NextReview <= round {
 			return f, nil
 		}
 	}

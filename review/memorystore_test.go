@@ -77,7 +77,7 @@ func testSessionStore(t *testing.T, ctx context.Context, store SessionStore) {
 	require.NoError(t, err)
 	require.Equal(t, expectedReviewed, firstReviewed)
 
-	secondReviewed, err := store.NextReviewed(ctx, 6)
+	secondReviewed, err := store.NextReviewed(ctx, 0)
 	require.NoError(t, err)
 	require.Nil(t, secondReviewed)
 
