@@ -175,3 +175,30 @@ sequenceDiagram
     Server->>Server: update cached session stats
     Server->>Client: Session
 ```
+
+### Algorithm
+
+Each review round has the following logic:
+
+```mermaid
+flowchart TD
+    A(["Start round"])
+    A --> G{"Any<br>unreviewed<br>flashcards?"}
+    G -- Yes --> B["Review flashcard"]
+    G -- No --> C{"Any<br>flashcards<br>due?"}
+    B --> C
+    C -- Yes --> D["Review flashcard"]
+    C -- No --> E(["Next round"])
+    D --> C
+```
+
+The spaced repetition follows the following logic:
+
+```
+if answer is correct:
+    schedule next review for 2^proficiency rounds from now
+    increment proficiency score
+otherwise:
+    schedule next review for the next round
+    reset proficiency score to 0
+```
