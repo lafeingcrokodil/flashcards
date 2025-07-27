@@ -149,7 +149,7 @@ func (s *FirestoreStore) SessionStats(ctx context.Context) (*SessionStats, error
 
 	err = doc.DataTo(&stats)
 	if err != nil {
-		return nil, fmt.Errorf("failed to deserialize session stats: %w", err)
+		return nil, err
 	}
 
 	return &stats, nil
