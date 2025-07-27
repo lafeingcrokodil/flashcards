@@ -28,18 +28,13 @@ func NewMemoryStore() *MemoryStore {
 func (s *MemoryStore) BulkSyncFlashcards(_ context.Context, metadata []*FlashcardMetadata) error {
 	var syncedFlashcards []*Flashcard
 
-	existingFlashcardsByID := make(map[int64]*Flashcard, len(s.flashcards))
-	for _, f := range s.flashcards {
-		existingFlashcardsByID[f.Metadata.ID] = f
-	}
-
 	metadataByID := make(map[int64]*FlashcardMetadata, len(metadata))
 	for _, m := range metadata {
 		metadataByID[m.ID] = m
 	}
 
 	// Update and clean up existing flashcards.
-	for _, e := range existingFlashcardsByID {
+	for _, e := range s.flashcards {
 		m, ok := metadataByID[e.Metadata.ID]
 		if !ok {
 			fmt.Printf("INFO\tRemoving flashcard with ID %d (%s)\n", e.Metadata.ID, e.Metadata.Answer)

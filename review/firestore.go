@@ -58,31 +58,18 @@ func (s *FirestoreStore) BulkSyncFlashcards(ctx context.Context, metadata []*Fla
 		writer.End()
 	}()
 
-	iter := s.client.Collection(s.collection).
-		Doc(s.sessionID).
-		Collection("flashcards").
-		Documents(ctx)
+	var existingFlashcards []*Flashcard
+	existingFlashcards, err = s.GetFlashcards(ctx)
+	if err != nil {
+		return err
+	}
 
 	// Update and clean up existing flashcards.
-	for {
-		var doc *firestore.DocumentSnapshot
-		doc, err = iter.Next()
-		if err == iterator.Done {
-			break
-		}
-		if err != nil {
-			return
-		}
-
-		var e Flashcard
-		if err = doc.DataTo(&e); err != nil {
-			return
-		}
-
+	for _, e := range existingFlashcards {
 		m, ok := metadataByID[e.Metadata.ID]
 		if !ok {
 			fmt.Printf("INFO\tRemoving flashcard with ID %d (%s)\n", e.Metadata.ID, e.Metadata.Answer)
-			_, err = writer.Delete(doc.Ref)
+			_, err = writer.Delete(s.flashcardRef(e.Metadata.ID))
 			if err != nil {
 				return
 			}
@@ -93,7 +80,7 @@ func (s *FirestoreStore) BulkSyncFlashcards(ctx context.Context, metadata []*Fla
 			fmt.Printf("INFO\tUpdating metadata for ID %d: %v > %v\n", m.ID, e.Metadata, m)
 			e.Metadata = *m
 			e.Stats = FlashcardStats{}
-			_, err = writer.Set(doc.Ref, e)
+			_, err = writer.Set(s.flashcardRef(e.Metadata.ID), e)
 			if err != nil {
 				return
 			}
@@ -118,43 +105,42 @@ func (s *FirestoreStore) BulkSyncFlashcards(ctx context.Context, metadata []*Fla
 
 // GetFlashcards returns all flashcards.
 func (s *FirestoreStore) GetFlashcards(ctx context.Context) ([]*Flashcard, error) {
-	q := s.client.Collection(s.collection).
-		Doc(s.sessionID).
+	iter := s.sessionRef().
 		Collection("flashcards").
-		OrderBy("metadata.id", firestore.Asc)
-	return s.lookupFlashcards(ctx, q)
+		OrderBy("metadata.id", firestore.Asc).
+		Documents(ctx)
+	return s.lookupAllFlashcards(ctx, iter)
 }
 
 // NextReviewed returns a flashcard that is due to be reviewed again.
 func (s *FirestoreStore) NextReviewed(ctx context.Context, round int) (*Flashcard, error) {
-	q := s.client.Collection(s.collection).
-		Doc(s.sessionID).
+	iter := s.sessionRef().
 		Collection("flashcards").
 		Where("stats.viewCount", ">", 0).
 		Where("stats.nextReview", "==", round).
 		OrderBy("stats.viewCount", firestore.Desc).
 		OrderBy(firestore.DocumentID, firestore.Asc).
-		Limit(1)
-	return s.lookupFlashcard(ctx, q)
+		Limit(1).
+		Documents(ctx)
+	return s.lookupFirstFlashcard(ctx, iter)
 }
 
 // NextUnreviewed returns a flashcard that has never been reviewed before.
 func (s *FirestoreStore) NextUnreviewed(ctx context.Context) (*Flashcard, error) {
-	q := s.client.Collection(s.collection).
-		Doc(s.sessionID).
+	iter := s.sessionRef().
 		Collection("flashcards").
 		Where("stats.viewCount", "==", 0).
 		OrderBy(firestore.DocumentID, firestore.Asc).
-		Limit(1)
-	return s.lookupFlashcard(ctx, q)
+		Limit(1).
+		Documents(ctx)
+	return s.lookupFirstFlashcard(ctx, iter)
 }
 
 // SessionStats returns the current session stats.
 func (s *FirestoreStore) SessionStats(ctx context.Context) (*SessionStats, error) {
 	var stats SessionStats
 
-	doc, err := s.client.Collection(s.collection).
-		Doc(s.sessionID).
+	doc, err := s.sessionRef().
 		Get(ctx)
 	if err != nil {
 		return nil, err
@@ -170,31 +156,30 @@ func (s *FirestoreStore) SessionStats(ctx context.Context) (*SessionStats, error
 
 // UpdateFlashcardStats updates a flashcard's stats.
 func (s *FirestoreStore) UpdateFlashcardStats(ctx context.Context, flashcardID int64, stats *FlashcardStats) error {
-	_, err := s.client.Collection(s.collection).
-		Doc(s.sessionID).
-		Collection("flashcards").
-		Doc(strconv.FormatInt(flashcardID, 10)).
+	_, err := s.flashcardRef(flashcardID).
 		Set(ctx, &Flashcard{Stats: *stats}, firestore.Merge([]string{"stats"}))
 	return err
 }
 
 // UpdateSessionStats updates the session stats.
 func (s *FirestoreStore) UpdateSessionStats(ctx context.Context, stats *SessionStats) error {
-	_, err := s.client.Collection(s.collection).
-		Doc(s.sessionID).
+	_, err := s.sessionRef().
 		Set(ctx, stats)
 	return err
 }
 
 func (s *FirestoreStore) flashcardRef(flashcardID int64) *firestore.DocumentRef {
-	return s.client.Collection(s.collection).
-		Doc(s.sessionID).
+	return s.sessionRef().
 		Collection("flashcards").
 		Doc(strconv.FormatInt(flashcardID, 10))
 }
 
-func (s *FirestoreStore) lookupFlashcard(ctx context.Context, q firestore.Query) (*Flashcard, error) {
-	flashcards, err := s.lookupFlashcards(ctx, q)
+func (s *FirestoreStore) sessionRef() *firestore.DocumentRef {
+	return s.client.Collection(s.collection).Doc(s.sessionID)
+}
+
+func (s *FirestoreStore) lookupFirstFlashcard(ctx context.Context, iter *firestore.DocumentIterator) (*Flashcard, error) {
+	flashcards, err := s.lookupAllFlashcards(ctx, iter)
 	if err != nil {
 		return nil, err
 	}
@@ -206,10 +191,8 @@ func (s *FirestoreStore) lookupFlashcard(ctx context.Context, q firestore.Query)
 	return flashcards[0], nil
 }
 
-func (s *FirestoreStore) lookupFlashcards(ctx context.Context, q firestore.Query) ([]*Flashcard, error) {
+func (s *FirestoreStore) lookupAllFlashcards(ctx context.Context, iter *firestore.DocumentIterator) ([]*Flashcard, error) {
 	var flashcards []*Flashcard
-
-	iter := q.Documents(ctx)
 
 	for {
 		doc, err := iter.Next()
