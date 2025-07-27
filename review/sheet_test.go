@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func Test_SheetStore_ReadAll(t *testing.T) {
@@ -28,9 +28,6 @@ func Test_SheetStore_ReadAll(t *testing.T) {
 	ctx := context.Background()
 
 	flashcards, err := s.ReadAll(ctx)
-	if !assert.NoError(t, err) {
-		return
-	}
-
-	assert.Equal(t, expectedFlashcards, flashcards)
+	require.NoError(t, err)
+	require.Equal(t, expectedFlashcards, flashcards)
 }

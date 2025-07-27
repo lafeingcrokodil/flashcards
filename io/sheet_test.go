@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func Test_SheetStore_ReadAll(t *testing.T) {
@@ -22,9 +22,6 @@ func Test_SheetStore_ReadAll(t *testing.T) {
 	cellRange := os.Getenv("FLASHCARDS_SHEETS_CELL_RANGE")
 
 	records, err := ReadSheet(ctx, spreadsheetID, cellRange)
-	if !assert.NoError(t, err) {
-		return
-	}
-
-	assert.Equal(t, expectedRecords, records)
+	require.NoError(t, err)
+	require.Equal(t, expectedRecords, records)
 }

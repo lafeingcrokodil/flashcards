@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestFlashcard_Update(t *testing.T) {
@@ -94,7 +94,7 @@ func TestFlashcard_Update(t *testing.T) {
 
 	for _, update := range updates {
 		f.Update(update.correct, update.round)
-		assert.Equal(t, update.expectedState, f, update.id)
+		require.Equal(t, update.expectedState, f, update.id)
 	}
 }
 
