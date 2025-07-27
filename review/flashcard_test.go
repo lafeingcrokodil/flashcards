@@ -7,31 +7,25 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestFlashcard_Update(t *testing.T) {
+func TestFlashcard_Submit(t *testing.T) {
 	f := &Flashcard{
-		Metadata: FlashcardMetadata{
-			ID:     1,
-			Prompt: "What is A?",
-			Answer: "B",
-		},
+		Metadata: flashcardMetadata(1),
 	}
 
 	updates := []struct {
 		id            string
-		correct       bool
+		submission    *Submission
 		round         int
+		expectedOK    bool
 		expectedState *Flashcard
 	}{
 		{
-			id:      "Correct first review",
-			correct: true,
-			round:   0,
+			id:         "Correct first review",
+			submission: &Submission{Answer: "1", IsFirstGuess: true},
+			round:      0,
+			expectedOK: true,
 			expectedState: &Flashcard{
-				Metadata: FlashcardMetadata{
-					ID:     1,
-					Prompt: "What is A?",
-					Answer: "B",
-				},
+				Metadata: flashcardMetadata(1),
 				Stats: FlashcardStats{
 					ViewCount:   1,
 					Repetitions: 1,
@@ -40,15 +34,12 @@ func TestFlashcard_Update(t *testing.T) {
 			},
 		},
 		{
-			id:      "Correct second review",
-			correct: true,
-			round:   1,
+			id:         "Correct second review",
+			submission: &Submission{Answer: "1", IsFirstGuess: true},
+			round:      1,
+			expectedOK: true,
 			expectedState: &Flashcard{
-				Metadata: FlashcardMetadata{
-					ID:     1,
-					Prompt: "What is A?",
-					Answer: "B",
-				},
+				Metadata: flashcardMetadata(1),
 				Stats: FlashcardStats{
 					ViewCount:   2,
 					Repetitions: 2,
@@ -57,15 +48,12 @@ func TestFlashcard_Update(t *testing.T) {
 			},
 		},
 		{
-			id:      "Correct third review",
-			correct: true,
-			round:   3,
+			id:         "Correct third review",
+			submission: &Submission{Answer: "1", IsFirstGuess: true},
+			round:      3,
+			expectedOK: true,
 			expectedState: &Flashcard{
-				Metadata: FlashcardMetadata{
-					ID:     1,
-					Prompt: "What is A?",
-					Answer: "B",
-				},
+				Metadata: flashcardMetadata(1),
 				Stats: FlashcardStats{
 					ViewCount:   3,
 					Repetitions: 3,
@@ -74,15 +62,26 @@ func TestFlashcard_Update(t *testing.T) {
 			},
 		},
 		{
-			id:      "Incorrect fourth review",
-			correct: false,
-			round:   7,
+			id:         "Incorrect fourth review",
+			submission: &Submission{Answer: "2", IsFirstGuess: true},
+			round:      7,
+			expectedOK: false,
 			expectedState: &Flashcard{
-				Metadata: FlashcardMetadata{
-					ID:     1,
-					Prompt: "What is A?",
-					Answer: "B",
+				Metadata: flashcardMetadata(1),
+				Stats: FlashcardStats{
+					ViewCount:   3,
+					Repetitions: 3,
+					NextReview:  7,
 				},
+			},
+		},
+		{
+			id:         "Correction of fourth review",
+			submission: &Submission{Answer: "1", IsFirstGuess: false},
+			round:      7,
+			expectedOK: true,
+			expectedState: &Flashcard{
+				Metadata: flashcardMetadata(1),
 				Stats: FlashcardStats{
 					ViewCount:   4,
 					Repetitions: 0,
@@ -93,7 +92,8 @@ func TestFlashcard_Update(t *testing.T) {
 	}
 
 	for _, update := range updates {
-		f.Update(update.correct, update.round)
+		ok := f.Submit(update.submission, update.round)
+		require.Equal(t, update.expectedOK, ok, update.id)
 		require.Equal(t, update.expectedState, f, update.id)
 	}
 }

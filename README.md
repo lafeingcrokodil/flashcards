@@ -13,25 +13,17 @@ This section describes the planned design, not (yet) the current implementation.
 * `Client` - For example, JavaScript running in a browser.
 * `Server` - An HTTP server.
 * `Source` - The source of truth for the flashcard metadata, e.g. the prompts and answers.
-* `Store` - Stores the session state.
+* `Store` - Stores the review session states.
 
 ### Data types
 
-#### Session
-
-This is the part of the session data that's cached by the server and exposed to the client.
-
-* `id: string` - Uniquely identifies the session.
-* `proficiencyCounts: []int` - The number of flashcards at each proficiency level, where a proficiency level corresponds to the number of successful reviews in a row.
-* `unreviewedCount: int` - The number of flashcards that haven't been reviewed yet.
-
 #### SessionMetadata
-
-This is session metadata that's cached by the server and persisted in the store.
 
 * `id: string` - Uniquely identifies the session.
 * `round: int` - Identifies the current round, starting with 0 and incrementing from there.
 * `isNewRound: bool` - True if and only if the round just started, meaning that no flashcards have yet been reviewed in this round.
+* `proficiencyCounts: []int` - The number of flashcards at each proficiency level, where a proficiency level corresponds to the number of successful reviews in a row.
+* `unreviewedCount: int` - The number of flashcards that haven't been reviewed yet.
 
 #### Flashcard
 
@@ -77,8 +69,7 @@ sequenceDiagram
     Source->>Server: []FlashcardMetadata
     Server->>Store: SetSessionMetadata
     Server->>Store: SetFlashcards
-    Server->>Server: calculate + cache session stats
-    Server->>Client: Session
+    Server->>Client: SessionMetadata
 ```
 
 #### GET /sessions/:sid
@@ -92,12 +83,9 @@ sequenceDiagram
     participant Store
 
     Client->>Server: GET /sessions/:sid
-    Server->>Store: GetFlashcards
-    Store->>Server: []Flashcard
     Server->>Store: GetSessionMetadata
     Store->>Server: SessionMetadata
-    Server->>Server: calculate + cache session stats
-    Server->>Client: Session
+    Server->>Client: SessionMetadata
 ```
 
 #### GET /sessions/:sid/flashcards
@@ -132,10 +120,11 @@ sequenceDiagram
     Source->>Server: []FlashcardMetadata
     Server->>Store: GetFlashcards
     Store->>Server: []Flashcard
-    Server->>Server: merge flashcard data
+    Server->>Server: compute diff
+    Server->>Store: DeleteFlashcards
     Server->>Store: SetFlashcards
-    Server->>Server: calculate + cache session stats
-    Server->>Client: Session
+    Server->>Store: SetSessionMetadata
+    Server->>Client: SessionMetadata
 ```
 
 #### POST /sessions/:sid/flashcards/next
@@ -149,13 +138,14 @@ sequenceDiagram
     participant Store
 
     Client->>Server: POST /sessions/:sid/flashcards/next
+    Server->>Store: GetSessionMetadata
+    Store->>Server: SessionMetadata
     loop
         Server->>Store: NextReviewed or NextUnreviewed
         Store->>Server: Flashcard or nil
         Server->>Store: SetSessionMetadata
     end
-    Server->>Server: update cached session stats
-    Server->>Client: Session
+    Server->>Client: Flashcard
 ```
 
 #### POST /sessions/:sid/flashcards/:fid/submit
@@ -169,11 +159,13 @@ sequenceDiagram
     participant Store
 
     Client->>Server: POST /sessions/:sid/flashcards/:fid/submit
+    Server->>Store: GetSessionMetadata
+    Store->>Server: SessionMetadata
     Server->>Store: GetFlashcard
     Server->>Server: check correctness
     Server->>Store: SetFlashcardStats
-    Server->>Server: update cached session stats
-    Server->>Client: Session
+    Server->>Store: SetSessionMetadata
+    Server->>Client: SessionMetadata + correct
 ```
 
 ### Algorithm

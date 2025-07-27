@@ -3,117 +3,208 @@ package review
 import (
 	"context"
 	"fmt"
+
+	"github.com/google/uuid"
 )
 
-// FlashcardMetadataSource is the source of truth for flashcard metadata.
-type FlashcardMetadataSource interface {
-	// GetAll returns the metadata for all flashcards.
-	GetAll(ctx context.Context) ([]*FlashcardMetadata, error)
-}
-
-// SessionMetadata represents review session metadata.
-type SessionMetadata struct {
-	// Round is an incrementing counter that identifies the current round.
-	Round int `firestore:"round"`
-	// New is true if and only if the round has just started.
-	New bool `firestore:"new"`
-}
-
-// SessionStore stores the state of a review session.
-type SessionStore interface {
-	// BulkSyncFlashcards aligns the session data with the source of truth for the flashcard metadata.
-	BulkSyncFlashcards(ctx context.Context, metadata []*FlashcardMetadata) error
-	// GetFlashcards returns all flashcards.
-	GetFlashcards(ctx context.Context) ([]*Flashcard, error)
-	// NextReviewed returns a flashcard that is due to be reviewed again.
-	NextReviewed(ctx context.Context, round int) (*Flashcard, error)
-	// NextUnreviewed returns a flashcard that has never been reviewed before.
-	NextUnreviewed(ctx context.Context) (*Flashcard, error)
-	// GetSessionMetadata returns the current session metadata.
-	GetSessionMetadata(ctx context.Context) (*SessionMetadata, error)
-	// UpdateFlashcardStats updates a flashcard's stats.
-	UpdateFlashcardStats(ctx context.Context, flashcardID int64, stats *FlashcardStats) error
-	// SetSessionMetadata updates the session metadata.
-	SetSessionMetadata(ctx context.Context, metadata *SessionMetadata) error
-}
-
-// Reviewer manages the review of a set of flashcards.
+// Reviewer manages flashcard review sessions.
 type Reviewer struct {
-	store SessionStore
+	source FlashcardMetadataSource
+	store  SessionStore
 }
 
-// NewReviewer returns a new reviewer. Flashcards are loaded from the source
-// and the session state is persisted in the store.
-func NewReviewer(ctx context.Context, source FlashcardMetadataSource, store SessionStore) (*Reviewer, error) {
-	metadata, err := getFlashcardMetadata(ctx, source)
+// CreateSession creates a new session with all flashcards marked as unreviewed.
+func (r *Reviewer) CreateSession(ctx context.Context) (*SessionMetadata, error) {
+	sessionID := uuid.NewString()
+
+	flashcardMetadata, err := r.getFlashcardMetadata(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	err = store.BulkSyncFlashcards(ctx, metadata)
+	sessionMetadata := NewSessionMetadata(sessionID)
+	sessionMetadata.UnreviewedCount = len(flashcardMetadata)
+
+	err = r.store.SetSessionMetadata(ctx, sessionID, sessionMetadata)
 	if err != nil {
 		return nil, err
 	}
 
-	return &Reviewer{
-		store: store,
-	}, nil
+	err = r.store.SetFlashcards(ctx, sessionID, flashcardMetadata)
+	if err != nil {
+		return nil, err
+	}
+
+	return sessionMetadata, nil
 }
 
-// Next returns the next flashcard to be reviewed.
-func (r *Reviewer) Next(ctx context.Context) (*Flashcard, error) {
-	metadata, err := r.store.GetSessionMetadata(ctx)
+// GetSession returns an existing session.
+func (r *Reviewer) GetSession(ctx context.Context, sessionID string) (*SessionMetadata, error) {
+	return r.store.GetSessionMetadata(ctx, sessionID)
+}
+
+// GetFlashcards returns all flashcards.
+func (r *Reviewer) GetFlashcards(ctx context.Context, sessionID string) ([]*Flashcard, error) {
+	return r.store.GetFlashcards(ctx, sessionID)
+}
+
+// SyncFlashcards ensures that the session data is up to date with the flashcard metadata source.
+func (r *Reviewer) SyncFlashcards(ctx context.Context, sessionID string) (*SessionMetadata, error) {
+	flashcardMetadata, err := r.getFlashcardMetadata(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	if metadata.New {
-		f, err := r.store.NextUnreviewed(ctx)
+	metadataByID := make(map[int64]*FlashcardMetadata, len(flashcardMetadata))
+	for _, m := range flashcardMetadata {
+		metadataByID[m.ID] = m
+	}
+
+	existingFlashcards, err := r.store.GetFlashcards(ctx, sessionID)
+	if err != nil {
+		return nil, err
+	}
+
+	sessionMetadata, err := r.store.GetSessionMetadata(ctx, sessionID)
+	if err != nil {
+		return nil, err
+	}
+
+	var toBeDeleted []int64
+	var toBeUpserted []*FlashcardMetadata
+
+	updatedSessionMetadata := NewSessionMetadata(sessionID)
+	updatedSessionMetadata.Round = sessionMetadata.Round
+	updatedSessionMetadata.IsNewRound = sessionMetadata.IsNewRound
+
+	// Update and clean up existing flashcards.
+	for _, e := range existingFlashcards {
+		m, ok := metadataByID[e.Metadata.ID]
+		if !ok {
+			fmt.Printf("INFO\tRemoving flashcard with ID %d (%s)\n", e.Metadata.ID, e.Metadata.Answer)
+			toBeDeleted = append(toBeDeleted, e.Metadata.ID)
+			continue
+		}
+
+		if e.Metadata != *m {
+			fmt.Printf("INFO\tUpdating metadata for ID %d: %v > %v\n", m.ID, e.Metadata, m)
+			toBeUpserted = append(toBeUpserted, m)
+			updatedSessionMetadata.UnreviewedCount++
+		} else if e.Stats.ViewCount == 0 {
+			updatedSessionMetadata.UnreviewedCount++
+		} else {
+			i := proficiencyIndex(e.Stats.Repetitions)
+			updatedSessionMetadata.ProficiencyCounts[i]++
+		}
+
+		// The flashcard should now be fully synced, so no further processing is required.
+		delete(metadataByID, e.Metadata.ID)
+	}
+
+	// Add any missing flashcards.
+	for _, m := range metadataByID {
+		fmt.Printf("INFO\tAdding flashcard with ID %d (%s)\n", m.ID, m.Answer)
+		toBeUpserted = append(toBeUpserted, m)
+		updatedSessionMetadata.UnreviewedCount++
+	}
+
+	err = r.store.DeleteFlashcards(ctx, sessionID, toBeDeleted)
+	if err != nil {
+		return nil, err
+	}
+
+	err = r.store.SetFlashcards(ctx, sessionID, toBeUpserted)
+	if err != nil {
+		return nil, err
+	}
+
+	err = r.store.SetSessionMetadata(ctx, sessionID, updatedSessionMetadata)
+	if err != nil {
+		return nil, err
+	}
+
+	return updatedSessionMetadata, nil
+}
+
+// NextFlashcard returns the next flashcard to be reviewed.
+func (r *Reviewer) NextFlashcard(ctx context.Context, sessionID string) (*Flashcard, error) {
+	metadata, err := r.store.GetSessionMetadata(ctx, sessionID)
+	if err != nil {
+		return nil, err
+	}
+
+	if metadata.IsNewRound {
+		f, err := r.store.NextUnreviewed(ctx, sessionID)
 		if f != nil || err != nil {
 			return f, err
 		}
 	}
 
-	f, err := r.store.NextReviewed(ctx, metadata.Round)
+	f, err := r.store.NextReviewed(ctx, sessionID, metadata.Round)
 	if f != nil || err != nil {
 		return f, err
 	}
 
-	err = r.store.SetSessionMetadata(ctx, &SessionMetadata{
-		Round: metadata.Round + 1,
-		New:   true,
-	})
+	metadata.Round++
+	metadata.IsNewRound = true
+
+	err = r.store.SetSessionMetadata(ctx, sessionID, metadata)
 	if err != nil {
 		return nil, err
 	}
 
-	return r.Next(ctx)
+	return r.NextFlashcard(ctx, sessionID)
 }
 
 // Submit updates the session state following the review of a flashcard.
-func (r *Reviewer) Submit(ctx context.Context, f *Flashcard, correct bool) error {
-	metadata, err := r.store.GetSessionMetadata(ctx)
+func (r *Reviewer) Submit(ctx context.Context, sessionID string, flashcardID int64, submission *Submission) (*SessionMetadata, bool, error) {
+	metadata, err := r.store.GetSessionMetadata(ctx, sessionID)
 	if err != nil {
-		return err
+		return nil, false, err
 	}
 
-	if metadata.New {
-		err = r.store.SetSessionMetadata(ctx, &SessionMetadata{
-			Round: metadata.Round,
-			New:   false,
-		})
-		if err != nil {
-			return err
-		}
+	f, err := r.store.GetFlashcard(ctx, sessionID, flashcardID)
+	if err != nil {
+		return nil, false, err
 	}
 
-	f.Update(correct, metadata.Round)
+	previousViewCount := f.Stats.ViewCount
+	previousRepetitions := f.Stats.Repetitions
 
-	return r.store.UpdateFlashcardStats(ctx, f.Metadata.ID, &f.Stats)
+	ok := f.Submit(submission, metadata.Round)
+	if !ok {
+		return metadata, ok, nil
+	}
+
+	err = r.store.SetFlashcardStats(ctx, sessionID, f.Metadata.ID, &f.Stats)
+	if err != nil {
+		return nil, false, err
+	}
+
+	i := proficiencyIndex(f.Stats.Repetitions)
+	metadata.ProficiencyCounts[i]++
+
+	if previousViewCount != 0 {
+		prev := proficiencyIndex(previousRepetitions)
+		metadata.ProficiencyCounts[prev]--
+	} else {
+		metadata.UnreviewedCount--
+	}
+
+	if metadata.IsNewRound {
+		metadata.IsNewRound = false
+	}
+
+	err = r.store.SetSessionMetadata(ctx, sessionID, metadata)
+	if err != nil {
+		return nil, false, err
+	}
+
+	return metadata, ok, nil
 }
 
-func getFlashcardMetadata(ctx context.Context, source FlashcardMetadataSource) ([]*FlashcardMetadata, error) {
-	metadata, err := source.GetAll(ctx)
+func (r *Reviewer) getFlashcardMetadata(ctx context.Context) ([]*FlashcardMetadata, error) {
+	metadata, err := r.source.GetAll(ctx)
 	if err != nil {
 		return nil, err
 	}

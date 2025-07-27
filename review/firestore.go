@@ -10,6 +10,8 @@ import (
 	"google.golang.org/api/iterator"
 )
 
+// TODO: Implement updated SessionStore interface.
+
 // FirestoreStore stores a review session's state in a Cloud Firestore database.
 type FirestoreStore struct {
 	// client handles communication with the Firestore database.
@@ -32,7 +34,7 @@ func NewFirestoreStore(ctx context.Context, client *firestore.Client, collection
 	if s.sessionID == "" {
 		s.sessionID = uuid.NewString()
 		fmt.Printf("INFO\tCreating new session with ID %s\n", s.sessionID)
-		err := s.SetSessionMetadata(ctx, &SessionMetadata{New: true})
+		err := s.SetSessionMetadata(ctx, &SessionMetadata{IsNewRound: true})
 		if err != nil {
 			return nil, err
 		}
@@ -155,8 +157,8 @@ func (s *FirestoreStore) GetSessionMetadata(ctx context.Context) (*SessionMetada
 	return &metadata, nil
 }
 
-// UpdateFlashcardStats updates a flashcard's stats.
-func (s *FirestoreStore) UpdateFlashcardStats(ctx context.Context, flashcardID int64, stats *FlashcardStats) error {
+// SetFlashcardStats updates a flashcard's stats.
+func (s *FirestoreStore) SetFlashcardStats(ctx context.Context, flashcardID int64, stats *FlashcardStats) error {
 	_, err := s.flashcardRef(flashcardID).
 		Set(ctx, &Flashcard{Stats: *stats}, firestore.Merge([]string{"stats"}))
 	return err

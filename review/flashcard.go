@@ -1,8 +1,15 @@
 package review
 
 import (
+	"context"
 	"math"
 )
+
+// FlashcardMetadataSource is the source of truth for flashcard metadata.
+type FlashcardMetadataSource interface {
+	// GetAll returns the metadata for all flashcards.
+	GetAll(ctx context.Context) ([]*FlashcardMetadata, error)
+}
 
 // Flashcard represents the state of a flashcard.
 type Flashcard struct {
@@ -34,15 +41,30 @@ type FlashcardStats struct {
 	NextReview int `firestore:"nextReview,omitempty"`
 }
 
-// Update updates the flashcard's stats after being reviewed.
-func (f *Flashcard) Update(correct bool, round int) {
+// Submission represents a user's answer to a flashcard prompt.
+type Submission struct {
+	// Answer is the submitted answer.
+	Answer string `json:"answer"`
+	// IsFirstGuess is true if and only if this is the user's first guess.
+	IsFirstGuess bool `firestore:"new"`
+}
+
+// Submit updates the flashcard's stats after being reviewed.
+// Returns true if and only if the answer is correct.
+func (f *Flashcard) Submit(submission *Submission, round int) bool {
+	if submission.Answer != f.Metadata.Answer {
+		return false
+	}
+
 	f.Stats.ViewCount++
 
-	if correct {
+	if submission.IsFirstGuess {
 		f.Stats.NextReview = round + int(math.Round(math.Pow(2, float64(f.Stats.Repetitions))))
 		f.Stats.Repetitions++
 	} else {
 		f.Stats.NextReview = round + 1
 		f.Stats.Repetitions = 0
 	}
+
+	return true
 }

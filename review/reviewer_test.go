@@ -7,7 +7,207 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestNewReviewer_Ambiguous(t *testing.T) {
+func TestReviewer_Next(t *testing.T) {
+	expectedInitialSession := &SessionMetadata{
+		IsNewRound:        true,
+		ProficiencyCounts: make([]int, 5),
+		UnreviewedCount:   3,
+	}
+
+	expectedStates := []struct {
+		metadata  *SessionMetadata
+		flashcard *Flashcard
+	}{
+		{
+			flashcard: &Flashcard{
+				Metadata: flashcardMetadata(1),
+			},
+			metadata: &SessionMetadata{Round: 0, IsNewRound: false, ProficiencyCounts: []int{0, 1, 0, 0, 0}, UnreviewedCount: 2},
+		},
+		{
+			flashcard: &Flashcard{
+				Metadata: flashcardMetadata(2),
+			},
+			metadata: &SessionMetadata{Round: 1, IsNewRound: false, ProficiencyCounts: []int{0, 2, 0, 0, 0}, UnreviewedCount: 1},
+		},
+		{
+			flashcard: &Flashcard{
+				Metadata: flashcardMetadata(1),
+				Stats:    FlashcardStats{ViewCount: 1, Repetitions: 1, NextReview: 1},
+			},
+			metadata: &SessionMetadata{Round: 1, IsNewRound: false, ProficiencyCounts: []int{0, 1, 1, 0, 0}, UnreviewedCount: 1},
+		},
+		{
+			flashcard: &Flashcard{
+				Metadata: flashcardMetadata(3),
+			},
+			metadata: &SessionMetadata{Round: 2, IsNewRound: false, ProficiencyCounts: []int{0, 2, 1, 0, 0}, UnreviewedCount: 0},
+		},
+		{
+			flashcard: &Flashcard{
+				Metadata: flashcardMetadata(2),
+				Stats:    FlashcardStats{ViewCount: 1, Repetitions: 1, NextReview: 2},
+			},
+			metadata: &SessionMetadata{Round: 2, IsNewRound: false, ProficiencyCounts: []int{0, 1, 2, 0, 0}, UnreviewedCount: 0},
+		},
+		{
+			flashcard: &Flashcard{
+				Metadata: flashcardMetadata(1),
+				Stats:    FlashcardStats{ViewCount: 2, Repetitions: 2, NextReview: 3},
+			},
+			metadata: &SessionMetadata{Round: 3, IsNewRound: false, ProficiencyCounts: []int{0, 1, 1, 1, 0}, UnreviewedCount: 0},
+		},
+		{
+			flashcard: &Flashcard{
+				Metadata: flashcardMetadata(3),
+				Stats:    FlashcardStats{ViewCount: 1, Repetitions: 1, NextReview: 3},
+			},
+			metadata: &SessionMetadata{Round: 3, IsNewRound: false, ProficiencyCounts: []int{0, 0, 2, 1, 0}, UnreviewedCount: 0},
+		},
+		{
+			flashcard: &Flashcard{
+				Metadata: flashcardMetadata(2),
+				Stats:    FlashcardStats{ViewCount: 2, Repetitions: 2, NextReview: 4},
+			},
+			metadata: &SessionMetadata{Round: 4, IsNewRound: false, ProficiencyCounts: []int{0, 0, 1, 2, 0}, UnreviewedCount: 0},
+		},
+		{
+			flashcard: &Flashcard{
+				Metadata: flashcardMetadata(3),
+				Stats:    FlashcardStats{ViewCount: 2, Repetitions: 2, NextReview: 5},
+			},
+			metadata: &SessionMetadata{Round: 5, IsNewRound: false, ProficiencyCounts: []int{0, 0, 0, 3, 0}, UnreviewedCount: 0},
+		},
+		// No cards to review in round 6.
+		{
+			flashcard: &Flashcard{
+				Metadata: flashcardMetadata(1),
+				Stats:    FlashcardStats{ViewCount: 3, Repetitions: 3, NextReview: 7},
+			},
+			metadata: &SessionMetadata{Round: 7, IsNewRound: false, ProficiencyCounts: []int{0, 0, 0, 2, 1}, UnreviewedCount: 0},
+		},
+		{
+			flashcard: &Flashcard{
+				Metadata: flashcardMetadata(2),
+				Stats:    FlashcardStats{ViewCount: 3, Repetitions: 3, NextReview: 8},
+			},
+			metadata: &SessionMetadata{Round: 8, IsNewRound: false, ProficiencyCounts: []int{0, 0, 0, 1, 2}, UnreviewedCount: 0},
+		},
+		{
+			flashcard: &Flashcard{
+				Metadata: flashcardMetadata(3),
+				Stats:    FlashcardStats{ViewCount: 3, Repetitions: 3, NextReview: 9},
+			},
+			metadata: &SessionMetadata{Round: 9, IsNewRound: false, ProficiencyCounts: []int{0, 0, 0, 0, 3}, UnreviewedCount: 0},
+		},
+		// No cards to review in rounds 10-14.
+		{
+			flashcard: &Flashcard{
+				Metadata: flashcardMetadata(1),
+				Stats:    FlashcardStats{ViewCount: 4, Repetitions: 4, NextReview: 15},
+			},
+			metadata: &SessionMetadata{Round: 15, IsNewRound: false, ProficiencyCounts: []int{0, 0, 0, 0, 3}, UnreviewedCount: 0},
+		},
+	}
+
+	ctx := context.Background()
+
+	r := &Reviewer{source: newMemorySource(3), store: NewMemoryStore()}
+
+	session, err := r.CreateSession(ctx)
+	require.NoError(t, err)
+	expectedInitialSession.ID = session.ID
+	require.Equal(t, session, expectedInitialSession)
+
+	for i, expected := range expectedStates {
+		expected.metadata.ID = expectedInitialSession.ID
+
+		f, err := r.NextFlashcard(ctx, session.ID)
+		require.NoError(t, err, i)
+		require.Equal(t, expected.flashcard, f, i)
+
+		metadata, ok, err := r.Submit(ctx, session.ID, f.Metadata.ID, &Submission{Answer: f.Metadata.Answer, IsFirstGuess: true})
+		require.NoError(t, err, i)
+		require.True(t, ok, i)
+		require.Equal(t, expected.metadata, metadata, i)
+	}
+}
+
+func TestReviewer_SyncFlashcards(t *testing.T) {
+	expectedSession := &SessionMetadata{
+		Round:             1,
+		IsNewRound:        true,
+		ProficiencyCounts: []int{0, 1, 0, 0, 0},
+		UnreviewedCount:   4,
+	}
+
+	expectedFlashcards := []*Flashcard{
+		{
+			Metadata: FlashcardMetadata{ID: 1, Prompt: "What is 1?", Answer: "1"},
+			Stats:    FlashcardStats{ViewCount: 1, Repetitions: 1, NextReview: 1},
+		},
+		{
+			Metadata: FlashcardMetadata{ID: 2, Prompt: "What is B?", Answer: "2"},
+		},
+		{
+			Metadata: FlashcardMetadata{ID: 3, Prompt: "What is 3?", Answer: "C"},
+		},
+		{
+			Metadata: FlashcardMetadata{ID: 4, Prompt: "What is 4?", Answer: "4", Context: "ctx"},
+		},
+		{
+			Metadata: FlashcardMetadata{ID: 6, Prompt: "What is 6?", Answer: "6"},
+		},
+	}
+
+	const initialFlashcardCount = 5
+
+	ctx := context.Background()
+
+	r := &Reviewer{source: newMemorySource(initialFlashcardCount), store: NewMemoryStore()}
+
+	session, err := r.CreateSession(ctx)
+	require.NoError(t, err)
+	expectedSession.ID = session.ID
+
+	for i := 1; i <= initialFlashcardCount; i++ {
+		stats := flashcardStats(i)
+		err := r.store.SetFlashcardStats(ctx, session.ID, int64(i), &stats)
+		require.NoError(t, err, i)
+	}
+
+	err = r.store.SetSessionMetadata(ctx, session.ID, &SessionMetadata{
+		ID:                session.ID,
+		Round:             1,
+		IsNewRound:        true,
+		ProficiencyCounts: []int{0, 1, 1, 1, 2},
+	})
+	require.NoError(t, err)
+
+	r.source = &MemorySource{
+		metadata: []*FlashcardMetadata{
+			{ID: 1, Prompt: "What is 1?", Answer: "1"},
+			{ID: 2, Prompt: "What is B?", Answer: "2"},
+			{ID: 3, Prompt: "What is 3?", Answer: "C"},
+			{ID: 4, Prompt: "What is 4?", Answer: "4", Context: "ctx"},
+			{ID: 6, Prompt: "What is 6?", Answer: "6"},
+		},
+	}
+
+	updatedSession, err := r.SyncFlashcards(ctx, session.ID)
+	require.NoError(t, err)
+	require.Equal(t, expectedSession, updatedSession)
+
+	flashcards, err := r.GetFlashcards(ctx, session.ID)
+	require.NoError(t, err)
+	require.Equal(t, expectedFlashcards, flashcards)
+
+	unchangedSession, err := r.GetSession(ctx, session.ID)
+	require.NoError(t, err)
+	require.Equal(t, expectedSession, unchangedSession)
+}
+
+func TestNewReviewer_getFlashcardMetadata(t *testing.T) {
 	expectedErr := "ambiguous answers for prompt P1: A1 and A2"
 
 	ctx := context.Background()
@@ -19,100 +219,8 @@ func TestNewReviewer_Ambiguous(t *testing.T) {
 		},
 	}
 
-	_, err := NewReviewer(ctx, source, NewMemoryStore())
+	r := &Reviewer{source: source, store: NewMemoryStore()}
+
+	_, err := r.getFlashcardMetadata(ctx)
 	require.EqualError(t, err, expectedErr)
-}
-
-func TestReviewer_Next(t *testing.T) {
-	expectedStates := []struct {
-		metadata  *SessionMetadata
-		flashcard *Flashcard
-	}{
-		{
-			metadata: &SessionMetadata{Round: 0, New: true},
-			flashcard: &Flashcard{
-				Metadata: flashcardMetadata(1),
-			},
-		},
-		{
-			metadata: &SessionMetadata{Round: 0, New: false},
-			flashcard: &Flashcard{
-				Metadata: flashcardMetadata(2),
-			},
-		},
-		{
-			metadata: &SessionMetadata{Round: 1, New: false},
-			flashcard: &Flashcard{
-				Metadata: flashcardMetadata(1),
-				Stats:    FlashcardStats{ViewCount: 1, Repetitions: 1, NextReview: 1},
-			},
-		},
-		{
-			metadata: &SessionMetadata{Round: 1, New: false},
-			flashcard: &Flashcard{
-				Metadata: flashcardMetadata(3),
-			},
-		},
-		{
-			metadata: &SessionMetadata{Round: 2, New: false},
-			flashcard: &Flashcard{
-				Metadata: flashcardMetadata(2),
-				Stats:    FlashcardStats{ViewCount: 1, Repetitions: 1, NextReview: 2},
-			},
-		},
-		{
-			metadata: &SessionMetadata{Round: 2, New: false},
-			flashcard: &Flashcard{
-				Metadata: flashcardMetadata(1),
-				Stats:    FlashcardStats{ViewCount: 2, Repetitions: 2, NextReview: 3},
-			},
-		},
-		{
-			metadata: &SessionMetadata{Round: 3, New: false},
-			flashcard: &Flashcard{
-				Metadata: flashcardMetadata(3),
-				Stats:    FlashcardStats{ViewCount: 1, Repetitions: 1, NextReview: 3},
-			},
-		},
-		{
-			metadata: &SessionMetadata{Round: 3, New: false},
-			flashcard: &Flashcard{
-				Metadata: flashcardMetadata(2),
-				Stats:    FlashcardStats{ViewCount: 2, Repetitions: 2, NextReview: 4},
-			},
-		},
-		{
-			metadata: &SessionMetadata{Round: 4, New: false},
-			flashcard: &Flashcard{
-				Metadata: flashcardMetadata(3),
-				Stats:    FlashcardStats{ViewCount: 2, Repetitions: 2, NextReview: 5},
-			},
-		},
-		// No cards to review in round 6.
-		{
-			metadata: &SessionMetadata{Round: 5, New: false},
-			flashcard: &Flashcard{
-				Metadata: flashcardMetadata(1),
-				Stats:    FlashcardStats{ViewCount: 3, Repetitions: 3, NextReview: 7},
-			},
-		},
-	}
-
-	ctx := context.Background()
-
-	r, err := NewReviewer(ctx, newMemorySource(3), NewMemoryStore())
-	require.NoError(t, err)
-
-	for i, expected := range expectedStates {
-		metadata, err := r.store.GetSessionMetadata(ctx)
-		require.NoError(t, err, i)
-		require.Equal(t, expected.metadata, metadata, i)
-
-		f, err := r.Next(ctx)
-		require.NoError(t, err, i)
-		require.Equal(t, expected.flashcard, f, i)
-
-		err = r.Submit(ctx, f, true)
-		require.NoError(t, err, i)
-	}
 }

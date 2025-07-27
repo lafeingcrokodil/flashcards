@@ -20,8 +20,6 @@ func TestFirestoreStore(t *testing.T) {
 	require.NoError(t, err)
 	defer client.Close() // nolint:errcheck
 
-	store, err := NewFirestoreStore(ctx, client, collection, "")
+	_, err = NewFirestoreStore(ctx, client, collection, "")
 	require.NoError(t, err)
-
-	testSessionStore(t, ctx, store)
 }
