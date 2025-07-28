@@ -64,7 +64,7 @@ func TestHandleCreateSession(t *testing.T) {
 }
 
 func testCreateSession(t *testing.T, router *mux.Router, expectedSession review.SessionMetadata) review.SessionMetadata {
-	req := httptest.NewRequest("CREATE", "/sessions", nil)
+	req := httptest.NewRequest("POST", "/sessions", nil)
 	rec := httptest.NewRecorder()
 
 	router.ServeHTTP(rec, req)

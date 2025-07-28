@@ -51,7 +51,7 @@ func (s *Server) Start(port int) error {
 
 func (s *Server) getRouter() *mux.Router {
 	r := mux.NewRouter()
-	r.HandleFunc("/sessions", s.handleCreateSession).Methods("CREATE")
+	r.HandleFunc("/sessions", s.handleCreateSession).Methods("POST")
 	r.HandleFunc("/sessions/{sid}", s.handleGetSession).Methods("GET")
 	r.HandleFunc("/sessions/{sid}/flashcards", s.handleGetFlashcards).Methods("GET")
 	r.HandleFunc("/sessions/{sid}/flashcards/next", s.handleNextFlashcard).Methods("POST")
