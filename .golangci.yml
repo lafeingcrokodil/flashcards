@@ -4,4 +4,5 @@ linters:
     - cyclop
     - err113
     - nilnil
+    - noinlineerr
     - revive

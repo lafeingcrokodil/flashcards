@@ -38,7 +38,8 @@ func (s *FirestoreStore) GetFlashcard(ctx context.Context, sessionID string, fla
 	}
 
 	var f Flashcard
-	if err = doc.DataTo(&f); err != nil {
+	err = doc.DataTo(&f)
+	if err != nil {
 		return nil, err
 	}
 
@@ -162,7 +163,8 @@ func (s *FirestoreStore) lookupAllFlashcards(iter *firestore.DocumentIterator) (
 		}
 
 		var f Flashcard
-		if err = doc.DataTo(&f); err != nil {
+		err = doc.DataTo(&f)
+		if err != nil {
 			return nil, err
 		}
 
