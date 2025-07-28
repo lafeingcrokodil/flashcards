@@ -8,7 +8,7 @@ import (
 )
 
 func TestReviewer_NextFlashcard(t *testing.T) {
-	numFlashcards := 3
+	numFlashcards := 2
 	numProficiencyLevels := 3
 
 	expectedInitialSession := &SessionMetadata{
@@ -29,7 +29,7 @@ func TestReviewer_NextFlashcard(t *testing.T) {
 			expectedFlashcard: &Flashcard{
 				Metadata: flashcardMetadata(1),
 			},
-			expectedSession: &SessionMetadata{Round: 0, IsNewRound: false, ProficiencyCounts: []int{0, 1, 0}, UnreviewedCount: 2},
+			expectedSession: &SessionMetadata{Round: 0, IsNewRound: false, ProficiencyCounts: []int{0, 1, 0}, UnreviewedCount: 1},
 		},
 		{
 			correct:      true,
@@ -37,7 +37,7 @@ func TestReviewer_NextFlashcard(t *testing.T) {
 			expectedFlashcard: &Flashcard{
 				Metadata: flashcardMetadata(2),
 			},
-			expectedSession: &SessionMetadata{Round: 1, IsNewRound: false, ProficiencyCounts: []int{0, 2, 0}, UnreviewedCount: 1},
+			expectedSession: &SessionMetadata{Round: 1, IsNewRound: false, ProficiencyCounts: []int{0, 2, 0}, UnreviewedCount: 0},
 		},
 		{
 			correct:      true,
@@ -46,15 +46,7 @@ func TestReviewer_NextFlashcard(t *testing.T) {
 				Metadata: flashcardMetadata(1),
 				Stats:    FlashcardStats{ViewCount: 1, Repetitions: 1, NextReview: 1},
 			},
-			expectedSession: &SessionMetadata{Round: 1, IsNewRound: false, ProficiencyCounts: []int{0, 1, 1}, UnreviewedCount: 1},
-		},
-		{
-			correct:      true,
-			isFirstGuess: true,
-			expectedFlashcard: &Flashcard{
-				Metadata: flashcardMetadata(3),
-			},
-			expectedSession: &SessionMetadata{Round: 2, IsNewRound: false, ProficiencyCounts: []int{0, 2, 1}, UnreviewedCount: 0},
+			expectedSession: &SessionMetadata{Round: 1, IsNewRound: false, ProficiencyCounts: []int{0, 1, 1}, UnreviewedCount: 0},
 		},
 		{
 			correct:      true,
@@ -63,7 +55,7 @@ func TestReviewer_NextFlashcard(t *testing.T) {
 				Metadata: flashcardMetadata(2),
 				Stats:    FlashcardStats{ViewCount: 1, Repetitions: 1, NextReview: 2},
 			},
-			expectedSession: &SessionMetadata{Round: 2, IsNewRound: false, ProficiencyCounts: []int{0, 1, 2}, UnreviewedCount: 0},
+			expectedSession: &SessionMetadata{Round: 2, IsNewRound: false, ProficiencyCounts: []int{0, 0, 2}, UnreviewedCount: 0},
 		},
 		{
 			correct:      true,
@@ -72,25 +64,25 @@ func TestReviewer_NextFlashcard(t *testing.T) {
 				Metadata: flashcardMetadata(1),
 				Stats:    FlashcardStats{ViewCount: 2, Repetitions: 2, NextReview: 3},
 			},
-			expectedSession: &SessionMetadata{Round: 3, IsNewRound: false, ProficiencyCounts: []int{0, 1, 2}, UnreviewedCount: 0},
+			expectedSession: &SessionMetadata{Round: 3, IsNewRound: false, ProficiencyCounts: []int{0, 0, 2}, UnreviewedCount: 0},
 		},
 		{
 			correct:      false,
 			isFirstGuess: true,
 			expectedFlashcard: &Flashcard{
-				Metadata: flashcardMetadata(3),
-				Stats:    FlashcardStats{ViewCount: 1, Repetitions: 1, NextReview: 3},
+				Metadata: flashcardMetadata(2),
+				Stats:    FlashcardStats{ViewCount: 2, Repetitions: 2, NextReview: 4},
 			},
-			expectedSession: &SessionMetadata{Round: 3, IsNewRound: false, ProficiencyCounts: []int{0, 1, 2}, UnreviewedCount: 0},
+			expectedSession: &SessionMetadata{Round: 4, IsNewRound: true, ProficiencyCounts: []int{0, 0, 2}, UnreviewedCount: 0},
 		},
 		{
 			correct:      true,
 			isFirstGuess: false,
 			expectedFlashcard: &Flashcard{
-				Metadata: flashcardMetadata(3),
-				Stats:    FlashcardStats{ViewCount: 1, Repetitions: 1, NextReview: 3},
+				Metadata: flashcardMetadata(2),
+				Stats:    FlashcardStats{ViewCount: 2, Repetitions: 2, NextReview: 4},
 			},
-			expectedSession: &SessionMetadata{Round: 3, IsNewRound: false, ProficiencyCounts: []int{1, 0, 2}, UnreviewedCount: 0},
+			expectedSession: &SessionMetadata{Round: 4, IsNewRound: false, ProficiencyCounts: []int{1, 0, 1}, UnreviewedCount: 0},
 		},
 	}
 
