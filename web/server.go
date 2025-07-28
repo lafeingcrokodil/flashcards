@@ -12,8 +12,6 @@ import (
 	"github.com/lafeingcrokodil/flashcards/review"
 )
 
-const numProficiencyLevels = 5
-
 var (
 	// ErrMissingFlashcardID is thrown if a request is missing a flashcard ID.
 	ErrMissingFlashcardID = errors.New("missing flashcard ID")
@@ -31,12 +29,16 @@ type SubmissionResponse struct {
 
 // Server is a web server for reviewing flashcards.
 type Server struct {
-	reviewer *review.Reviewer
+	reviewer             *review.Reviewer
+	numProficiencyLevels int
 }
 
 // New initializes a new server.
-func New(source review.FlashcardMetadataSource, store review.SessionStore) (*Server, error) {
-	return &Server{reviewer: review.NewReviewer(source, store)}, nil
+func New(source review.FlashcardMetadataSource, store review.SessionStore, numProficiencyLevels int) (*Server, error) {
+	return &Server{
+		reviewer:             review.NewReviewer(source, store),
+		numProficiencyLevels: numProficiencyLevels,
+	}, nil
 }
 
 // Start starts the server.
@@ -59,7 +61,7 @@ func (s *Server) getRouter() *mux.Router {
 }
 
 func (s *Server) handleCreateSession(w http.ResponseWriter, req *http.Request) {
-	session, err := s.reviewer.CreateSession(req.Context(), numProficiencyLevels)
+	session, err := s.reviewer.CreateSession(req.Context(), s.numProficiencyLevels)
 	if err != nil {
 		sendError(w, http.StatusInternalServerError, err)
 		return
