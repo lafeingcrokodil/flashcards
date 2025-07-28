@@ -103,13 +103,13 @@ func (r *Reviewer) NextFlashcard(ctx context.Context, sessionID string) (*Flashc
 
 	if metadata.IsNewRound {
 		f, err := r.store.NextUnreviewed(ctx, sessionID)
-		if f != nil || err != nil {
+		if !errors.Is(err, ErrNotFound) {
 			return f, err
 		}
 	}
 
 	f, err := r.store.NextReviewed(ctx, sessionID, metadata.Round)
-	if f != nil || err != nil {
+	if !errors.Is(err, ErrNotFound) {
 		return f, err
 	}
 

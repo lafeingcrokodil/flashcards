@@ -134,7 +134,7 @@ func (s *MemoryStore) NextReviewed(_ context.Context, sessionID string, round in
 			return f, nil
 		}
 	}
-	return nil, nil
+	return nil, ErrNotFound
 }
 
 // NextUnreviewed returns a flashcard that has never been reviewed before.
@@ -150,7 +150,7 @@ func (s *MemoryStore) NextUnreviewed(_ context.Context, sessionID string) (*Flas
 		}
 	}
 
-	return nil, nil
+	return nil, ErrNotFound
 }
 
 // GetSessionMetadata returns the current session metadata.

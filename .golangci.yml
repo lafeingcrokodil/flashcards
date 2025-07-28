@@ -3,4 +3,5 @@ linters:
   enable:
     - cyclop
     - err113
+    - nilnil
     - revive

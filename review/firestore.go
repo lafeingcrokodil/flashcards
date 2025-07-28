@@ -143,7 +143,7 @@ func (s *FirestoreStore) lookupFirstFlashcard(iter *firestore.DocumentIterator) 
 	}
 
 	if len(flashcards) == 0 {
-		return nil, nil
+		return nil, ErrNotFound
 	}
 
 	return flashcards[0], nil
