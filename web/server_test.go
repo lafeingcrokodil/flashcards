@@ -68,7 +68,7 @@ func testCreateSession(t *testing.T, router *mux.Router, expectedSession review.
 	rec := httptest.NewRecorder()
 
 	router.ServeHTTP(rec, req)
-	require.Equal(t, http.StatusOK, rec.Code)
+	require.Equal(t, http.StatusCreated, rec.Code)
 
 	var session review.SessionMetadata
 	err := json.NewDecoder(rec.Body).Decode(&session)

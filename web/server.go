@@ -66,7 +66,7 @@ func (s *Server) handleCreateSession(w http.ResponseWriter, req *http.Request) {
 		sendError(w, http.StatusInternalServerError, err)
 		return
 	}
-	sendResponse(w, session)
+	sendResponse(w, http.StatusCreated, session)
 }
 
 func (s *Server) handleGetSession(w http.ResponseWriter, req *http.Request) {
@@ -81,7 +81,7 @@ func (s *Server) handleGetSession(w http.ResponseWriter, req *http.Request) {
 		sendError(w, http.StatusInternalServerError, err)
 		return
 	}
-	sendResponse(w, session)
+	sendResponse(w, http.StatusOK, session)
 }
 
 func (s *Server) handleGetFlashcards(w http.ResponseWriter, req *http.Request) {
@@ -96,7 +96,7 @@ func (s *Server) handleGetFlashcards(w http.ResponseWriter, req *http.Request) {
 		sendError(w, http.StatusInternalServerError, err)
 		return
 	}
-	sendResponse(w, flashcards)
+	sendResponse(w, http.StatusOK, flashcards)
 }
 
 func (s *Server) handleNextFlashcard(w http.ResponseWriter, req *http.Request) {
@@ -111,7 +111,7 @@ func (s *Server) handleNextFlashcard(w http.ResponseWriter, req *http.Request) {
 		sendError(w, http.StatusInternalServerError, err)
 		return
 	}
-	sendResponse(w, flashcard)
+	sendResponse(w, http.StatusOK, flashcard)
 }
 
 func (s *Server) handleSyncFlashcards(w http.ResponseWriter, req *http.Request) {
@@ -126,7 +126,7 @@ func (s *Server) handleSyncFlashcards(w http.ResponseWriter, req *http.Request) 
 		sendError(w, http.StatusInternalServerError, err)
 		return
 	}
-	sendResponse(w, session)
+	sendResponse(w, http.StatusOK, session)
 }
 
 func (s *Server) handleSubmitFlashcard(w http.ResponseWriter, req *http.Request) {
@@ -163,18 +163,24 @@ func (s *Server) handleSubmitFlashcard(w http.ResponseWriter, req *http.Request)
 		return
 	}
 
-	sendResponse(w, SubmissionResponse{Session: session, IsCorrect: ok})
+	sendResponse(w, http.StatusOK, SubmissionResponse{Session: session, IsCorrect: ok})
 }
 
-func sendError(w http.ResponseWriter, code int, err error) {
+func sendError(w http.ResponseWriter, statusCode int, err error) {
 	fmt.Printf("ERROR\t%v\n", err)
-	http.Error(w, err.Error(), code)
+	http.Error(w, err.Error(), statusCode)
 }
 
-func sendResponse(w http.ResponseWriter, data any) {
+func sendResponse(w http.ResponseWriter, statusCode int, data any) {
+	// We're taking a calculated risk here of assuming that the encoding will
+	// never fail, so we don't bother implementing the error handling in a way
+	// that would allow sending an error response to the client. We just add
+	// some simple logging.
+
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(statusCode)
 	err := json.NewEncoder(w).Encode(data)
 	if err != nil {
-		sendError(w, http.StatusInternalServerError, err)
+		fmt.Printf("ERROR\t%v\n", err)
 	}
 }
