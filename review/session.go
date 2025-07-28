@@ -49,6 +49,10 @@ func NewSessionMetadata(sessionID string) *SessionMetadata {
 	}
 }
 
-func proficiencyIndex(repetitions int) int {
-	return min(repetitions, numProficiencyLevels-1)
+// IncrementProficiency adjusts the proficiency count. Specifically, it adjusts the count
+// of flashcards for the proficiency level corresponding to the number of repetitions
+// (correct answers in a row) by the specified increment (positive or negative).
+func (session *SessionMetadata) IncrementProficiency(repetitions int, increment int) {
+	i := min(repetitions, len(session.ProficiencyCounts)-1)
+	session.ProficiencyCounts[i] += increment
 }

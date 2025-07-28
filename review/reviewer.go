@@ -149,12 +149,10 @@ func (r *Reviewer) Submit(ctx context.Context, sessionID string, flashcardID int
 		return nil, false, err
 	}
 
-	i := proficiencyIndex(f.Stats.Repetitions)
-	session.ProficiencyCounts[i]++
+	session.IncrementProficiency(f.Stats.Repetitions, 1)
 
 	if previousViewCount != 0 {
-		prev := proficiencyIndex(previousRepetitions)
-		session.ProficiencyCounts[prev]--
+		session.IncrementProficiency(previousRepetitions, -1)
 	} else {
 		session.UnreviewedCount--
 	}
@@ -226,8 +224,7 @@ func diff(
 		case f.Stats.ViewCount == 0:
 			updatedSession.UnreviewedCount++
 		default:
-			i := proficiencyIndex(f.Stats.Repetitions)
-			updatedSession.ProficiencyCounts[i]++
+			updatedSession.IncrementProficiency(f.Stats.Repetitions, 1)
 		}
 
 		// The flashcard should now be fully synced, so no further processing is required.
