@@ -19,14 +19,6 @@ var (
 	ErrMissingSessionID = errors.New("missing session ID")
 )
 
-// SubmissionResponse is the response for a submit request.
-type SubmissionResponse struct {
-	// Session contains the current session metadata.
-	Session *review.SessionMetadata `json:"session"`
-	// IsCorrect is true if and only if the submission had a correct answer.
-	IsCorrect bool `json:"isCorrect"`
-}
-
 // Server is a web server for reviewing flashcards.
 type Server struct {
 	reviewer             *review.Reviewer
@@ -164,7 +156,12 @@ func (s *Server) handleSubmitFlashcard(w http.ResponseWriter, req *http.Request)
 		return
 	}
 
-	sendResponse(w, http.StatusOK, SubmissionResponse{Session: session, IsCorrect: ok})
+	statusCode := http.StatusOK
+	if !ok {
+		statusCode = http.StatusNotModified
+	}
+
+	sendResponse(w, statusCode, session)
 }
 
 func sendError(w http.ResponseWriter, statusCode int, err error) {
