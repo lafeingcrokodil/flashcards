@@ -40,6 +40,7 @@ type SessionMetadata struct {
 	UnreviewedCount int `firestore:"unreviewedCount" json:"unreviewedCount"`
 }
 
+// NewSessionMetadata initializes session metadata for the case where no flashcards have been added yet.
 func NewSessionMetadata(sessionID string) *SessionMetadata {
 	return &SessionMetadata{
 		ID:                sessionID,

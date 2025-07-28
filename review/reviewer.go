@@ -1,3 +1,4 @@
+// Package review implements business logic for managing flashcard review sessions.
 package review
 
 import (

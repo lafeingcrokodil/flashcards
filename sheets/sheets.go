@@ -1,3 +1,4 @@
+// Package sheets provides access to the Google Sheets API.
 package sheets
 
 import (
