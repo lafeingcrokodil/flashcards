@@ -10,9 +10,7 @@ import (
 
 // FirestoreStore stores a review session's state in a Cloud Firestore database.
 type FirestoreStore struct {
-	// client handles communication with the Firestore database.
-	client *firestore.Client
-	// collection is the name of the Firestore collection containing the sessions.
+	client     *firestore.Client
 	collection string
 }
 
