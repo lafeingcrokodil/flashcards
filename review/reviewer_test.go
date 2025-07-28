@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -184,17 +185,40 @@ func TestReviewer_SyncFlashcards(t *testing.T) {
 }
 
 func TestNewReviewer_getFlashcardMetadata(t *testing.T) {
-	expectedErr := "answers A1 and A2 for prompt P1: answers are ambiguous"
+	testCases := []struct {
+		id          string
+		metadata    []*FlashcardMetadata
+		expectedErr string
+	}{
+		{
+			id: "Unmbiguous",
+			metadata: []*FlashcardMetadata{
+				{ID: 1, Prompt: "P1", Answer: "A1", Context: "C1"},
+				{ID: 2, Prompt: "P1", Answer: "A2", Context: "C2"},
+			},
+		},
+		{
+			id: "Ambiguous",
+			metadata: []*FlashcardMetadata{
+				{ID: 1, Prompt: "P1", Answer: "A1", Context: "C1"},
+				{ID: 2, Prompt: "P1", Answer: "A2", Context: "C1"},
+			},
+			expectedErr: "answers A1 and A2 for prompt P1: answers are ambiguous",
+		},
+	}
 
 	ctx := context.Background()
 
-	source := NewMemorySource([]*FlashcardMetadata{
-		{ID: 1, Prompt: "P1", Answer: "A1", Context: "C1"},
-		{ID: 2, Prompt: "P1", Answer: "A2", Context: "C1"},
-	})
+	for _, tc := range testCases {
+		source := NewMemorySource(tc.metadata)
+		r := NewReviewer(source, NewMemoryStore())
 
-	r := NewReviewer(source, NewMemoryStore())
-
-	_, err := r.getFlashcardMetadata(ctx)
-	require.EqualError(t, err, expectedErr)
+		metadata, err := r.getFlashcardMetadata(ctx)
+		// We use assert instead of require so that we can gather errors for all test cases.
+		if tc.expectedErr != "" {
+			assert.EqualError(t, err, tc.expectedErr, tc.id)
+		} else if !assert.NoError(t, err, tc.id) { //nolint:testifylint
+			assert.Equal(t, tc.metadata, metadata)
+		}
+	}
 }

@@ -180,10 +180,10 @@ func (r *Reviewer) getFlashcardMetadata(ctx context.Context) ([]*FlashcardMetada
 		return nil, err
 	}
 
-	metadataByPrompt := make(map[string]*FlashcardMetadata)
+	metadataByQualifiedPrompt := make(map[qualifiedPrompt]*FlashcardMetadata)
 
 	for _, m := range metadata {
-		e, ok := metadataByPrompt[m.Prompt]
+		e, ok := metadataByQualifiedPrompt[m.qualifiedPrompt()]
 		if ok && e.Answer != m.Answer {
 			return nil, fmt.Errorf("answers %s and %s for prompt %s: %w",
 				e.Answer,
@@ -192,7 +192,7 @@ func (r *Reviewer) getFlashcardMetadata(ctx context.Context) ([]*FlashcardMetada
 				ErrAmbiguousAnswers,
 			)
 		}
-		metadataByPrompt[m.Prompt] = m
+		metadataByQualifiedPrompt[m.qualifiedPrompt()] = m
 	}
 
 	return metadata, nil

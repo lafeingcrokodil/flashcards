@@ -51,6 +51,11 @@ type Submission struct {
 	IsFirstGuess bool `firestore:"isFirstGuess"`
 }
 
+type qualifiedPrompt struct {
+	prompt  string
+	context string
+}
+
 // Submit updates the flashcard's stats after being reviewed.
 // Returns true if and only if the answer is correct.
 func (f *Flashcard) Submit(submission *Submission, round int) bool {
@@ -69,6 +74,10 @@ func (f *Flashcard) Submit(submission *Submission, round int) bool {
 	}
 
 	return true
+}
+
+func (m *FlashcardMetadata) qualifiedPrompt() qualifiedPrompt {
+	return qualifiedPrompt{prompt: m.Prompt, context: m.Context}
 }
 
 func interval(repetitions int) int {
