@@ -15,7 +15,6 @@ import (
 // with each record mapping column headers to values.
 func ReadSheet(ctx context.Context, spreadsheetID string, cellRange string) ([]map[string]string, error) {
 	var headers []string
-	var records []map[string]string
 
 	client, err := sheets.NewService(ctx, option.WithScopes(sheets.SpreadsheetsScope))
 	if err != nil {
@@ -26,6 +25,8 @@ func ReadSheet(ctx context.Context, spreadsheetID string, cellRange string) ([]m
 	if err != nil {
 		return nil, err
 	}
+
+	records := make([]map[string]string, 0, len(resp.Values))
 
 	for _, row := range resp.Values {
 		if headers == nil {

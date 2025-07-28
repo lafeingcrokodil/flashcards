@@ -7,4 +7,5 @@ linters:
     - noinlineerr
     - nolintlint
     - perfsprint
+    - prealloc
     - revive

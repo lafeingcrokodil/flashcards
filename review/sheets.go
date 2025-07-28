@@ -25,12 +25,12 @@ type SheetSource struct {
 
 // GetAll returns the metadata for all flashcards.
 func (s *SheetSource) GetAll(ctx context.Context) ([]*FlashcardMetadata, error) {
-	var metadata []*FlashcardMetadata
-
 	records, err := sheets.ReadSheet(ctx, s.SpreadsheetID, s.CellRange)
 	if err != nil {
 		return nil, err
 	}
+
+	metadata := make([]*FlashcardMetadata, 0, len(records))
 
 	for _, record := range records {
 		id, err := strconv.ParseInt(record[s.IDHeader], 10, 64)
