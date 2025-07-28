@@ -57,6 +57,7 @@ func (s *Server) getRouter() *mux.Router {
 	r.HandleFunc("/sessions/{sid}/flashcards/next", s.handleNextFlashcard).Methods("POST")
 	r.HandleFunc("/sessions/{sid}/flashcards/sync", s.handleSyncFlashcards).Methods("POST")
 	r.HandleFunc("/sessions/{sid}/flashcards/{fid}/submit", s.handleSubmitFlashcard).Methods("POST")
+	r.PathPrefix("/").Handler(http.FileServer(http.Dir("./public")))
 	return r
 }
 

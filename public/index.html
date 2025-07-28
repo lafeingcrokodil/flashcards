@@ -1,0 +1,42 @@
+<!doctype html>
+
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="description" content="Application for reviewing flashcards.">
+  <meta name="author" content="lafeingcrokodil">
+
+  <title>Flashcard Review</title>
+
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto+Mono&display=swap">
+  <link rel="stylesheet" href="main.css">
+</head>
+
+<body>
+  <p>
+    <span id="unreviewedCount">0</span>
+    <span id="proficiencyCounts">
+      · <span class="error">0</span>
+      · <span class="weak">0</span>
+      · <span class="ok">0</span>
+      · <span class="strong">0</span>
+      · <span class="correct">0</span>
+    </span>
+    | <span id="viewCount">0</span> 👁
+    · <span class="correct"><span id="correctCount">0</span> ✔</span>
+    · <span class="error"><span id="incorrectCount">0</span> ✖</span>
+    · <span id="correctPerc">0</span>%
+  </p>
+
+  <h1><span id="prompt">Some prompt</span></h1>
+  <p id="context" class="info">Some context</p>
+  <input type="text" id="answer" name="answer" />
+  <input type="button" id="submit" value="Check" />
+  <p id="expected" class="error">Expected answer</p>
+
+  <input type="button" id="allAnswersToggle" value="▸ Show all answers by proficiency" />
+  <p id="allAnswers">Example answer · Another answer</p>
+</body>
+
+</html>
