@@ -83,7 +83,7 @@ func (s *FirestoreStore) SetFlashcardStats(ctx context.Context, sessionID string
 }
 
 // NextReviewed returns a flashcard that is due to be reviewed again.
-func (s *FirestoreStore) NextReviewed(ctx context.Context, sessionID string, round int) (*FlashcardMetadata, error) {
+func (s *FirestoreStore) NextReviewed(ctx context.Context, sessionID string, round int) (*Flashcard, error) {
 	iter := s.sessionRef(sessionID).
 		Collection("flashcards").
 		Where("stats.viewCount", ">", 0).
@@ -93,18 +93,18 @@ func (s *FirestoreStore) NextReviewed(ctx context.Context, sessionID string, rou
 		OrderBy(firestore.DocumentID, firestore.Asc).
 		Limit(1).
 		Documents(ctx)
-	return s.lookupFirstFlashcardMetadata(iter)
+	return s.lookupFirstFlashcard(iter)
 }
 
 // NextUnreviewed returns a flashcard that has never been reviewed before.
-func (s *FirestoreStore) NextUnreviewed(ctx context.Context, sessionID string) (*FlashcardMetadata, error) {
+func (s *FirestoreStore) NextUnreviewed(ctx context.Context, sessionID string) (*Flashcard, error) {
 	iter := s.sessionRef(sessionID).
 		Collection("flashcards").
 		Where("stats.viewCount", "==", 0).
 		OrderBy(firestore.DocumentID, firestore.Asc).
 		Limit(1).
 		Documents(ctx)
-	return s.lookupFirstFlashcardMetadata(iter)
+	return s.lookupFirstFlashcard(iter)
 }
 
 // GetSessionMetadata returns the current session metadata.
@@ -142,7 +142,7 @@ func (s *FirestoreStore) sessionRef(sessionID string) *firestore.DocumentRef {
 	return s.client.Collection(s.collection).Doc(sessionID)
 }
 
-func (s *FirestoreStore) lookupFirstFlashcardMetadata(iter *firestore.DocumentIterator) (*FlashcardMetadata, error) {
+func (s *FirestoreStore) lookupFirstFlashcard(iter *firestore.DocumentIterator) (*Flashcard, error) {
 	flashcards, err := s.lookupAllFlashcards(iter)
 	if err != nil {
 		return nil, err
@@ -152,7 +152,7 @@ func (s *FirestoreStore) lookupFirstFlashcardMetadata(iter *firestore.DocumentIt
 		return nil, ErrNotFound
 	}
 
-	return &flashcards[0].Metadata, nil
+	return flashcards[0], nil
 }
 
 func (s *FirestoreStore) lookupAllFlashcards(iter *firestore.DocumentIterator) ([]*Flashcard, error) {

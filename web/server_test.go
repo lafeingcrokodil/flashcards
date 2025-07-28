@@ -110,7 +110,9 @@ func testGetFlashcards(t *testing.T, router *mux.Router, sessionID string) {
 }
 
 func testNextFlashcard(t *testing.T, router *mux.Router, sessionID string) {
-	expectedFlashcard := &review.FlashcardMetadata{ID: 1, Prompt: "P1", Answer: "A1"}
+	expectedFlashcard := &review.Flashcard{
+		Metadata: review.FlashcardMetadata{ID: 1, Prompt: "P1", Answer: "A1"},
+	}
 
 	endpoint := fmt.Sprintf("/sessions/%s/flashcards/next", sessionID)
 	req := httptest.NewRequest("POST", endpoint, nil)
@@ -119,7 +121,7 @@ func testNextFlashcard(t *testing.T, router *mux.Router, sessionID string) {
 	router.ServeHTTP(rec, req)
 	require.Equal(t, http.StatusOK, rec.Code)
 
-	var flashcard review.FlashcardMetadata
+	var flashcard review.Flashcard
 	err := json.NewDecoder(rec.Body).Decode(&flashcard)
 	require.NoError(t, err)
 	require.Equal(t, expectedFlashcard, &flashcard)
