@@ -51,14 +51,14 @@ func (r *Reviewer) GetFlashcards(ctx context.Context, sessionID string) ([]*Flas
 
 // SyncFlashcards ensures that the session data is up to date with the flashcard metadata source.
 func (r *Reviewer) SyncFlashcards(ctx context.Context, sessionID string) (*SessionMetadata, error) {
-	flashcardMetadata, err := r.getFlashcardMetadata(ctx)
+	session, err := r.store.GetSessionMetadata(ctx, sessionID)
 	if err != nil {
 		return nil, err
 	}
 
-	metadataByID := make(map[int64]*FlashcardMetadata, len(flashcardMetadata))
-	for _, m := range flashcardMetadata {
-		metadataByID[m.ID] = m
+	flashcardMetadata, err := r.getFlashcardMetadata(ctx)
+	if err != nil {
+		return nil, err
 	}
 
 	existingFlashcards, err := r.store.GetFlashcards(ctx, sessionID)
@@ -66,48 +66,7 @@ func (r *Reviewer) SyncFlashcards(ctx context.Context, sessionID string) (*Sessi
 		return nil, err
 	}
 
-	sessionMetadata, err := r.store.GetSessionMetadata(ctx, sessionID)
-	if err != nil {
-		return nil, err
-	}
-
-	var toBeDeleted []int64
-	var toBeUpserted []*FlashcardMetadata
-
-	updatedSessionMetadata := NewSessionMetadata(sessionID)
-	updatedSessionMetadata.Round = sessionMetadata.Round
-	updatedSessionMetadata.IsNewRound = sessionMetadata.IsNewRound
-
-	// Update and clean up existing flashcards.
-	for _, e := range existingFlashcards {
-		m, ok := metadataByID[e.Metadata.ID]
-		if !ok {
-			fmt.Printf("INFO\tRemoving flashcard with ID %d (%s)\n", e.Metadata.ID, e.Metadata.Answer)
-			toBeDeleted = append(toBeDeleted, e.Metadata.ID)
-			continue
-		}
-
-		if e.Metadata != *m {
-			fmt.Printf("INFO\tUpdating metadata for ID %d: %v > %v\n", m.ID, e.Metadata, m)
-			toBeUpserted = append(toBeUpserted, m)
-			updatedSessionMetadata.UnreviewedCount++
-		} else if e.Stats.ViewCount == 0 {
-			updatedSessionMetadata.UnreviewedCount++
-		} else {
-			i := proficiencyIndex(e.Stats.Repetitions)
-			updatedSessionMetadata.ProficiencyCounts[i]++
-		}
-
-		// The flashcard should now be fully synced, so no further processing is required.
-		delete(metadataByID, e.Metadata.ID)
-	}
-
-	// Add any missing flashcards.
-	for _, m := range metadataByID {
-		fmt.Printf("INFO\tAdding flashcard with ID %d (%s)\n", m.ID, m.Answer)
-		toBeUpserted = append(toBeUpserted, m)
-		updatedSessionMetadata.UnreviewedCount++
-	}
+	updatedSession, toBeDeleted, toBeUpserted := diff(session, existingFlashcards, flashcardMetadata)
 
 	err = r.store.DeleteFlashcards(ctx, sessionID, toBeDeleted)
 	if err != nil {
@@ -119,12 +78,12 @@ func (r *Reviewer) SyncFlashcards(ctx context.Context, sessionID string) (*Sessi
 		return nil, err
 	}
 
-	err = r.store.SetSessionMetadata(ctx, sessionID, updatedSessionMetadata)
+	err = r.store.SetSessionMetadata(ctx, sessionID, updatedSession)
 	if err != nil {
 		return nil, err
 	}
 
-	return updatedSessionMetadata, nil
+	return updatedSession, nil
 }
 
 // NextFlashcard returns the next flashcard to be reviewed.
@@ -225,4 +184,52 @@ func (r *Reviewer) getFlashcardMetadata(ctx context.Context) ([]*FlashcardMetada
 	}
 
 	return metadata, nil
+}
+
+func diff(
+	session *SessionMetadata,
+	flashcards []*Flashcard,
+	metadata []*FlashcardMetadata,
+) (updatedSession *SessionMetadata, toBeDeleted []int64, toBeUpserted []*FlashcardMetadata) {
+	metadataByID := make(map[int64]*FlashcardMetadata, len(metadata))
+	for _, m := range metadata {
+		metadataByID[m.ID] = m
+	}
+
+	updatedSession = NewSessionMetadata(session.ID)
+	updatedSession.Round = session.Round
+	updatedSession.IsNewRound = session.IsNewRound
+
+	// Update and clean up existing flashcards.
+	for _, f := range flashcards {
+		m, ok := metadataByID[f.Metadata.ID]
+		if !ok {
+			fmt.Printf("INFO\tRemoving flashcard with ID %d (%s)\n", f.Metadata.ID, f.Metadata.Answer)
+			toBeDeleted = append(toBeDeleted, f.Metadata.ID)
+			continue
+		}
+
+		if f.Metadata != *m {
+			fmt.Printf("INFO\tUpdating metadata for ID %d: %v > %v\n", m.ID, f.Metadata, m)
+			toBeUpserted = append(toBeUpserted, m)
+			updatedSession.UnreviewedCount++
+		} else if f.Stats.ViewCount == 0 {
+			updatedSession.UnreviewedCount++
+		} else {
+			i := proficiencyIndex(f.Stats.Repetitions)
+			updatedSession.ProficiencyCounts[i]++
+		}
+
+		// The flashcard should now be fully synced, so no further processing is required.
+		delete(metadataByID, f.Metadata.ID)
+	}
+
+	// Add any missing flashcards.
+	for _, m := range metadataByID {
+		fmt.Printf("INFO\tAdding flashcard with ID %d (%s)\n", m.ID, m.Answer)
+		toBeUpserted = append(toBeUpserted, m)
+		updatedSession.UnreviewedCount++
+	}
+
+	return
 }
