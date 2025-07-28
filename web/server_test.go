@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestHandleCreateSession(t *testing.T) {
+func TestServer(t *testing.T) {
 	numProficiencyLevels := 3
 
 	metadata := []*review.FlashcardMetadata{
@@ -161,12 +161,6 @@ func testSubmitFlashcard(t *testing.T, router *mux.Router, sessionID string) {
 			flashcardID:        1,
 			submission:         &review.Submission{Answer: "X", IsFirstGuess: true},
 			expectedStatusCode: 304,
-			expectedSession: &review.SessionMetadata{
-				ID:                sessionID,
-				IsNewRound:        true,
-				ProficiencyCounts: []int{0, 0, 0},
-				UnreviewedCount:   2,
-			},
 		},
 		{
 			id:                 "Correct answer",
@@ -193,9 +187,11 @@ func testSubmitFlashcard(t *testing.T, router *mux.Router, sessionID string) {
 		router.ServeHTTP(rec, req)
 		require.Equal(t, tc.expectedStatusCode, rec.Code, tc.id)
 
-		var session review.SessionMetadata
-		err = json.NewDecoder(rec.Body).Decode(&session)
-		require.NoError(t, err, tc.id)
-		require.Equal(t, tc.expectedSession, &session, tc.id)
+		if tc.expectedSession != nil {
+			var session review.SessionMetadata
+			err = json.NewDecoder(rec.Body).Decode(&session)
+			require.NoError(t, err, tc.id)
+			require.Equal(t, tc.expectedSession, &session, tc.id)
+		}
 	}
 }

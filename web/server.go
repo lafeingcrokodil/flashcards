@@ -155,13 +155,11 @@ func (s *Server) handleSubmitFlashcard(w http.ResponseWriter, req *http.Request)
 		sendError(w, http.StatusInternalServerError, err)
 		return
 	}
-
-	statusCode := http.StatusOK
-	if !ok {
-		statusCode = http.StatusNotModified
+	if ok {
+		sendResponse(w, http.StatusOK, session)
+	} else {
+		sendResponse(w, http.StatusNotModified, nil)
 	}
-
-	sendResponse(w, statusCode, session)
 }
 
 func sendError(w http.ResponseWriter, statusCode int, err error) {
@@ -170,11 +168,15 @@ func sendError(w http.ResponseWriter, statusCode int, err error) {
 }
 
 func sendResponse(w http.ResponseWriter, statusCode int, data any) {
+	if statusCode == http.StatusNotModified {
+		w.WriteHeader(statusCode)
+		return
+	}
+
 	// We're taking a calculated risk here of assuming that the encoding will
 	// never fail, so we don't bother implementing the error handling in a way
 	// that would allow sending an error response to the client. We just add
 	// some simple logging.
-
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
 	err := json.NewEncoder(w).Encode(data)
