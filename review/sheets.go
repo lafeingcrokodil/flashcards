@@ -4,7 +4,7 @@ import (
 	"context"
 	"strconv"
 
-	"github.com/lafeingcrokodil/flashcards/io"
+	"github.com/lafeingcrokodil/flashcards/sheets"
 )
 
 // SheetSource stores flashcard metadata in a Google Sheets spreadsheet.
@@ -27,7 +27,7 @@ type SheetSource struct {
 func (s *SheetSource) GetAll(ctx context.Context) ([]*FlashcardMetadata, error) {
 	var metadata []*FlashcardMetadata
 
-	records, err := io.ReadSheet(ctx, s.SpreadsheetID, s.CellRange)
+	records, err := sheets.ReadSheet(ctx, s.SpreadsheetID, s.CellRange)
 	if err != nil {
 		return nil, err
 	}
