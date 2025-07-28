@@ -10,8 +10,6 @@ For a list of available commands, run `make`.
 
 ## Design
 
-This section describes the planned design, not (yet) the current implementation.
-
 ### Components
 
 * `Client` - For example, JavaScript running in a browser.
