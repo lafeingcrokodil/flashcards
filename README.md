@@ -165,7 +165,7 @@ sequenceDiagram
     Server->>Server: check correctness
     Server->>Store: SetFlashcardStats
     Server->>Store: SetSessionMetadata
-    Server->>Client: SessionMetadata + correct
+    Server->>Client: SessionMetadata + isCorrect
 ```
 
 ### Algorithm
