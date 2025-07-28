@@ -176,7 +176,7 @@ func TestReviewer_SyncFlashcards(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	r.source = &MemorySource{metadata: metadataUpdate}
+	r.source = NewMemorySource(metadataUpdate)
 
 	updatedSession, err := r.SyncFlashcards(ctx, session.ID)
 	require.NoError(t, err)
@@ -196,12 +196,10 @@ func TestNewReviewer_getFlashcardMetadata(t *testing.T) {
 
 	ctx := context.Background()
 
-	source := &MemorySource{
-		metadata: []*FlashcardMetadata{
-			{ID: 1, Prompt: "P1", Answer: "A1", Context: "C1"},
-			{ID: 2, Prompt: "P1", Answer: "A2", Context: "C1"},
-		},
-	}
+	source := NewMemorySource([]*FlashcardMetadata{
+		{ID: 1, Prompt: "P1", Answer: "A1", Context: "C1"},
+		{ID: 2, Prompt: "P1", Answer: "A2", Context: "C1"},
+	})
 
 	r := NewReviewer(source, NewMemoryStore())
 
