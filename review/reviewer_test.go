@@ -96,7 +96,7 @@ func TestReviewer_NextFlashcard(t *testing.T) {
 
 	ctx := context.Background()
 
-	r := &Reviewer{source: newMemorySource(numFlashcards), store: NewMemoryStore()}
+	r := NewReviewer(newMemorySource(numFlashcards), NewMemoryStore())
 
 	session, err := r.CreateSession(ctx, numProficiencyLevels)
 	require.NoError(t, err)
@@ -155,7 +155,7 @@ func TestReviewer_SyncFlashcards(t *testing.T) {
 
 	ctx := context.Background()
 
-	r := &Reviewer{source: newMemorySource(initialNumFlashcards), store: NewMemoryStore()}
+	r := NewReviewer(newMemorySource(initialNumFlashcards), NewMemoryStore())
 
 	session, err := r.CreateSession(ctx, numProficiencyLevels)
 	require.NoError(t, err)
@@ -203,7 +203,7 @@ func TestNewReviewer_getFlashcardMetadata(t *testing.T) {
 		},
 	}
 
-	r := &Reviewer{source: source, store: NewMemoryStore()}
+	r := NewReviewer(source, NewMemoryStore())
 
 	_, err := r.getFlashcardMetadata(ctx)
 	require.EqualError(t, err, expectedErr)

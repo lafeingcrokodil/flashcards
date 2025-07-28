@@ -22,6 +22,11 @@ type Reviewer struct {
 	store  SessionStore
 }
 
+// NewReviewer returns a new flashcard reviewer.
+func NewReviewer(source FlashcardMetadataSource, store SessionStore) *Reviewer {
+	return &Reviewer{source: source, store: store}
+}
+
 // CreateSession creates a new session with all flashcards marked as unreviewed.
 func (r *Reviewer) CreateSession(ctx context.Context, numProficiencyLevels int) (*SessionMetadata, error) {
 	sessionID := uuid.NewString()
