@@ -4,5 +4,10 @@ linters:
   disable:
     - depguard
     - exhaustruct
+    - nakedret
     - nlreturn
     - nonamedreturns
+    - paralleltest
+    - testpackage
+    - wsl
+    - wsl_v5
