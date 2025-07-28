@@ -104,6 +104,27 @@ sequenceDiagram
     Server->>Client: []Flashcard
 ```
 
+#### POST /sessions/:sid/flashcards/next
+
+Returns the next flashcard to be reviewed.
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Server
+    participant Store
+
+    Client->>Server: POST /sessions/:sid/flashcards/next
+    Server->>Store: GetSessionMetadata
+    Store->>Server: SessionMetadata
+    loop
+        Server->>Store: NextReviewed or NextUnreviewed
+        Store->>Server: Flashcard or nil
+        Server->>Store: SetSessionMetadata
+    end
+    Server->>Client: Flashcard
+```
+
 #### POST /sessions/:sid/flashcards/sync
 
 Ensures that the session data is up to date with the source of truth for the flashcard metadata.
@@ -125,27 +146,6 @@ sequenceDiagram
     Server->>Store: SetFlashcards
     Server->>Store: SetSessionMetadata
     Server->>Client: SessionMetadata
-```
-
-#### POST /sessions/:sid/flashcards/next
-
-Returns the next flashcard to be reviewed.
-
-```mermaid
-sequenceDiagram
-    participant Client
-    participant Server
-    participant Store
-
-    Client->>Server: POST /sessions/:sid/flashcards/next
-    Server->>Store: GetSessionMetadata
-    Store->>Server: SessionMetadata
-    loop
-        Server->>Store: NextReviewed or NextUnreviewed
-        Store->>Server: Flashcard or nil
-        Server->>Store: SetSessionMetadata
-    end
-    Server->>Client: Flashcard
 ```
 
 #### POST /sessions/:sid/flashcards/:fid/submit
