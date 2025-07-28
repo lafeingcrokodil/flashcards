@@ -125,43 +125,43 @@ func TestReviewer_NextFlashcard(t *testing.T) {
 }
 
 func TestReviewer_SyncFlashcards(t *testing.T) {
+	const initialNumFlashcards = 6
+	const numProficiencyLevels = 3
+
 	expectedSession := &SessionMetadata{
 		Round:             1,
 		IsNewRound:        true,
-		ProficiencyCounts: []int{0, 1, 0, 0, 0},
-		UnreviewedCount:   4,
+		ProficiencyCounts: []int{0, 1, 0},
+		UnreviewedCount:   5,
+	}
+
+	metadataUpdate := []*FlashcardMetadata{
+		{ID: 1, Prompt: "What is 1?", Answer: "1"},               // unchanged reviewed flashcard
+		{ID: 2, Prompt: "What is X?", Answer: "2"},               // flashcard with changed prompt
+		{ID: 3, Prompt: "What is 3?", Answer: "X"},               // flashcard with changed answer
+		{ID: 4, Prompt: "What is 4?", Answer: "4", Context: "X"}, // flashcard with changed context
+		{ID: 6, Prompt: "What is 6?", Answer: "6"},               // unchanged unreviewed flashcard
+		{ID: 7, Prompt: "What is 7?", Answer: "7"},               // new flashcard
 	}
 
 	expectedFlashcards := []*Flashcard{
-		{
-			Metadata: FlashcardMetadata{ID: 1, Prompt: "What is 1?", Answer: "1"},
-			Stats:    FlashcardStats{ViewCount: 1, Repetitions: 1, NextReview: 1},
-		},
-		{
-			Metadata: FlashcardMetadata{ID: 2, Prompt: "What is B?", Answer: "2"},
-		},
-		{
-			Metadata: FlashcardMetadata{ID: 3, Prompt: "What is 3?", Answer: "C"},
-		},
-		{
-			Metadata: FlashcardMetadata{ID: 4, Prompt: "What is 4?", Answer: "4", Context: "ctx"},
-		},
-		{
-			Metadata: FlashcardMetadata{ID: 6, Prompt: "What is 6?", Answer: "6"},
-		},
+		{Metadata: *metadataUpdate[0], Stats: flashcardStats(1)}, // stats are preserved
+		{Metadata: *metadataUpdate[1]},
+		{Metadata: *metadataUpdate[2]},
+		{Metadata: *metadataUpdate[3]},
+		{Metadata: *metadataUpdate[4]},
+		{Metadata: *metadataUpdate[5]},
 	}
-
-	const initialFlashcardCount = 5
 
 	ctx := context.Background()
 
-	r := &Reviewer{source: newMemorySource(initialFlashcardCount), store: NewMemoryStore()}
+	r := &Reviewer{source: newMemorySource(initialNumFlashcards), store: NewMemoryStore()}
 
-	session, err := r.CreateSession(ctx, 5)
+	session, err := r.CreateSession(ctx, numProficiencyLevels)
 	require.NoError(t, err)
 	expectedSession.ID = session.ID
 
-	for i := 1; i <= initialFlashcardCount; i++ {
+	for i := 1; i <= initialNumFlashcards-1; i++ {
 		stats := flashcardStats(i)
 		err := r.store.SetFlashcardStats(ctx, session.ID, int64(i), &stats)
 		require.NoError(t, err, i)
@@ -171,19 +171,12 @@ func TestReviewer_SyncFlashcards(t *testing.T) {
 		ID:                session.ID,
 		Round:             1,
 		IsNewRound:        true,
-		ProficiencyCounts: []int{0, 1, 1, 1, 2},
+		ProficiencyCounts: []int{0, 1, 4},
+		UnreviewedCount:   1,
 	})
 	require.NoError(t, err)
 
-	r.source = &MemorySource{
-		metadata: []*FlashcardMetadata{
-			{ID: 1, Prompt: "What is 1?", Answer: "1"},
-			{ID: 2, Prompt: "What is B?", Answer: "2"},
-			{ID: 3, Prompt: "What is 3?", Answer: "C"},
-			{ID: 4, Prompt: "What is 4?", Answer: "4", Context: "ctx"},
-			{ID: 6, Prompt: "What is 6?", Answer: "6"},
-		},
-	}
+	r.source = &MemorySource{metadata: metadataUpdate}
 
 	updatedSession, err := r.SyncFlashcards(ctx, session.ID)
 	require.NoError(t, err)

@@ -47,6 +47,8 @@ func TestFirestoreStore(t *testing.T) {
 		Stats:    *expectedFlashcardStats[1],
 	}
 
+	expectedNotFoundError := "not found"
+
 	expectedUpdatedMetadata := &FlashcardMetadata{ID: 1, Prompt: "P1", Answer: "B1", Context: "C1"}
 
 	expectedFinalFlashcards := []*Flashcard{
@@ -92,6 +94,9 @@ func TestFirestoreStore(t *testing.T) {
 	reviewed, err := store.NextReviewed(ctx, sessionID, expectedSession.Round)
 	require.NoError(t, err)
 	require.Equal(t, expectedReviewedFlashcard, reviewed)
+
+	_, err = store.NextReviewed(ctx, sessionID, 1)
+	require.EqualError(t, err, expectedNotFoundError)
 
 	err = store.SetFlashcards(ctx, sessionID, []*FlashcardMetadata{expectedUpdatedMetadata})
 	require.NoError(t, err)
