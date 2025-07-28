@@ -3,6 +3,7 @@ linters:
   enable:
     - cyclop
     - err113
+    - gocritic
     - nilnil
     - noinlineerr
     - nolintlint

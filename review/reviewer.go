@@ -218,13 +218,14 @@ func diff(
 			continue
 		}
 
-		if f.Metadata != *m {
+		switch {
+		case f.Metadata != *m:
 			fmt.Printf("INFO\tUpdating metadata for ID %d: %v > %v\n", m.ID, f.Metadata, m)
 			toBeUpserted = append(toBeUpserted, m)
 			updatedSession.UnreviewedCount++
-		} else if f.Stats.ViewCount == 0 {
+		case f.Stats.ViewCount == 0:
 			updatedSession.UnreviewedCount++
-		} else {
+		default:
 			i := proficiencyIndex(f.Stats.Repetitions)
 			updatedSession.ProficiencyCounts[i]++
 		}
