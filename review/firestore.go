@@ -15,6 +15,11 @@ type FirestoreStore struct {
 	collection string
 }
 
+// NewFirestoreStore returns a new FirestoreStore that stores data in the specified collection.
+func NewFirestoreStore(client *firestore.Client, collection string) *FirestoreStore {
+	return &FirestoreStore{client: client, collection: collection}
+}
+
 // DeleteFlashcards deletes the specified flashcards.
 func (s *FirestoreStore) DeleteFlashcards(ctx context.Context, sessionID string, ids []int64) error {
 	writer := s.client.BulkWriter(ctx)

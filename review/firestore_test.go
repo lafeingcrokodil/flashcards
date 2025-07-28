@@ -66,7 +66,7 @@ func TestFirestoreStore(t *testing.T) {
 	require.NoError(t, err)
 	defer client.Close() //nolint:errcheck
 
-	store := FirestoreStore{client: client, collection: collection}
+	store := NewFirestoreStore(client, collection)
 
 	err = store.SetSessionMetadata(ctx, sessionID, expectedSession)
 	require.NoError(t, err)
