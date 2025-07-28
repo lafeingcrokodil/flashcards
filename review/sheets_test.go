@@ -16,7 +16,7 @@ func Test_SheetStore_GetAll(t *testing.T) {
 		{ID: 4, Prompt: "P2", Context: "C1", Answer: "A1"},
 	}
 
-	s := SheetSource{
+	source := SheetSource{
 		SpreadsheetID: os.Getenv("FLASHCARDS_SHEETS_ID"),
 		CellRange:     os.Getenv("FLASHCARDS_SHEETS_CELL_RANGE"),
 		IDHeader:      os.Getenv("FLASHCARDS_SHEETS_ID_HEADER"),
@@ -27,7 +27,7 @@ func Test_SheetStore_GetAll(t *testing.T) {
 
 	ctx := context.Background()
 
-	flashcards, err := s.GetAll(ctx)
+	flashcards, err := source.GetAll(ctx)
 	require.NoError(t, err)
 	require.Equal(t, expectedFlashcards, flashcards)
 }

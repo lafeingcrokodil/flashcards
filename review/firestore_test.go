@@ -64,42 +64,42 @@ func TestFirestoreStore(t *testing.T) {
 	require.NoError(t, err)
 	defer client.Close() //nolint:errcheck
 
-	s := FirestoreStore{client: client, collection: collection}
+	store := FirestoreStore{client: client, collection: collection}
 
-	err = s.SetSessionMetadata(ctx, sessionID, expectedSession)
+	err = store.SetSessionMetadata(ctx, sessionID, expectedSession)
 	require.NoError(t, err)
 
-	session, err := s.GetSessionMetadata(ctx, sessionID)
+	session, err := store.GetSessionMetadata(ctx, sessionID)
 	require.NoError(t, err)
 	require.Equal(t, expectedSession, session)
 
-	err = s.SetFlashcards(ctx, sessionID, expectedMetadata)
+	err = store.SetFlashcards(ctx, sessionID, expectedMetadata)
 	require.NoError(t, err)
 
 	for i, stats := range expectedFlashcardStats {
-		err = s.SetFlashcardStats(ctx, sessionID, int64(i+1), stats)
+		err = store.SetFlashcardStats(ctx, sessionID, int64(i+1), stats)
 		require.NoError(t, err)
 	}
 
-	f, err := s.GetFlashcard(ctx, sessionID, 1)
+	f, err := store.GetFlashcard(ctx, sessionID, 1)
 	require.NoError(t, err)
 	require.Equal(t, expectedFirstFlashcards, f)
 
-	unreviewed, err := s.NextUnreviewed(ctx, sessionID)
+	unreviewed, err := store.NextUnreviewed(ctx, sessionID)
 	require.NoError(t, err)
 	require.Equal(t, expectedUnreviewedFlashcard, unreviewed)
 
-	reviewed, err := s.NextReviewed(ctx, sessionID, expectedSession.Round)
+	reviewed, err := store.NextReviewed(ctx, sessionID, expectedSession.Round)
 	require.NoError(t, err)
 	require.Equal(t, expectedReviewedFlashcard, reviewed)
 
-	err = s.SetFlashcards(ctx, sessionID, []*FlashcardMetadata{expectedUpdatedMetadata})
+	err = store.SetFlashcards(ctx, sessionID, []*FlashcardMetadata{expectedUpdatedMetadata})
 	require.NoError(t, err)
 
-	err = s.DeleteFlashcards(ctx, sessionID, []int64{3, 4})
+	err = store.DeleteFlashcards(ctx, sessionID, []int64{3, 4})
 	require.NoError(t, err)
 
-	flashcards, err := s.GetFlashcards(ctx, sessionID)
+	flashcards, err := store.GetFlashcards(ctx, sessionID)
 	require.NoError(t, err)
 	require.Equal(t, expectedFinalFlashcards, flashcards)
 }
