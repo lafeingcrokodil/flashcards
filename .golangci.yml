@@ -10,3 +10,4 @@ linters:
     - perfsprint
     - prealloc
     - revive
+    - testifylint

@@ -117,7 +117,7 @@ func TestReviewer_Next(t *testing.T) {
 	session, err := r.CreateSession(ctx)
 	require.NoError(t, err)
 	expectedInitialSession.ID = session.ID
-	require.Equal(t, session, expectedInitialSession)
+	require.Equal(t, expectedInitialSession, session)
 
 	for i, expected := range expectedStates {
 		expected.metadata.ID = expectedInitialSession.ID
