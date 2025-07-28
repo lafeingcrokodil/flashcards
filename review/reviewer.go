@@ -31,10 +31,10 @@ func (r *Reviewer) CreateSession(ctx context.Context) (*SessionMetadata, error) 
 		return nil, err
 	}
 
-	sessionMetadata := NewSessionMetadata(sessionID)
-	sessionMetadata.UnreviewedCount = len(flashcardMetadata)
+	session := NewSessionMetadata(sessionID)
+	session.UnreviewedCount = len(flashcardMetadata)
 
-	err = r.store.SetSessionMetadata(ctx, sessionID, sessionMetadata)
+	err = r.store.SetSessionMetadata(ctx, sessionID, session)
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +44,7 @@ func (r *Reviewer) CreateSession(ctx context.Context) (*SessionMetadata, error) 
 		return nil, err
 	}
 
-	return sessionMetadata, nil
+	return session, nil
 }
 
 // GetSession returns an existing session.
@@ -96,27 +96,27 @@ func (r *Reviewer) SyncFlashcards(ctx context.Context, sessionID string) (*Sessi
 
 // NextFlashcard returns the next flashcard to be reviewed.
 func (r *Reviewer) NextFlashcard(ctx context.Context, sessionID string) (*Flashcard, error) {
-	metadata, err := r.store.GetSessionMetadata(ctx, sessionID)
+	session, err := r.store.GetSessionMetadata(ctx, sessionID)
 	if err != nil {
 		return nil, err
 	}
 
-	if metadata.IsNewRound {
+	if session.IsNewRound {
 		f, err := r.store.NextUnreviewed(ctx, sessionID)
 		if !errors.Is(err, ErrNotFound) {
 			return f, err
 		}
 	}
 
-	f, err := r.store.NextReviewed(ctx, sessionID, metadata.Round)
+	f, err := r.store.NextReviewed(ctx, sessionID, session.Round)
 	if !errors.Is(err, ErrNotFound) {
 		return f, err
 	}
 
-	metadata.Round++
-	metadata.IsNewRound = true
+	session.Round++
+	session.IsNewRound = true
 
-	err = r.store.SetSessionMetadata(ctx, sessionID, metadata)
+	err = r.store.SetSessionMetadata(ctx, sessionID, session)
 	if err != nil {
 		return nil, err
 	}
@@ -126,7 +126,7 @@ func (r *Reviewer) NextFlashcard(ctx context.Context, sessionID string) (*Flashc
 
 // Submit updates the session state following the review of a flashcard.
 func (r *Reviewer) Submit(ctx context.Context, sessionID string, flashcardID int64, submission *Submission) (*SessionMetadata, bool, error) {
-	metadata, err := r.store.GetSessionMetadata(ctx, sessionID)
+	session, err := r.store.GetSessionMetadata(ctx, sessionID)
 	if err != nil {
 		return nil, false, err
 	}
@@ -139,9 +139,9 @@ func (r *Reviewer) Submit(ctx context.Context, sessionID string, flashcardID int
 	previousViewCount := f.Stats.ViewCount
 	previousRepetitions := f.Stats.Repetitions
 
-	ok := f.Submit(submission, metadata.Round)
+	ok := f.Submit(submission, session.Round)
 	if !ok {
-		return metadata, ok, nil
+		return session, ok, nil
 	}
 
 	err = r.store.SetFlashcardStats(ctx, sessionID, f.Metadata.ID, &f.Stats)
@@ -150,25 +150,25 @@ func (r *Reviewer) Submit(ctx context.Context, sessionID string, flashcardID int
 	}
 
 	i := proficiencyIndex(f.Stats.Repetitions)
-	metadata.ProficiencyCounts[i]++
+	session.ProficiencyCounts[i]++
 
 	if previousViewCount != 0 {
 		prev := proficiencyIndex(previousRepetitions)
-		metadata.ProficiencyCounts[prev]--
+		session.ProficiencyCounts[prev]--
 	} else {
-		metadata.UnreviewedCount--
+		session.UnreviewedCount--
 	}
 
-	if metadata.IsNewRound {
-		metadata.IsNewRound = false
+	if session.IsNewRound {
+		session.IsNewRound = false
 	}
 
-	err = r.store.SetSessionMetadata(ctx, sessionID, metadata)
+	err = r.store.SetSessionMetadata(ctx, sessionID, session)
 	if err != nil {
 		return nil, false, err
 	}
 
-	return metadata, ok, nil
+	return session, ok, nil
 }
 
 func (r *Reviewer) getFlashcardMetadata(ctx context.Context) ([]*FlashcardMetadata, error) {

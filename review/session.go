@@ -23,7 +23,7 @@ type SessionStore interface {
 	// GetSessionMetadata returns the current session metadata.
 	GetSessionMetadata(ctx context.Context, sessionID string) (*SessionMetadata, error)
 	// SetSessionMetadata updates the session metadata.
-	SetSessionMetadata(ctx context.Context, sessionID string, metadata *SessionMetadata) error
+	SetSessionMetadata(ctx context.Context, sessionID string, session *SessionMetadata) error
 }
 
 // SessionMetadata represents review session metadata.
