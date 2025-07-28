@@ -16,3 +16,8 @@ test: tmp ## Run unit tests.
 
 tmp: ## Create a tmp directory.
 	@ mkdir -p tmp
+
+web: ## Run the application using a web UI.
+	@ set -a \
+		&& . ./env.production \
+		&& go run cmd/web/main.go
