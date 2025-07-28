@@ -33,7 +33,7 @@ func TestFirestoreStore(t *testing.T) {
 		{ViewCount: 1, Repetitions: 0, NextReview: 2},
 	}
 
-	expectedFirstFlashcards := &Flashcard{
+	expectedFirstFlashcard := &Flashcard{
 		Metadata: *expectedMetadata[0],
 		Stats:    *expectedFlashcardStats[0],
 	}
@@ -83,7 +83,7 @@ func TestFirestoreStore(t *testing.T) {
 
 	f, err := store.GetFlashcard(ctx, sessionID, 1)
 	require.NoError(t, err)
-	require.Equal(t, expectedFirstFlashcards, f)
+	require.Equal(t, expectedFirstFlashcard, f)
 
 	unreviewed, err := store.NextUnreviewed(ctx, sessionID)
 	require.NoError(t, err)
