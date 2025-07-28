@@ -62,7 +62,7 @@ func TestFirestoreStore(t *testing.T) {
 
 	client, err := firestore.NewClientWithDatabase(ctx, projectID, databaseID)
 	require.NoError(t, err)
-	defer client.Close() // nolint:errcheck
+	defer client.Close() //nolint:errcheck
 
 	s := FirestoreStore{client: client, collection: collection}
 
