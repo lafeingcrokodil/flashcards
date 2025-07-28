@@ -5,4 +5,5 @@ linters:
     - err113
     - nilnil
     - noinlineerr
+    - perfsprint
     - revive

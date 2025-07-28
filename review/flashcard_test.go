@@ -2,6 +2,7 @@ package review
 
 import (
 	"fmt"
+	"strconv"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -102,7 +103,7 @@ func flashcardMetadata(i int) FlashcardMetadata {
 	return FlashcardMetadata{
 		ID:     int64(i),
 		Prompt: fmt.Sprintf("What is %d?", i),
-		Answer: fmt.Sprintf("%d", i),
+		Answer: strconv.Itoa(i),
 	}
 }
 
