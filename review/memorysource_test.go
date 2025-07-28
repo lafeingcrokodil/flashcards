@@ -1,9 +1,9 @@
 package review
 
-func newMemorySource(maxID int) *MemorySource {
+func newMemorySource(numFlashcards int) *MemorySource {
 	memSource := NewMemorySource(nil)
 
-	for i := 1; i <= maxID; i++ {
+	for i := 1; i <= numFlashcards; i++ {
 		metadata := flashcardMetadata(i)
 		memSource.metadata = append(memSource.metadata, &metadata)
 	}
