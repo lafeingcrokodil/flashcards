@@ -48,7 +48,7 @@ type Submission struct {
 	// Answer is the submitted answer.
 	Answer string `json:"answer"`
 	// IsFirstGuess is true if and only if this is the user's first guess.
-	IsFirstGuess bool `firestore:"new"`
+	IsFirstGuess bool `firestore:"isFirstGuess"`
 }
 
 // Submit updates the flashcard's stats after being reviewed.

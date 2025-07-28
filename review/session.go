@@ -31,7 +31,7 @@ type SessionMetadata struct {
 	// Round is an incrementing counter that identifies the current round.
 	Round int `firestore:"round"`
 	// IsNewRound is true if and only if the round has just started.
-	IsNewRound bool `firestore:"new"`
+	IsNewRound bool `firestore:"isNewRound"`
 	// ProficiencyCounts is the number of flashcards at each proficiency level.
 	ProficiencyCounts []int `firestore:"proficiencyCounts" json:"proficiencyCounts"`
 	// UnreviewedCount is the number of flashcards that haven't been reviewed yet.
