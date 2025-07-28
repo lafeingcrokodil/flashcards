@@ -24,13 +24,13 @@ type Flashcard struct {
 // FlashcardMetadata stores immutable flashcard data like the prompt.
 type FlashcardMetadata struct {
 	// ID uniquely identifies the flashcard.
-	ID int64 `firestore:"id"`
+	ID int64 `firestore:"id" json:"id"`
 	// Prompt is the text to be shown to the user.
-	Prompt string `firestore:"prompt"`
+	Prompt string `firestore:"prompt" json:"prompt"`
 	// Context helps narrow down possible answers.
-	Context string `firestore:"context,omitempty"`
+	Context string `firestore:"context,omitempty" json:"context,omitempty"`
 	// Answer is the accepted answer.
-	Answer string `firestore:"answer"`
+	Answer string `firestore:"answer" json:"answer"`
 }
 
 // FlashcardStats stores mutable flashcard data like the view count.

@@ -123,7 +123,7 @@ func (s *MemoryStore) SetFlashcardStats(_ context.Context, sessionID string, fla
 }
 
 // NextReviewed returns a flashcard that is due to be reviewed again.
-func (s *MemoryStore) NextReviewed(_ context.Context, sessionID string, round int) (*Flashcard, error) {
+func (s *MemoryStore) NextReviewed(_ context.Context, sessionID string, round int) (*FlashcardMetadata, error) {
 	flashcards, ok := s.flashcards[sessionID]
 	if !ok {
 		return nil, fmt.Errorf("flashcards for session %s: %w", sessionID, ErrNotFound)
@@ -131,14 +131,14 @@ func (s *MemoryStore) NextReviewed(_ context.Context, sessionID string, round in
 
 	for _, f := range flashcards {
 		if f.Stats.ViewCount > 0 && f.Stats.NextReview <= round {
-			return f, nil
+			return &f.Metadata, nil
 		}
 	}
 	return nil, ErrNotFound
 }
 
 // NextUnreviewed returns a flashcard that has never been reviewed before.
-func (s *MemoryStore) NextUnreviewed(_ context.Context, sessionID string) (*Flashcard, error) {
+func (s *MemoryStore) NextUnreviewed(_ context.Context, sessionID string) (*FlashcardMetadata, error) {
 	flashcards, ok := s.flashcards[sessionID]
 	if !ok {
 		return nil, fmt.Errorf("flashcards for session %s: %w", sessionID, ErrNotFound)
@@ -146,7 +146,7 @@ func (s *MemoryStore) NextUnreviewed(_ context.Context, sessionID string) (*Flas
 
 	for _, f := range flashcards {
 		if f.Stats.ViewCount == 0 {
-			return f, nil
+			return &f.Metadata, nil
 		}
 	}
 

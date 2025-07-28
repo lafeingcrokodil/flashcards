@@ -27,7 +27,7 @@ func TestHandleCreateSession(t *testing.T) {
 		UnreviewedCount:   len(metadata),
 	}
 
-	expectedFlashcard := review.Flashcard{Metadata: *metadata[0]}
+	expectedFlashcard := *metadata[0]
 
 	expectedFlashcards := []*review.Flashcard{
 		{Metadata: *metadata[0]},
@@ -116,7 +116,7 @@ func testGetFlashcards(t *testing.T, router *mux.Router, sessionID string, expec
 	require.Equal(t, expectedFlashcards, flashcards)
 }
 
-func testNextFlashcard(t *testing.T, router *mux.Router, sessionID string, expectedFlashcard review.Flashcard) {
+func testNextFlashcard(t *testing.T, router *mux.Router, sessionID string, expectedFlashcard review.FlashcardMetadata) {
 	endpoint := fmt.Sprintf("/sessions/%s/flashcards/next", sessionID)
 	req := httptest.NewRequest("POST", endpoint, nil)
 	rec := httptest.NewRecorder()
@@ -124,7 +124,7 @@ func testNextFlashcard(t *testing.T, router *mux.Router, sessionID string, expec
 	router.ServeHTTP(rec, req)
 	require.Equal(t, http.StatusOK, rec.Code)
 
-	var flashcard review.Flashcard
+	var flashcard review.FlashcardMetadata
 	err := json.NewDecoder(rec.Body).Decode(&flashcard)
 	require.NoError(t, err)
 	require.Equal(t, expectedFlashcard, flashcard)

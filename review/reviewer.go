@@ -100,7 +100,7 @@ func (r *Reviewer) SyncFlashcards(ctx context.Context, sessionID string) (*Sessi
 }
 
 // NextFlashcard returns the next flashcard to be reviewed.
-func (r *Reviewer) NextFlashcard(ctx context.Context, sessionID string) (*Flashcard, error) {
+func (r *Reviewer) NextFlashcard(ctx context.Context, sessionID string) (*FlashcardMetadata, error) {
 	session, err := r.store.GetSessionMetadata(ctx, sessionID)
 	if err != nil {
 		return nil, err

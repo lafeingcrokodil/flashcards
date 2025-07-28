@@ -15,9 +15,9 @@ type SessionStore interface {
 	// SetFlashcardStats updates a flashcard's stats.
 	SetFlashcardStats(ctx context.Context, sessionID string, flashcardID int64, stats *FlashcardStats) error
 	// NextReviewed returns a flashcard that is due to be reviewed again.
-	NextReviewed(ctx context.Context, sessionID string, round int) (*Flashcard, error)
+	NextReviewed(ctx context.Context, sessionID string, round int) (*FlashcardMetadata, error)
 	// NextUnreviewed returns a flashcard that has never been reviewed before.
-	NextUnreviewed(ctx context.Context, sessionID string) (*Flashcard, error)
+	NextUnreviewed(ctx context.Context, sessionID string) (*FlashcardMetadata, error)
 	// GetSessionMetadata returns the current session metadata.
 	GetSessionMetadata(ctx context.Context, sessionID string) (*SessionMetadata, error)
 	// SetSessionMetadata updates the session metadata.

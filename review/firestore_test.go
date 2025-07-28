@@ -38,15 +38,8 @@ func TestFirestoreStore(t *testing.T) {
 		Stats:    *expectedFlashcardStats[0],
 	}
 
-	expectedUnreviewedFlashcard := &Flashcard{
-		Metadata: *expectedMetadata[2],
-	}
-
-	expectedReviewedFlashcard := &Flashcard{
-		Metadata: *expectedMetadata[1],
-		Stats:    *expectedFlashcardStats[1],
-	}
-
+	expectedUnreviewedFlashcard := expectedMetadata[2]
+	expectedReviewedFlashcard := expectedMetadata[1]
 	expectedNotFoundError := "not found"
 
 	expectedUpdatedMetadata := &FlashcardMetadata{ID: 1, Prompt: "P1", Answer: "B1", Context: "C1"}
