@@ -5,6 +5,8 @@ import (
 	"math"
 )
 
+const spacedRepetitionFactor = 2
+
 // FlashcardMetadataSource is the source of truth for flashcard metadata.
 type FlashcardMetadataSource interface {
 	// GetAll returns the metadata for all flashcards.
@@ -59,7 +61,7 @@ func (f *Flashcard) Submit(submission *Submission, round int) bool {
 	f.Stats.ViewCount++
 
 	if submission.IsFirstGuess {
-		f.Stats.NextReview = round + int(math.Round(math.Pow(2, float64(f.Stats.Repetitions))))
+		f.Stats.NextReview = round + interval(f.Stats.Repetitions)
 		f.Stats.Repetitions++
 	} else {
 		f.Stats.NextReview = round + 1
@@ -67,4 +69,8 @@ func (f *Flashcard) Submit(submission *Submission, round int) bool {
 	}
 
 	return true
+}
+
+func interval(repetitions int) int {
+	return int(math.Round(math.Pow(spacedRepetitionFactor, float64(repetitions))))
 }

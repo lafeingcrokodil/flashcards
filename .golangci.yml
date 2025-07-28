@@ -4,6 +4,7 @@ linters:
     - cyclop
     - err113
     - gocritic
+    - mnd
     - nilnil
     - noinlineerr
     - nolintlint
