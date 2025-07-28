@@ -3,10 +3,10 @@
 help: ## Show this help.
 	@ sed -nEe '/@sed/!s/[^:#]*##\s*/ /p' $(MAKEFILE_LIST) | column -tl 2
 
-lint: ## Run only allowlisted linters.
+lint: ## Run standard linters and a few additional explicitly enabled ones.
 	@ golangci-lint run
 
-lint-all: ## Run all non-blocklisted linters.
+lint-all: ## Run all linters that aren't explicitly disabled.
 	@ golangci-lint run -c .golangci.all.yml
 
 test: tmp ## Run unit tests.
