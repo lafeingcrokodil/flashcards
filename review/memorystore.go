@@ -23,7 +23,7 @@ func NewMemoryStore() *MemoryStore {
 }
 
 // DeleteFlashcards deletes the specified flashcards.
-func (s *MemoryStore) DeleteFlashcards(ctx context.Context, sessionID string, ids []int64) error {
+func (s *MemoryStore) DeleteFlashcards(_ context.Context, sessionID string, ids []int64) error {
 	flashcards, ok := s.flashcards[sessionID]
 	if !ok {
 		return fmt.Errorf("flashcards not found for session %s", sessionID)
@@ -42,7 +42,7 @@ func (s *MemoryStore) DeleteFlashcards(ctx context.Context, sessionID string, id
 }
 
 // GetFlashcard returns the specified flashcard.
-func (s *MemoryStore) GetFlashcard(ctx context.Context, sessionID string, flashcardID int64) (*Flashcard, error) {
+func (s *MemoryStore) GetFlashcard(_ context.Context, sessionID string, flashcardID int64) (*Flashcard, error) {
 	flashcards, ok := s.flashcards[sessionID]
 	if !ok {
 		return nil, fmt.Errorf("flashcards not found for session %s", sessionID)
@@ -58,7 +58,7 @@ func (s *MemoryStore) GetFlashcard(ctx context.Context, sessionID string, flashc
 }
 
 // GetFlashcards returns all flashcards.
-func (s *MemoryStore) GetFlashcards(ctx context.Context, sessionID string) ([]*Flashcard, error) {
+func (s *MemoryStore) GetFlashcards(_ context.Context, sessionID string) ([]*Flashcard, error) {
 	flashcards, ok := s.flashcards[sessionID]
 	if !ok {
 		return nil, fmt.Errorf("flashcards not found for session %s", sessionID)
@@ -67,7 +67,7 @@ func (s *MemoryStore) GetFlashcards(ctx context.Context, sessionID string) ([]*F
 }
 
 // SetFlashcards upserts the specified flashcards, clearing any existing stats.
-func (s *MemoryStore) SetFlashcards(ctx context.Context, sessionID string, metadata []*FlashcardMetadata) error {
+func (s *MemoryStore) SetFlashcards(_ context.Context, sessionID string, metadata []*FlashcardMetadata) error {
 	existingFlashcards, ok := s.flashcards[sessionID]
 	if !ok {
 		existingFlashcards = []*Flashcard{}
@@ -101,7 +101,7 @@ func (s *MemoryStore) SetFlashcards(ctx context.Context, sessionID string, metad
 }
 
 // SetFlashcardStats updates a flashcard's stats.
-func (s *MemoryStore) SetFlashcardStats(ctx context.Context, sessionID string, flashcardID int64, stats *FlashcardStats) error {
+func (s *MemoryStore) SetFlashcardStats(_ context.Context, sessionID string, flashcardID int64, stats *FlashcardStats) error {
 	flashcards, ok := s.flashcards[sessionID]
 	if !ok {
 		return fmt.Errorf("flashcards not found for session %s", sessionID)
@@ -123,7 +123,7 @@ func (s *MemoryStore) SetFlashcardStats(ctx context.Context, sessionID string, f
 }
 
 // NextReviewed returns a flashcard that is due to be reviewed again.
-func (s *MemoryStore) NextReviewed(ctx context.Context, sessionID string, round int) (*Flashcard, error) {
+func (s *MemoryStore) NextReviewed(_ context.Context, sessionID string, round int) (*Flashcard, error) {
 	flashcards, ok := s.flashcards[sessionID]
 	if !ok {
 		return nil, fmt.Errorf("flashcards not found for session %s", sessionID)
@@ -138,7 +138,7 @@ func (s *MemoryStore) NextReviewed(ctx context.Context, sessionID string, round 
 }
 
 // NextUnreviewed returns a flashcard that has never been reviewed before.
-func (s *MemoryStore) NextUnreviewed(ctx context.Context, sessionID string) (*Flashcard, error) {
+func (s *MemoryStore) NextUnreviewed(_ context.Context, sessionID string) (*Flashcard, error) {
 	flashcards, ok := s.flashcards[sessionID]
 	if !ok {
 		return nil, fmt.Errorf("flashcards not found for session %s", sessionID)
@@ -154,7 +154,7 @@ func (s *MemoryStore) NextUnreviewed(ctx context.Context, sessionID string) (*Fl
 }
 
 // GetSessionMetadata returns the current session metadata.
-func (s *MemoryStore) GetSessionMetadata(ctx context.Context, sessionID string) (*SessionMetadata, error) {
+func (s *MemoryStore) GetSessionMetadata(_ context.Context, sessionID string) (*SessionMetadata, error) {
 	metadata, ok := s.metadata[sessionID]
 	if !ok {
 		return nil, fmt.Errorf("metadata not found for session %s", sessionID)
@@ -163,7 +163,7 @@ func (s *MemoryStore) GetSessionMetadata(ctx context.Context, sessionID string) 
 }
 
 // SetSessionMetadata updates the session metadata.
-func (s *MemoryStore) SetSessionMetadata(ctx context.Context, sessionID string, metadata *SessionMetadata) error {
+func (s *MemoryStore) SetSessionMetadata(_ context.Context, sessionID string, metadata *SessionMetadata) error {
 	s.metadata[sessionID] = metadata
 	return nil
 }
