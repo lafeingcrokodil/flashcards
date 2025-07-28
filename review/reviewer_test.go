@@ -208,7 +208,7 @@ func TestReviewer_SyncFlashcards(t *testing.T) {
 }
 
 func TestNewReviewer_getFlashcardMetadata(t *testing.T) {
-	expectedErr := "ambiguous answers for prompt P1: A1 and A2"
+	expectedErr := "answers A1 and A2 for prompt P1: answers are ambiguous"
 
 	ctx := context.Background()
 

@@ -3,9 +3,17 @@ package review
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/google/uuid"
+)
+
+var (
+	// ErrAmbiguousAnswers is thrown if a flashcard has contradictory answers.
+	ErrAmbiguousAnswers = errors.New("answers are ambiguous")
+	// ErrNotFound is thrown if the specified data isn't found.
+	ErrNotFound = errors.New("not found")
 )
 
 // Reviewer manages flashcard review sessions.
@@ -174,10 +182,11 @@ func (r *Reviewer) getFlashcardMetadata(ctx context.Context) ([]*FlashcardMetada
 	for _, m := range metadata {
 		e, ok := metadataByPrompt[m.Prompt]
 		if ok && e.Answer != m.Answer {
-			return nil, fmt.Errorf("ambiguous answers for prompt %s: %s and %s",
-				m.Prompt,
+			return nil, fmt.Errorf("answers %s and %s for prompt %s: %w",
 				e.Answer,
 				m.Answer,
+				m.Prompt,
+				ErrAmbiguousAnswers,
 			)
 		}
 		metadataByPrompt[m.Prompt] = m

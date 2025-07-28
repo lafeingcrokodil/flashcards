@@ -26,7 +26,7 @@ func NewMemoryStore() *MemoryStore {
 func (s *MemoryStore) DeleteFlashcards(_ context.Context, sessionID string, ids []int64) error {
 	flashcards, ok := s.flashcards[sessionID]
 	if !ok {
-		return fmt.Errorf("flashcards not found for session %s", sessionID)
+		return fmt.Errorf("flashcards for session %s: %w", sessionID, ErrNotFound)
 	}
 
 	var filteredFlashcards []*Flashcard
@@ -45,7 +45,7 @@ func (s *MemoryStore) DeleteFlashcards(_ context.Context, sessionID string, ids 
 func (s *MemoryStore) GetFlashcard(_ context.Context, sessionID string, flashcardID int64) (*Flashcard, error) {
 	flashcards, ok := s.flashcards[sessionID]
 	if !ok {
-		return nil, fmt.Errorf("flashcards not found for session %s", sessionID)
+		return nil, fmt.Errorf("flashcards for session %s: %w", sessionID, ErrNotFound)
 	}
 
 	for _, f := range flashcards {
@@ -54,14 +54,14 @@ func (s *MemoryStore) GetFlashcard(_ context.Context, sessionID string, flashcar
 		}
 	}
 
-	return nil, fmt.Errorf("flashcard %d not found for session %s", flashcardID, sessionID)
+	return nil, fmt.Errorf("flashcard %d for session %s: %w", flashcardID, sessionID, ErrNotFound)
 }
 
 // GetFlashcards returns all flashcards.
 func (s *MemoryStore) GetFlashcards(_ context.Context, sessionID string) ([]*Flashcard, error) {
 	flashcards, ok := s.flashcards[sessionID]
 	if !ok {
-		return nil, fmt.Errorf("flashcards not found for session %s", sessionID)
+		return nil, fmt.Errorf("flashcards for session %s: %w", sessionID, ErrNotFound)
 	}
 	return flashcards, nil
 }
@@ -104,7 +104,7 @@ func (s *MemoryStore) SetFlashcards(_ context.Context, sessionID string, metadat
 func (s *MemoryStore) SetFlashcardStats(_ context.Context, sessionID string, flashcardID int64, stats *FlashcardStats) error {
 	flashcards, ok := s.flashcards[sessionID]
 	if !ok {
-		return fmt.Errorf("flashcards not found for session %s", sessionID)
+		return fmt.Errorf("flashcards for session %s: %w", sessionID, ErrNotFound)
 	}
 
 	var found bool
@@ -116,7 +116,7 @@ func (s *MemoryStore) SetFlashcardStats(_ context.Context, sessionID string, fla
 	}
 
 	if !found {
-		return fmt.Errorf("flashcard %d not found for session %s", flashcardID, sessionID)
+		return fmt.Errorf("flashcard %d for session %s: %w", flashcardID, sessionID, ErrNotFound)
 	}
 
 	return nil
@@ -126,7 +126,7 @@ func (s *MemoryStore) SetFlashcardStats(_ context.Context, sessionID string, fla
 func (s *MemoryStore) NextReviewed(_ context.Context, sessionID string, round int) (*Flashcard, error) {
 	flashcards, ok := s.flashcards[sessionID]
 	if !ok {
-		return nil, fmt.Errorf("flashcards not found for session %s", sessionID)
+		return nil, fmt.Errorf("flashcards for session %s: %w", sessionID, ErrNotFound)
 	}
 
 	for _, f := range flashcards {
@@ -141,7 +141,7 @@ func (s *MemoryStore) NextReviewed(_ context.Context, sessionID string, round in
 func (s *MemoryStore) NextUnreviewed(_ context.Context, sessionID string) (*Flashcard, error) {
 	flashcards, ok := s.flashcards[sessionID]
 	if !ok {
-		return nil, fmt.Errorf("flashcards not found for session %s", sessionID)
+		return nil, fmt.Errorf("flashcards for session %s: %w", sessionID, ErrNotFound)
 	}
 
 	for _, f := range flashcards {
@@ -157,7 +157,7 @@ func (s *MemoryStore) NextUnreviewed(_ context.Context, sessionID string) (*Flas
 func (s *MemoryStore) GetSessionMetadata(_ context.Context, sessionID string) (*SessionMetadata, error) {
 	metadata, ok := s.metadata[sessionID]
 	if !ok {
-		return nil, fmt.Errorf("metadata not found for session %s", sessionID)
+		return nil, fmt.Errorf("metadata for session %s: %w", sessionID, ErrNotFound)
 	}
 	return metadata, nil
 }
