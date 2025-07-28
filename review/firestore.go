@@ -2,15 +2,11 @@ package review
 
 import (
 	"context"
-	"fmt"
 	"strconv"
 
 	"cloud.google.com/go/firestore"
-	"github.com/google/uuid"
 	"google.golang.org/api/iterator"
 )
-
-// TODO: Implement updated SessionStore interface.
 
 // FirestoreStore stores a review session's state in a Cloud Firestore database.
 type FirestoreStore struct {
@@ -18,105 +14,72 @@ type FirestoreStore struct {
 	client *firestore.Client
 	// collection is the name of the Firestore collection containing the sessions.
 	collection string
-	// sessionID uniquely identifies the review session.
-	sessionID string
 }
 
-// NewFirestoreStore returns a FirestoreStore for a new or existing session.
-func NewFirestoreStore(ctx context.Context, client *firestore.Client, collection, sessionID string) (*FirestoreStore, error) {
-	s := &FirestoreStore{
-		client:     client,
-		collection: collection,
-		sessionID:  sessionID,
-	}
+// DeleteFlashcards deletes the specified flashcards.
+func (s *FirestoreStore) DeleteFlashcards(ctx context.Context, sessionID string, ids []int64) error {
+	writer := s.client.BulkWriter(ctx)
+	defer writer.End()
 
-	// If no session ID is provided, create a new session.
-	if s.sessionID == "" {
-		s.sessionID = uuid.NewString()
-		fmt.Printf("INFO\tCreating new session with ID %s\n", s.sessionID)
-		err := s.SetSessionMetadata(ctx, &SessionMetadata{IsNewRound: true})
+	for _, id := range ids {
+		_, err := writer.Delete(s.flashcardRef(sessionID, id))
 		if err != nil {
-			return nil, err
+			return err
 		}
 	}
 
-	return s, nil
+	return nil
 }
 
-// BulkSyncFlashcards aligns the session data with the source of truth for the flashcard metadata.
-func (s *FirestoreStore) BulkSyncFlashcards(ctx context.Context, metadata []*FlashcardMetadata) (err error) {
-	metadataByID := make(map[int64]*FlashcardMetadata, len(metadata))
-	for _, m := range metadata {
-		metadataByID[m.ID] = m
-	}
-
-	writerCtx, cancelWrites := context.WithCancel(ctx)
-
-	writer := s.client.BulkWriter(writerCtx)
-	defer func() {
-		if err != nil {
-			cancelWrites()
-		}
-		writer.End()
-	}()
-
-	var existingFlashcards []*Flashcard
-	existingFlashcards, err = s.GetFlashcards(ctx)
+// GetFlashcard returns the specified flashcard.
+func (s *FirestoreStore) GetFlashcard(ctx context.Context, sessionID string, flashcardID int64) (*Flashcard, error) {
+	doc, err := s.flashcardRef(sessionID, flashcardID).Get(ctx)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	// Update and clean up existing flashcards.
-	for _, e := range existingFlashcards {
-		m, ok := metadataByID[e.Metadata.ID]
-		if !ok {
-			fmt.Printf("INFO\tRemoving flashcard with ID %d (%s)\n", e.Metadata.ID, e.Metadata.Answer)
-			_, err = writer.Delete(s.flashcardRef(e.Metadata.ID))
-			if err != nil {
-				return
-			}
-			continue
-		}
-
-		if e.Metadata != *m {
-			fmt.Printf("INFO\tUpdating metadata for ID %d: %v > %v\n", m.ID, e.Metadata, m)
-			e.Metadata = *m
-			e.Stats = FlashcardStats{}
-			_, err = writer.Set(s.flashcardRef(e.Metadata.ID), e)
-			if err != nil {
-				return
-			}
-		}
-
-		// The flashcard should now be fully synced, so no further processing is required.
-		delete(metadataByID, e.Metadata.ID)
+	var f Flashcard
+	if err = doc.DataTo(&f); err != nil {
+		return nil, err
 	}
 
-	// Add any missing flashcards.
-	for _, m := range metadataByID {
-		fmt.Printf("INFO\tAdding flashcard with ID %d (%s)\n", m.ID, m.Answer)
-		doc := s.flashcardRef(m.ID)
-		_, err = writer.Set(doc, &Flashcard{Metadata: *m})
-		if err != nil {
-			return
-		}
-	}
-
-	return
+	return &f, nil
 }
 
 // GetFlashcards returns all flashcards.
-func (s *FirestoreStore) GetFlashcards(ctx context.Context) ([]*Flashcard, error) {
-	iter := s.sessionRef().
+func (s *FirestoreStore) GetFlashcards(ctx context.Context, sessionID string) ([]*Flashcard, error) {
+	iter := s.sessionRef(sessionID).
 		Collection("flashcards").
 		OrderBy("metadata.id", firestore.Asc).
 		Documents(ctx)
 	return s.lookupAllFlashcards(ctx, iter)
 }
 
+// SetFlashcards upserts the specified flashcards, clearing any existing stats.
+func (s *FirestoreStore) SetFlashcards(ctx context.Context, sessionID string, metadata []*FlashcardMetadata) error {
+	writer := s.client.BulkWriter(ctx)
+	defer writer.End()
+
+	for _, m := range metadata {
+		_, err := writer.Set(s.flashcardRef(sessionID, m.ID), &Flashcard{Metadata: *m})
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// SetFlashcardStats updates a flashcard's stats.
+func (s *FirestoreStore) SetFlashcardStats(ctx context.Context, sessionID string, flashcardID int64, stats *FlashcardStats) error {
+	_, err := s.flashcardRef(sessionID, flashcardID).
+		Set(ctx, &Flashcard{Stats: *stats}, firestore.Merge([]string{"stats"}))
+	return err
+}
+
 // NextReviewed returns a flashcard that is due to be reviewed again.
-func (s *FirestoreStore) NextReviewed(ctx context.Context, round int) (*Flashcard, error) {
-	iter := s.sessionRef().
+func (s *FirestoreStore) NextReviewed(ctx context.Context, sessionID string, round int) (*Flashcard, error) {
+	iter := s.sessionRef(sessionID).
 		Collection("flashcards").
 		Where("stats.viewCount", ">", 0).
 		Where("stats.nextReview", "<=", round).
@@ -129,8 +92,8 @@ func (s *FirestoreStore) NextReviewed(ctx context.Context, round int) (*Flashcar
 }
 
 // NextUnreviewed returns a flashcard that has never been reviewed before.
-func (s *FirestoreStore) NextUnreviewed(ctx context.Context) (*Flashcard, error) {
-	iter := s.sessionRef().
+func (s *FirestoreStore) NextUnreviewed(ctx context.Context, sessionID string) (*Flashcard, error) {
+	iter := s.sessionRef(sessionID).
 		Collection("flashcards").
 		Where("stats.viewCount", "==", 0).
 		OrderBy(firestore.DocumentID, firestore.Asc).
@@ -140,10 +103,10 @@ func (s *FirestoreStore) NextUnreviewed(ctx context.Context) (*Flashcard, error)
 }
 
 // GetSessionMetadata returns the current session metadata.
-func (s *FirestoreStore) GetSessionMetadata(ctx context.Context) (*SessionMetadata, error) {
+func (s *FirestoreStore) GetSessionMetadata(ctx context.Context, sessionID string) (*SessionMetadata, error) {
 	var metadata SessionMetadata
 
-	doc, err := s.sessionRef().
+	doc, err := s.sessionRef(sessionID).
 		Get(ctx)
 	if err != nil {
 		return nil, err
@@ -157,28 +120,21 @@ func (s *FirestoreStore) GetSessionMetadata(ctx context.Context) (*SessionMetada
 	return &metadata, nil
 }
 
-// SetFlashcardStats updates a flashcard's stats.
-func (s *FirestoreStore) SetFlashcardStats(ctx context.Context, flashcardID int64, stats *FlashcardStats) error {
-	_, err := s.flashcardRef(flashcardID).
-		Set(ctx, &Flashcard{Stats: *stats}, firestore.Merge([]string{"stats"}))
-	return err
-}
-
 // SetSessionMetadata updates the session metadata.
-func (s *FirestoreStore) SetSessionMetadata(ctx context.Context, metadata *SessionMetadata) error {
-	_, err := s.sessionRef().
+func (s *FirestoreStore) SetSessionMetadata(ctx context.Context, sessionID string, metadata *SessionMetadata) error {
+	_, err := s.sessionRef(sessionID).
 		Set(ctx, metadata)
 	return err
 }
 
-func (s *FirestoreStore) flashcardRef(flashcardID int64) *firestore.DocumentRef {
-	return s.sessionRef().
+func (s *FirestoreStore) flashcardRef(sessionID string, flashcardID int64) *firestore.DocumentRef {
+	return s.sessionRef(sessionID).
 		Collection("flashcards").
 		Doc(strconv.FormatInt(flashcardID, 10))
 }
 
-func (s *FirestoreStore) sessionRef() *firestore.DocumentRef {
-	return s.client.Collection(s.collection).Doc(s.sessionID)
+func (s *FirestoreStore) sessionRef(sessionID string) *firestore.DocumentRef {
+	return s.client.Collection(s.collection).Doc(sessionID)
 }
 
 func (s *FirestoreStore) lookupFirstFlashcard(ctx context.Context, iter *firestore.DocumentIterator) (*Flashcard, error) {
