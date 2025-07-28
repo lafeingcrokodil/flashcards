@@ -2,6 +2,7 @@ package review
 
 import (
 	"context"
+	"errors"
 	"strconv"
 
 	"cloud.google.com/go/firestore"
@@ -153,7 +154,7 @@ func (s *FirestoreStore) lookupAllFlashcards(iter *firestore.DocumentIterator) (
 
 	for {
 		doc, err := iter.Next()
-		if err == iterator.Done {
+		if errors.Is(err, iterator.Done) {
 			break
 		}
 		if err != nil {
