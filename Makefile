@@ -18,6 +18,10 @@ tmp: ## Create a tmp directory.
 	@ mkdir -p tmp
 
 web: ## Run the application using a web UI.
+	@ . $(HOME)/.nvm/nvm.sh \
+		&& nvm install stable \
+		&& npm install \
+		&& npx tsc
 	@ set -a \
 		&& . ./env.production \
 		&& go run cmd/web/main.go
