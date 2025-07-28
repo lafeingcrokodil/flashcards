@@ -23,7 +23,7 @@ type Reviewer struct {
 }
 
 // CreateSession creates a new session with all flashcards marked as unreviewed.
-func (r *Reviewer) CreateSession(ctx context.Context) (*SessionMetadata, error) {
+func (r *Reviewer) CreateSession(ctx context.Context, numProficiencyLevels int) (*SessionMetadata, error) {
 	sessionID := uuid.NewString()
 
 	flashcardMetadata, err := r.getFlashcardMetadata(ctx)
@@ -31,7 +31,7 @@ func (r *Reviewer) CreateSession(ctx context.Context) (*SessionMetadata, error) 
 		return nil, err
 	}
 
-	session := NewSessionMetadata(sessionID)
+	session := NewSessionMetadata(sessionID, numProficiencyLevels)
 	session.UnreviewedCount = len(flashcardMetadata)
 
 	err = r.store.SetSessionMetadata(ctx, sessionID, session)
@@ -203,7 +203,7 @@ func diff(
 		metadataByID[m.ID] = m
 	}
 
-	updatedSession = NewSessionMetadata(session.ID)
+	updatedSession = NewSessionMetadata(session.ID, len(session.ProficiencyCounts))
 	updatedSession.Round = session.Round
 	updatedSession.IsNewRound = session.IsNewRound
 

@@ -2,8 +2,6 @@ package review
 
 import "context"
 
-const numProficiencyLevels = 5
-
 // SessionStore stores the state of a review session.
 type SessionStore interface {
 	// DeleteFlashcards deletes the specified flashcards.
@@ -41,7 +39,7 @@ type SessionMetadata struct {
 }
 
 // NewSessionMetadata initializes session metadata for the case where no flashcards have been added yet.
-func NewSessionMetadata(sessionID string) *SessionMetadata {
+func NewSessionMetadata(sessionID string, numProficiencyLevels int) *SessionMetadata {
 	return &SessionMetadata{
 		ID:                sessionID,
 		IsNewRound:        true,

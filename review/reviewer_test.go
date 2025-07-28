@@ -114,7 +114,7 @@ func TestReviewer_Next(t *testing.T) {
 
 	r := &Reviewer{source: newMemorySource(3), store: NewMemoryStore()}
 
-	session, err := r.CreateSession(ctx)
+	session, err := r.CreateSession(ctx, 5)
 	require.NoError(t, err)
 	expectedInitialSession.ID = session.ID
 	require.Equal(t, expectedInitialSession, session)
@@ -166,7 +166,7 @@ func TestReviewer_SyncFlashcards(t *testing.T) {
 
 	r := &Reviewer{source: newMemorySource(initialFlashcardCount), store: NewMemoryStore()}
 
-	session, err := r.CreateSession(ctx)
+	session, err := r.CreateSession(ctx, 5)
 	require.NoError(t, err)
 	expectedSession.ID = session.ID
 
