@@ -6,6 +6,9 @@ terraform {
       version = "6.46.0"
     }
   }
+  backend "gcs" {
+    bucket = "" # specified separately, e.g. via `terraform init` command line option
+  }
 }
 
 provider "google" {
