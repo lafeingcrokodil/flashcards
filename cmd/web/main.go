@@ -23,7 +23,12 @@ func main() {
 func run() error {
 	ctx := context.Background()
 
-	port, err := strconv.Atoi(os.Getenv("FLASHCARDS_PORT"))
+	portStr := os.Getenv("FLASHCARDS_PORT")
+	if portStr == "" {
+		portStr = os.Getenv("PORT")
+	}
+
+	port, err := strconv.Atoi(portStr)
 	if err != nil {
 		return err
 	}
