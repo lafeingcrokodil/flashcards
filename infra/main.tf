@@ -33,6 +33,7 @@ resource "google_project_service" "enable_apis" {
     "firestore.googleapis.com",
     "iamcredentials.googleapis.com",
     "oslogin.googleapis.com",
+    "run.googleapis.com",
     "sheets.googleapis.com",
   ])
   service = each.key
