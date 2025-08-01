@@ -4,8 +4,12 @@ resource "google_service_account" "github_actions" {
 
 resource "google_project_iam_member" "github_actions" {
   project = google_project.project.id
-  role    = "roles/datastore.user"
-  member  = google_service_account.github_actions.member
+  for_each = toset([
+    "roles/artifactregistry.writer",
+    "roles/datastore.user",
+  ])
+  role   = each.value
+  member = google_service_account.github_actions.member
 }
 
 resource "google_iam_workload_identity_pool" "github" {
