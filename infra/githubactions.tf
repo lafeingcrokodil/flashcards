@@ -7,6 +7,7 @@ resource "google_project_iam_member" "github_actions" {
   for_each = toset([
     "roles/artifactregistry.writer",
     "roles/datastore.user",
+    "roles/run.admin",
   ])
   role   = each.value
   member = google_service_account.github_actions.member
