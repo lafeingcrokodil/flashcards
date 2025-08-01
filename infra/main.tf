@@ -21,3 +21,15 @@ resource "google_project" "project" {
 
   auto_create_network = false
 }
+
+resource "google_storage_bucket" "terraform_state" {
+  name          = var.terraform_bucket
+  location      = var.region
+  storage_class = "REGIONAL"
+
+  uniform_bucket_level_access = true
+
+  versioning {
+    enabled = true
+  }
+}

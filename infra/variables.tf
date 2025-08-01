@@ -22,3 +22,8 @@ variable "zone" {
   description = "Default zone for zonal resources"
   type        = string
 }
+
+variable "terraform_bucket" {
+  description = "The name of the Google Cloud Storage bucket for storing the Terraform state"
+  type        = string
+}
