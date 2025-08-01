@@ -92,7 +92,7 @@ class App {
   handleSubmitClick() {
     const answer = this.ui.answer.value;
     submitAnswer(this.session.id, this.flashcard.metadata.id, answer, this.isFirstGuess)
-      .then((session: Session|null) => {
+      .then((session: Session | null) => {
         if (session) {
           if (this.isFirstGuess) {
             this.correctCount++;
@@ -199,7 +199,7 @@ interface FlashcardStats {
 }
 
 async function createSession(): Promise<Session> {
-  const response = await fetch(`sessions`, {method: "POST"});
+  const response = await fetch(`sessions`, { method: "POST" });
   if (!response.ok) {
     throw new Error(`HTTP error: ${response.status}`);
   }
@@ -223,7 +223,7 @@ async function getFlashcards(sessionId: string): Promise<Flashcard[]> {
 }
 
 async function nextFlashcard(sessionId: string): Promise<Flashcard> {
-  const response = await fetch(`sessions/${sessionId}/flashcards/next`, {method: "POST"});
+  const response = await fetch(`sessions/${sessionId}/flashcards/next`, { method: "POST" });
   if (!response.ok) {
     throw new Error(`HTTP error: ${response.status}`);
   }
@@ -231,14 +231,14 @@ async function nextFlashcard(sessionId: string): Promise<Flashcard> {
 }
 
 async function syncFlashcards(sessionId: string): Promise<Session> {
-  const response = await fetch(`sessions/${sessionId}/flashcards/sync`, {method: "POST"});
+  const response = await fetch(`sessions/${sessionId}/flashcards/sync`, { method: "POST" });
   if (!response.ok) {
     throw new Error(`HTTP error: ${response.status}`);
   }
   return response.json();
 }
 
-async function submitAnswer(sessionID: string, flashcardID: number, answer: string, isFirstGuess: boolean): Promise<Session|null> {
+async function submitAnswer(sessionID: string, flashcardID: number, answer: string, isFirstGuess: boolean): Promise<Session | null> {
   const response = await fetch(`sessions/${sessionID}/flashcards/${flashcardID}/submit`, {
     method: "POST",
     body: JSON.stringify({
@@ -278,5 +278,5 @@ function percent(numerator: number, denominator: number): number {
   if (denominator === 0) {
     return 0;
   }
-  return Math.floor(100*numerator/denominator);
+  return Math.floor(100 * numerator / denominator);
 }
