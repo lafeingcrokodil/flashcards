@@ -42,5 +42,6 @@ jobs:
       run: |
         gcloud run deploy staging \
           --image="$IMAGE" \
-          --region="${REGION}" \
+          --region="$REGION" \
+          --service-account="staging@$PROJECT_ID.iam.gserviceaccount.com" \
           --set-env-vars="$(grep -v '^#' env.staging | grep -v '^\s*$' | xargs | sed 's/ /,/g')"
