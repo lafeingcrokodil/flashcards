@@ -17,11 +17,21 @@ test: tmp ## Run unit tests.
 tmp: ## Create a tmp directory.
 	@ mkdir -p tmp
 
-web: ## Run the application using a web UI.
+tsc: ## Compile TypeScript code.
 	@ . $(HOME)/.nvm/nvm.sh \
 		&& nvm install stable \
 		&& npm install \
 		&& npx tsc
+
+web-docker: tsc ## Run the application in a local Docker container.
+	@ docker build -t flashcards .
+	@ docker run --rm \
+		-v $(HOME)/.config/gcloud:/root/.config/gcloud \
+		--env-file env.production \
+		-p 8080:8080 \
+		flashcards
+
+web-dev: tsc ## Run the application locally without using Docker.
 	@ set -a \
 		&& . ./env.production \
 		&& go run cmd/web/main.go

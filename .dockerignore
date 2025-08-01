@@ -1,0 +1,16 @@
+.git/
+.github/
+.vscode/
+client/
+infra/
+node_modules/
+tmp/
+.gitignore
+.golangci.*
+env.*
+LICENSE
+Makefile
+package-lock.json
+package.json
+README.md
+tsconfig.json
