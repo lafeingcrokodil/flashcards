@@ -36,7 +36,7 @@ func New(source review.FlashcardMetadataSource, store review.SessionStore, numPr
 // Start starts the server.
 func (s *Server) Start(port int) error {
 	router := s.getRouter()
-	addr := fmt.Sprintf("localhost:%d", port)
+	addr := fmt.Sprintf("0.0.0.0:%d", port)
 	fmt.Printf("INFO\tStarting server at http://%s...\n", addr)
 	return http.ListenAndServe(addr, router)
 }
