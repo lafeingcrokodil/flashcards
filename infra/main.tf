@@ -30,7 +30,9 @@ resource "google_project_service" "enable_apis" {
     "compute.googleapis.com",
     "firebaserules.googleapis.com",
     "firestore.googleapis.com",
+    "iamcredentials.googleapis.com",
     "oslogin.googleapis.com",
+    "sheets.googleapis.com",
   ])
   service = each.key
 }
