@@ -25,6 +25,16 @@ resource "google_project" "project" {
   auto_create_network = false
 }
 
+resource "google_project_service" "enable_apis" {
+  for_each = toset([
+    "compute.googleapis.com",
+    "firebaserules.googleapis.com",
+    "firestore.googleapis.com",
+    "oslogin.googleapis.com",
+  ])
+  service = each.key
+}
+
 resource "google_storage_bucket" "terraform_state" {
   name          = var.terraform_bucket
   location      = var.region
