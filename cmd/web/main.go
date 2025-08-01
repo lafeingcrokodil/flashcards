@@ -43,10 +43,9 @@ func run() error {
 	}
 
 	projectID := os.Getenv("FLASHCARDS_FIRESTORE_PROJECT")
-	databaseID := os.Getenv("FLASHCARDS_FIRESTORE_DATABASE")
 	collection := os.Getenv("FLASHCARDS_FIRESTORE_COLLECTION")
 
-	client, err := firestore.NewClientWithDatabase(ctx, projectID, databaseID)
+	client, err := firestore.NewClient(ctx, projectID)
 	if err != nil {
 		return err
 	}

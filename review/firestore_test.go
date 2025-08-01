@@ -59,10 +59,9 @@ func TestFirestoreStore(t *testing.T) {
 	ctx := context.Background()
 
 	projectID := os.Getenv("FLASHCARDS_FIRESTORE_PROJECT")
-	databaseID := os.Getenv("FLASHCARDS_FIRESTORE_DATABASE")
 	collection := os.Getenv("FLASHCARDS_FIRESTORE_COLLECTION")
 
-	client, err := firestore.NewClientWithDatabase(ctx, projectID, databaseID)
+	client, err := firestore.NewClient(ctx, projectID)
 	require.NoError(t, err)
 	defer client.Close() //nolint:errcheck
 
