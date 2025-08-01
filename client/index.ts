@@ -1,7 +1,7 @@
 window.addEventListener("load", () => {
   let session: Session;
   const sessionId = prompt("Session ID");
-  const sessionPromise = sessionId == null ? createSession() : getSession(sessionId);
+  const sessionPromise = !sessionId ? createSession() : getSession(sessionId);
   sessionPromise
     .then((s: Session) => {
       session = s;
