@@ -43,5 +43,4 @@ jobs:
         gcloud run deploy staging \
           --image="$IMAGE" \
           --region="${REGION}" \
-          --set-env-vars="$(grep -v '^#' env.staging | grep -v '^\s*$' | xargs | sed 's/ /,/g')" \
-          --allow-unauthenticated=false
+          --set-env-vars="$(grep -v '^#' env.staging | grep -v '^\s*$' | xargs | sed 's/ /,/g')"
