@@ -27,7 +27,7 @@ jobs:
       run: |
         HOSTNAME=europe-west1-docker.pkg.dev
         SHORT_SHA=${GITHUB_SHA::7}
-        IMAGE="$HOSTNAME/flashcards/main/flashcards:$SHORT_SHA"
+        IMAGE="$HOSTNAME/lafeingcrokodil-flashcards/main/flashcards:$SHORT_SHA"
         gcloud auth configure-docker $HOSTNAME --quiet
         docker build -t $IMAGE .
         docker push $IMAGE
