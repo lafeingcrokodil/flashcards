@@ -11,13 +11,11 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
       - name: Ensure CI passed
         uses: actions/github-script@v7
         with:
           script: |
-            const sha = github.context.sha;
+            const sha = context.sha;
             const workflowName = 'CI';
 
             const runs = await github.rest.actions.listWorkflowRunsForRepo({
