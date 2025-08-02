@@ -18,18 +18,25 @@ input[type=button] {
   color: #aaa;
   background-color: #202020;
   border: none;
-}
-
-input[type=button] {
   cursor: pointer;
   font-size: large;
   padding: 0.5em 1em;
   margin: 0.5em;
 }
 
+input[type=submit] {
+  font-family: 'Roboto Mono', monospace;
+  color: #d0d0d0;
+  background-color: #202020;
+  border-radius: 8px;
+  margin-top: 1em;
+  padding: 0.5em 1em;
+  font-size: 1em;
+  cursor: pointer;
+}
+
 input[type=text] {
   font-family: 'Roboto Mono', monospace;
-  font-size: xx-large;
   color: #d0d0d0;
   background-color: #202020;
   border: none;
@@ -38,10 +45,24 @@ input[type=text] {
   max-width: 500px;
   padding: 0.5em;
   box-sizing: border-box;
+  font-size: 1em;
+  margin-top: 0.3em;
 }
 
 input[type=text]:focus {
   outline: none;
+}
+
+select {
+  font-family: 'Roboto Mono', monospace;
+  color: #d0d0d0;
+  background-color: #202020;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 500px;
+  padding: 0.5em;
+  font-size: 1em;
+  margin-top: 0.3em;
 }
 
 .info {
@@ -75,10 +96,16 @@ input[type=text]:focus {
   margin-top: 2em;
 }
 
+#answer {
+  font-size: xx-large;
+}
+
 #expected {
   font-size: larger;
 }
 
+#review,
+#session,
 #submit {
   display: none;
 }

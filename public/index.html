@@ -16,22 +16,44 @@
 </head>
 
 <body>
-  <p>
-    <span id="unreviewedCount">0</span>
-    | <span id="viewCount">0</span> 👁
-    · <span class="correct"><span id="correctCount">0</span> ✔</span>
-    · <span class="error"><span id="incorrectCount">0</span> ✖</span>
-    · <span id="correctPerc">0</span>%
-  </p>
+  <div id="session">
+    <form id="existingSessionForm">
+      <h3>Resume existing session:</h3>
+      <select id="existingSessions" name="existingSession">
+        <option value="">-- Select a session --</option>
+      </select>
+      <br><br>
+      <input type="submit" value="Resume">
+    </form>
 
-  <h1><span id="prompt"></span></h1>
-  <p id="context" class="info"></p>
-  <input type="text" id="answer" name="answer" />
-  <input type="button" id="submit" value="Check" />
-  <p id="expected" class="error"></p>
+    <br><br>
+    <hr>
+    <br>
 
-  <input type="button" id="allAnswersToggle" value="▸ Show all answers" />
-  <p id="allAnswers"></p>
+    <form id="newSessionForm">
+      <h3>Or create new:</h3>
+      <input type="submit" value="Create">
+    </form>
+  </div>
+
+  <div id="review">
+    <p>
+      <span id="unreviewedCount">0</span>
+      | <span id="viewCount">0</span> 👁
+      · <span class="correct"><span id="correctCount">0</span> ✔</span>
+      · <span class="error"><span id="incorrectCount">0</span> ✖</span>
+      · <span id="correctPerc">0</span>%
+    </p>
+
+    <h1><span id="prompt"></span></h1>
+    <p id="context" class="info"></p>
+    <input type="text" id="answer" name="answer" />
+    <input type="button" id="submit" value="Check" />
+    <p id="expected" class="error"></p>
+
+    <input type="button" id="allAnswersToggle" value="▸ Show all answers" />
+    <p id="allAnswers"></p>
+  </div>
 
   <script src="index.js"></script>
 </body>

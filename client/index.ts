@@ -1,23 +1,85 @@
 window.addEventListener("load", () => {
-  let session: Session;
-  const sessionId = prompt("Session ID");
-  const sessionPromise = !sessionId ? createSession() : getSession(sessionId);
-  sessionPromise
-    .then((s: Session) => {
-      session = s;
-      return nextFlashcard(session.id)
+  getSessions()
+    .then((sessions: Session[]) => {
+      new SessionForm(sessions);
     })
-    .then((flashcard: Flashcard) => {
-      const app = new App(session, flashcard)
-      app.display(true);
-    })
-    .catch((err: Error) => console.error(err.message));
+    .catch((err: Error) => alert(err.message));
 });
 
-class App {
+class SessionForm {
+  sessions: Record<string, Session>;
+  ui: SessionUI;
+
+  constructor(sessions: Session[]) {
+    this.sessions = Object.fromEntries(
+      sessions.map(session => [session.id, session])
+    );
+    this.ui = new SessionUI();
+
+    let existingSessions = this.ui.existingSessions.innerHTML;
+    sessions.forEach((sess: Session) => {
+      existingSessions += `<option value="${sess.id}">${sess.id}</option>`;
+    });
+    this.ui.existingSessions.innerHTML = existingSessions;
+
+    this.ui.existingSessionForm.addEventListener("submit", this.handleSubmitExisting.bind(this));
+    this.ui.newSessionForm.addEventListener("submit", this.handleSubmitNew.bind(this));
+
+    this.ui.session.style.display = "block";
+  }
+
+  handleSubmitExisting(event: SubmitEvent) {
+    event.preventDefault();
+
+    const sessionId = this.ui.existingSessions.value.trim();
+    const session = this.sessions[sessionId];
+    if (!session) {
+      alert("Please select a valid existing session.");
+      return;
+    }
+
+    this.initApp(session);
+  }
+
+  handleSubmitNew(event: SubmitEvent) {
+    event.preventDefault();
+
+    createSession()
+      .then((session: Session) => {
+        this.initApp(session);
+      })
+      .catch((err: Error) => alert(err.message));
+  }
+
+  initApp(session: Session) {
+    nextFlashcard(session.id)
+      .then((flashcard: Flashcard) => {
+        const app = new ReviewApp(session, flashcard)
+        app.display(true);
+        this.ui.session.style.display = "none";
+      })
+      .catch((err: Error) => alert(err.message));
+  }
+}
+
+class SessionUI {
+  session: HTMLElement;
+  existingSessionForm: HTMLFormElement;
+  existingSessions: HTMLSelectElement;
+  newSessionForm: HTMLFormElement;
+
+  constructor() {
+    this.session = getHTMLElement("#session");
+    this.existingSessionForm = getHTMLFormElement("#existingSessionForm");
+    this.existingSessions = getHTMLSelectElement("#existingSessions");
+    this.newSessionForm = getHTMLFormElement("#newSessionForm");
+  }
+}
+
+class ReviewApp {
   session: Session;
   flashcard: Flashcard;
-  ui: UI;
+  ui: ReviewUI;
 
   isFirstGuess = true;
   viewCount = 0;
@@ -26,7 +88,7 @@ class App {
   constructor(session: Session, flashcard: Flashcard) {
     this.session = session;
     this.flashcard = flashcard;
-    this.ui = new UI();
+    this.ui = new ReviewUI();
     this.ui.answer.addEventListener("keyup", this.handleAnswerKeyup.bind(this));
     this.ui.submit.addEventListener("click", this.handleSubmitClick.bind(this));
     this.ui.allAnswersToggle.addEventListener("click", this.handleAllAnswersToggleClick.bind(this));
@@ -54,6 +116,8 @@ class App {
     }
 
     this.hideAllAnswers();
+
+    this.ui.review.style.display = "block";
   }
 
   getProficiencyClass(repetitions: number): string {
@@ -136,7 +200,8 @@ class App {
   }
 }
 
-class UI {
+class ReviewUI {
+  review: HTMLElement;
   unreviewedCount: HTMLElement;
   viewCount: HTMLElement;
   correctCount: HTMLElement;
@@ -151,6 +216,7 @@ class UI {
   allAnswers: HTMLElement;
 
   constructor() {
+    this.review = getHTMLElement("#review");
     this.unreviewedCount = getHTMLElement("#unreviewedCount");
     this.viewCount = getHTMLElement("#viewCount");
     this.correctCount = getHTMLElement("#correctCount");
@@ -196,8 +262,8 @@ async function createSession(): Promise<Session> {
   return response.json();
 }
 
-async function getSession(sessionId: string): Promise<Session> {
-  const response = await fetch(`sessions/${sessionId}`);
+async function getSessions(): Promise<Session[]> {
+  const response = await fetch(`sessions`);
   if (!response.ok) {
     throw new Error(`HTTP error: ${response.status}`);
   }
@@ -259,9 +325,19 @@ function getHTMLElement(selector: string): HTMLElement {
   return elem as HTMLElement;
 }
 
+function getHTMLFormElement(selector: string): HTMLFormElement {
+  const elem = getHTMLElement(selector);
+  return elem as HTMLFormElement;
+}
+
 function getHTMLInputElement(selector: string): HTMLInputElement {
   const elem = getHTMLElement(selector);
   return elem as HTMLInputElement;
+}
+
+function getHTMLSelectElement(selector: string): HTMLSelectElement {
+  const elem = getHTMLElement(selector);
+  return elem as HTMLSelectElement;
 }
 
 function percent(numerator: number, denominator: number): number {
