@@ -43,7 +43,6 @@ jobs:
           IMAGE="$REGISTRY_HOSTNAME/$PROJECT_ID/main/flashcards:$SHORT_SHA"
           gcloud run deploy production \
             --image="$IMAGE" \
-            --project="$PROJECT_ID" \
             --region="$REGION" \
             --service-account="production@$PROJECT_ID.iam.gserviceaccount.com" \
             --allow-unauthenticated \
