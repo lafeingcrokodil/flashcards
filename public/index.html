@@ -6,6 +6,7 @@
   <meta charset="utf-8" />
   <meta name="description" content="Application for reviewing flashcards.">
   <meta name="author" content="lafeingcrokodil">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <title>Flashcard Review</title>
 
@@ -17,7 +18,6 @@
 <body>
   <p>
     <span id="unreviewedCount">0</span>
-    <span id="proficiencyCounts"> · 0</span>
     | <span id="viewCount">0</span> 👁
     · <span class="correct"><span id="correctCount">0</span> ✔</span>
     · <span class="error"><span id="incorrectCount">0</span> ✖</span>
@@ -30,7 +30,7 @@
   <input type="button" id="submit" value="Check" />
   <p id="expected" class="error"></p>
 
-  <input type="button" id="allAnswersToggle" value="▸ Show all answers by proficiency" />
+  <input type="button" id="allAnswersToggle" value="▸ Show all answers" />
   <p id="allAnswers"></p>
 
   <script src="index.js"></script>

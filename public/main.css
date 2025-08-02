@@ -3,6 +3,14 @@ body {
   color: #d0d0d0;
   background-color: #202020;
   text-align: center;
+  margin: 1em;
+  padding: 0;
+}
+
+h1 {
+  font-size: 2em;
+  word-wrap: break-word;
+  margin: 1em 0;
 }
 
 input[type=button] {
@@ -14,6 +22,9 @@ input[type=button] {
 
 input[type=button] {
   cursor: pointer;
+  font-size: large;
+  padding: 0.5em 1em;
+  margin: 0.5em;
 }
 
 input[type=text] {
@@ -23,6 +34,10 @@ input[type=text] {
   background-color: #202020;
   border: none;
   border-bottom: 1px solid #d0d0d0;
+  width: 90%;
+  max-width: 500px;
+  padding: 0.5em;
+  box-sizing: border-box;
 }
 
 input[type=text]:focus {
@@ -55,7 +70,9 @@ input[type=text]:focus {
 }
 
 #allAnswersToggle {
-  margin-top: 100px;
+  font-size: small;
+  padding: 0.3em 0.6em;
+  margin-top: 2em;
 }
 
 #expected {
@@ -64,4 +81,18 @@ input[type=text]:focus {
 
 #submit {
   display: none;
+}
+
+@media (max-width: 600px) {
+  body {
+    font-size: 1em;
+  }
+
+  h1 {
+    font-size: 1.6em;
+  }
+
+  #expected {
+    font-size: medium;
+  }
 }

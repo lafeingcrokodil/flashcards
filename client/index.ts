@@ -34,13 +34,6 @@ class App {
 
   display(isCorrect: boolean) {
     this.ui.unreviewedCount.textContent = this.session.unreviewedCount.toString();
-
-    let proficiencyCounts = "";
-    this.session.proficiencyCounts.forEach((count, i) => {
-      proficiencyCounts += ` · <span class=${this.getProficiencyClass(i)}>${count}</span>`;
-    });
-    this.ui.proficiencyCounts.innerHTML = proficiencyCounts;
-
     this.ui.viewCount.textContent = this.viewCount.toString();
     this.ui.correctCount.textContent = this.correctCount.toString();
     this.ui.incorrectCount.textContent = (this.viewCount - this.correctCount).toString();
@@ -139,13 +132,12 @@ class App {
 
   hideAllAnswers() {
     this.ui.allAnswers.style.display = "none";
-    this.ui.allAnswersToggle.value = "▸ Show all answers by proficiency";
+    this.ui.allAnswersToggle.value = "▸ Show all answers";
   }
 }
 
 class UI {
   unreviewedCount: HTMLElement;
-  proficiencyCounts: HTMLElement;
   viewCount: HTMLElement;
   correctCount: HTMLElement;
   incorrectCount: HTMLElement;
@@ -160,7 +152,6 @@ class UI {
 
   constructor() {
     this.unreviewedCount = getHTMLElement("#unreviewedCount");
-    this.proficiencyCounts = getHTMLElement("#proficiencyCounts");
     this.viewCount = getHTMLElement("#viewCount");
     this.correctCount = getHTMLElement("#correctCount");
     this.incorrectCount = getHTMLElement("#incorrectCount");
@@ -177,7 +168,6 @@ class UI {
 
 interface Session {
   id: string;
-  proficiencyCounts: number[];
   unreviewedCount: number;
 }
 
