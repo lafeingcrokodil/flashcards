@@ -1,5 +1,8 @@
 name: CI
-on: push
+on:
+  push:
+    branches:
+      - '**'
 env:
   PROJECT_ID: lafeingcrokodil-flashcards
   PROJECT_NUMBER: 279825606000
