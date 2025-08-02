@@ -38,15 +38,6 @@ func run() error {
 		return err
 	}
 
-	source := &review.SheetSource{
-		SpreadsheetID: os.Getenv("FLASHCARDS_SHEETS_ID"),
-		CellRange:     os.Getenv("FLASHCARDS_SHEETS_CELL_RANGE"),
-		IDHeader:      os.Getenv("FLASHCARDS_SHEETS_ID_HEADER"),
-		PromptHeader:  os.Getenv("FLASHCARDS_SHEETS_PROMPT_HEADER"),
-		ContextHeader: os.Getenv("FLASHCARDS_SHEETS_CONTEXT_HEADER"),
-		AnswerHeader:  os.Getenv("FLASHCARDS_SHEETS_ANSWER_HEADER"),
-	}
-
 	projectID := os.Getenv("FLASHCARDS_FIRESTORE_PROJECT")
 	collection := os.Getenv("FLASHCARDS_FIRESTORE_COLLECTION")
 
@@ -58,7 +49,7 @@ func run() error {
 
 	store := review.NewFirestoreStore(client, collection)
 
-	server, err := web.New(source, store, numProficiencyLevels)
+	server, err := web.New(store, numProficiencyLevels)
 	if err != nil {
 		return err
 	}

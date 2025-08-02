@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 
 	"github.com/gorilla/mux"
@@ -16,15 +17,9 @@ import (
 func TestServer(t *testing.T) {
 	numProficiencyLevels := 3
 
-	metadata := []*review.FlashcardMetadata{
-		{ID: 1, Prompt: "P1", Answer: "A1"},
-		{ID: 2, Prompt: "P2", Answer: "A2"},
-	}
-
-	source := review.NewMemorySource(metadata)
 	store := review.NewMemoryStore()
 
-	server, err := New(source, store, numProficiencyLevels)
+	server, err := New(store, numProficiencyLevels)
 	require.NoError(t, err)
 
 	router := server.getRouter()
@@ -43,17 +38,29 @@ func testCreateSession(t *testing.T, router *mux.Router) review.Session {
 	expectedSession := &review.Session{
 		IsNewRound:        true,
 		ProficiencyCounts: []int{0, 0, 0},
-		UnreviewedCount:   2,
+		UnreviewedCount:   4,
 	}
 
-	req := httptest.NewRequest("POST", "/sessions", nil)
+	source := &review.SheetSource{
+		SpreadsheetID: os.Getenv("FLASHCARDS_SHEETS_ID"),
+		CellRange:     os.Getenv("FLASHCARDS_SHEETS_CELL_RANGE"),
+		IDHeader:      os.Getenv("FLASHCARDS_SHEETS_ID_HEADER"),
+		PromptHeader:  os.Getenv("FLASHCARDS_SHEETS_PROMPT_HEADER"),
+		ContextHeader: os.Getenv("FLASHCARDS_SHEETS_CONTEXT_HEADER"),
+		AnswerHeader:  os.Getenv("FLASHCARDS_SHEETS_ANSWER_HEADER"),
+	}
+
+	body, err := json.Marshal(source)
+	require.NoError(t, err)
+
+	req := httptest.NewRequest("POST", "/sessions", bytes.NewReader(body))
 	rec := httptest.NewRecorder()
 
 	router.ServeHTTP(rec, req)
 	require.Equal(t, http.StatusCreated, rec.Code)
 
 	var session review.Session
-	err := json.NewDecoder(rec.Body).Decode(&session)
+	err = json.NewDecoder(rec.Body).Decode(&session)
 	require.NoError(t, err)
 	require.NotEmpty(t, session.ID)
 	expectedSession.ID = session.ID
@@ -76,7 +83,7 @@ func testGetSession(t *testing.T, router *mux.Router, sessionID string) {
 		ID:                sessionID,
 		IsNewRound:        true,
 		ProficiencyCounts: []int{0, 0, 0},
-		UnreviewedCount:   2,
+		UnreviewedCount:   4,
 	}
 
 	req := httptest.NewRequest("GET", "/sessions/"+sessionID, nil)
@@ -96,7 +103,7 @@ func testGetSessions(t *testing.T, router *mux.Router, sessionID string) {
 		ID:                sessionID,
 		IsNewRound:        true,
 		ProficiencyCounts: []int{0, 0, 0},
-		UnreviewedCount:   2,
+		UnreviewedCount:   4,
 	}
 
 	req := httptest.NewRequest("GET", "/sessions", nil)
@@ -113,8 +120,10 @@ func testGetSessions(t *testing.T, router *mux.Router, sessionID string) {
 
 func testGetFlashcards(t *testing.T, router *mux.Router, sessionID string) {
 	expectedFlashcards := []*review.Flashcard{
-		{Metadata: review.FlashcardMetadata{ID: 1, Prompt: "P1", Answer: "A1"}},
-		{Metadata: review.FlashcardMetadata{ID: 2, Prompt: "P2", Answer: "A2"}},
+		{Metadata: review.FlashcardMetadata{ID: 1, Prompt: "P1", Answer: "A1", Context: "C1"}},
+		{Metadata: review.FlashcardMetadata{ID: 2, Prompt: "P1", Answer: "A2", Context: "C2"}},
+		{Metadata: review.FlashcardMetadata{ID: 3, Prompt: "P1", Answer: "A3"}},
+		{Metadata: review.FlashcardMetadata{ID: 4, Prompt: "P2", Answer: "A1", Context: "C1"}},
 	}
 
 	endpoint := fmt.Sprintf("/sessions/%s/flashcards", sessionID)
@@ -132,7 +141,7 @@ func testGetFlashcards(t *testing.T, router *mux.Router, sessionID string) {
 
 func testNextFlashcard(t *testing.T, router *mux.Router, sessionID string) {
 	expectedFlashcard := &review.Flashcard{
-		Metadata: review.FlashcardMetadata{ID: 1, Prompt: "P1", Answer: "A1"},
+		Metadata: review.FlashcardMetadata{ID: 1, Prompt: "P1", Answer: "A1", Context: "C1"},
 	}
 
 	endpoint := fmt.Sprintf("/sessions/%s/flashcards/next", sessionID)
@@ -153,18 +162,30 @@ func testSyncFlashcards(t *testing.T, router *mux.Router, sessionID string) {
 		ID:                sessionID,
 		IsNewRound:        true,
 		ProficiencyCounts: []int{0, 0, 0},
-		UnreviewedCount:   2,
+		UnreviewedCount:   4,
 	}
 
+	source := &review.SheetSource{
+		SpreadsheetID: os.Getenv("FLASHCARDS_SHEETS_ID"),
+		CellRange:     os.Getenv("FLASHCARDS_SHEETS_CELL_RANGE"),
+		IDHeader:      os.Getenv("FLASHCARDS_SHEETS_ID_HEADER"),
+		PromptHeader:  os.Getenv("FLASHCARDS_SHEETS_PROMPT_HEADER"),
+		ContextHeader: os.Getenv("FLASHCARDS_SHEETS_CONTEXT_HEADER"),
+		AnswerHeader:  os.Getenv("FLASHCARDS_SHEETS_ANSWER_HEADER"),
+	}
+
+	body, err := json.Marshal(source)
+	require.NoError(t, err)
+
 	endpoint := fmt.Sprintf("/sessions/%s/flashcards/sync", sessionID)
-	req := httptest.NewRequest("POST", endpoint, nil)
+	req := httptest.NewRequest("POST", endpoint, bytes.NewReader(body))
 	rec := httptest.NewRecorder()
 
 	router.ServeHTTP(rec, req)
 	require.Equal(t, http.StatusOK, rec.Code)
 
 	var session review.Session
-	err := json.NewDecoder(rec.Body).Decode(&session)
+	err = json.NewDecoder(rec.Body).Decode(&session)
 	require.NoError(t, err)
 	require.Equal(t, expectedSession, &session)
 }
@@ -192,7 +213,7 @@ func testSubmitFlashcard(t *testing.T, router *mux.Router, sessionID string) {
 				ID:                sessionID,
 				IsNewRound:        false,
 				ProficiencyCounts: []int{1, 0, 0},
-				UnreviewedCount:   1,
+				UnreviewedCount:   3,
 			},
 		},
 	}

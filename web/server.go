@@ -26,9 +26,9 @@ type Server struct {
 }
 
 // New initializes a new server.
-func New(source review.FlashcardMetadataSource, store review.SessionStore, numProficiencyLevels int) (*Server, error) {
+func New(store review.SessionStore, numProficiencyLevels int) (*Server, error) {
 	return &Server{
-		reviewer:             review.NewReviewer(source, store),
+		reviewer:             review.NewReviewer(store),
 		numProficiencyLevels: numProficiencyLevels,
 	}, nil
 }
@@ -55,11 +55,19 @@ func (s *Server) getRouter() *mux.Router {
 }
 
 func (s *Server) handleCreateSession(w http.ResponseWriter, req *http.Request) {
-	session, err := s.reviewer.CreateSession(req.Context(), s.numProficiencyLevels)
+	var source review.SheetSource
+	err := json.NewDecoder(req.Body).Decode(&source)
+	if err != nil {
+		sendError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	session, err := s.reviewer.CreateSession(req.Context(), &source, s.numProficiencyLevels)
 	if err != nil {
 		sendError(w, http.StatusInternalServerError, err)
 		return
 	}
+
 	sendResponse(w, http.StatusCreated, session)
 }
 
@@ -124,7 +132,15 @@ func (s *Server) handleSyncFlashcards(w http.ResponseWriter, req *http.Request) 
 		sendError(w, http.StatusBadRequest, ErrMissingSessionID)
 		return
 	}
-	session, err := s.reviewer.SyncFlashcards(req.Context(), sessionID)
+
+	var source review.SheetSource
+	err := json.NewDecoder(req.Body).Decode(&source)
+	if err != nil {
+		sendError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	session, err := s.reviewer.SyncFlashcards(req.Context(), sessionID, &source)
 	if err != nil {
 		sendError(w, http.StatusInternalServerError, err)
 		return

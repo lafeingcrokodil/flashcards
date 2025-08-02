@@ -89,9 +89,9 @@ func TestReviewer_NextFlashcard(t *testing.T) {
 
 	ctx := context.Background()
 
-	r := NewReviewer(newMemorySource(numFlashcards), NewMemoryStore())
+	r := NewReviewer(NewMemoryStore())
 
-	session, err := r.CreateSession(ctx, numProficiencyLevels)
+	session, err := r.CreateSession(ctx, newMemorySource(numFlashcards), numProficiencyLevels)
 	require.NoError(t, err)
 	expectedInitialSession.ID = session.ID
 	require.Equal(t, expectedInitialSession, session)
@@ -148,9 +148,9 @@ func TestReviewer_SyncFlashcards(t *testing.T) {
 
 	ctx := context.Background()
 
-	r := NewReviewer(newMemorySource(initialNumFlashcards), NewMemoryStore())
+	r := NewReviewer(NewMemoryStore())
 
-	session, err := r.CreateSession(ctx, numProficiencyLevels)
+	session, err := r.CreateSession(ctx, newMemorySource(initialNumFlashcards), numProficiencyLevels)
 	require.NoError(t, err)
 	expectedSession.ID = session.ID
 
@@ -169,9 +169,7 @@ func TestReviewer_SyncFlashcards(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	r.source = NewMemorySource(metadataUpdate)
-
-	updatedSession, err := r.SyncFlashcards(ctx, session.ID)
+	updatedSession, err := r.SyncFlashcards(ctx, session.ID, NewMemorySource(metadataUpdate))
 	require.NoError(t, err)
 	require.Equal(t, expectedSession, updatedSession)
 
@@ -214,10 +212,8 @@ func TestNewReviewer_getFlashcardMetadata(t *testing.T) {
 	ctx := context.Background()
 
 	for _, tc := range testCases {
-		source := NewMemorySource(tc.metadata)
-		r := NewReviewer(source, NewMemoryStore())
+		metadata, err := getFlashcardMetadata(ctx, NewMemorySource(tc.metadata))
 
-		metadata, err := r.getFlashcardMetadata(ctx)
 		// We use assert instead of require so that we can gather errors for all test cases.
 		if tc.expectedErr != "" {
 			assert.EqualError(t, err, tc.expectedErr, tc.id)

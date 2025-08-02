@@ -10,17 +10,17 @@ import (
 // SheetSource stores flashcard metadata in a Google Sheets spreadsheet.
 type SheetSource struct {
 	// SpreadsheetID uniquely identifies the spreadsheet.
-	SpreadsheetID string
+	SpreadsheetID string `json:"spreadsheetId"`
 	// CellRange is the range of cells containing the data.
-	CellRange string
+	CellRange string `json:"cellRange"`
 	// IDHeader is the name of the column containing unique IDs.
-	IDHeader string
+	IDHeader string `json:"idHeader"`
 	// PromptHeader is the name of the column containing the prompts.
-	PromptHeader string
+	PromptHeader string `json:"promptHeader"`
 	// ContextHeader is the name of the column containing the context (if any).
-	ContextHeader string
+	ContextHeader string `json:"contextHeader"`
 	// AnswerHeader is the name of the column containing the answers.
-	AnswerHeader string
+	AnswerHeader string `json:"answerHeader"`
 }
 
 // GetAll returns the metadata for all flashcards.

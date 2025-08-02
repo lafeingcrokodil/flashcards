@@ -44,7 +44,10 @@ class SessionForm {
   handleSubmitNew(event: SubmitEvent) {
     event.preventDefault();
 
-    createSession()
+    const formData = new FormData(this.ui.newSessionForm);
+    const source = Object.fromEntries(formData.entries());
+
+    createSession(source)
       .then((session: Session) => {
         this.initApp(session);
       })
@@ -254,8 +257,11 @@ interface FlashcardStats {
   repetitions: number;
 }
 
-async function createSession(): Promise<Session> {
-  const response = await fetch(`sessions`, { method: "POST" });
+async function createSession(source: Record<string, FormDataEntryValue>): Promise<Session> {
+  const response = await fetch(`sessions`, {
+    method: "POST",
+    body: JSON.stringify(source),
+  });
   if (!response.ok) {
     throw new Error(`HTTP error: ${response.status}`);
   }
@@ -286,8 +292,11 @@ async function nextFlashcard(sessionId: string): Promise<Flashcard> {
   return response.json();
 }
 
-async function syncFlashcards(sessionId: string): Promise<Session> {
-  const response = await fetch(`sessions/${sessionId}/flashcards/sync`, { method: "POST" });
+async function syncFlashcards(sessionId: string, source: Record<string, FormDataEntryValue>): Promise<Session> {
+  const response = await fetch(`sessions/${sessionId}/flashcards/sync`, {
+    method: "POST",
+    body: JSON.stringify(source),
+  });
   if (!response.ok) {
     throw new Error(`HTTP error: ${response.status}`);
   }

@@ -18,20 +18,19 @@ var (
 
 // Reviewer manages flashcard review sessions.
 type Reviewer struct {
-	source FlashcardMetadataSource
-	store  SessionStore
+	store SessionStore
 }
 
 // NewReviewer returns a new flashcard reviewer.
-func NewReviewer(source FlashcardMetadataSource, store SessionStore) *Reviewer {
-	return &Reviewer{source: source, store: store}
+func NewReviewer(store SessionStore) *Reviewer {
+	return &Reviewer{store: store}
 }
 
 // CreateSession creates a new session with all flashcards marked as unreviewed.
-func (r *Reviewer) CreateSession(ctx context.Context, numProficiencyLevels int) (*Session, error) {
+func (r *Reviewer) CreateSession(ctx context.Context, source FlashcardMetadataSource, numProficiencyLevels int) (*Session, error) {
 	sessionID := uuid.NewString()
 
-	flashcardMetadata, err := r.getFlashcardMetadata(ctx)
+	flashcardMetadata, err := getFlashcardMetadata(ctx, source)
 	if err != nil {
 		return nil, err
 	}
@@ -68,13 +67,13 @@ func (r *Reviewer) GetFlashcards(ctx context.Context, sessionID string) ([]*Flas
 }
 
 // SyncFlashcards ensures that the session data is up to date with the flashcard metadata source.
-func (r *Reviewer) SyncFlashcards(ctx context.Context, sessionID string) (*Session, error) {
+func (r *Reviewer) SyncFlashcards(ctx context.Context, sessionID string, source FlashcardMetadataSource) (*Session, error) {
 	session, err := r.store.GetSession(ctx, sessionID)
 	if err != nil {
 		return nil, err
 	}
 
-	flashcardMetadata, err := r.getFlashcardMetadata(ctx)
+	flashcardMetadata, err := getFlashcardMetadata(ctx, source)
 	if err != nil {
 		return nil, err
 	}
@@ -179,8 +178,8 @@ func (r *Reviewer) Submit(ctx context.Context, sessionID string, flashcardID int
 	return session, ok, nil
 }
 
-func (r *Reviewer) getFlashcardMetadata(ctx context.Context) ([]*FlashcardMetadata, error) {
-	metadata, err := r.source.GetAll(ctx)
+func getFlashcardMetadata(ctx context.Context, source FlashcardMetadataSource) ([]*FlashcardMetadata, error) {
+	metadata, err := source.GetAll(ctx)
 	if err != nil {
 		return nil, err
 	}
