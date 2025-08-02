@@ -20,6 +20,8 @@ type SessionStore interface {
 	NextUnreviewed(ctx context.Context, sessionID string) (*Flashcard, error)
 	// GetSession returns the current session metadata.
 	GetSession(ctx context.Context, sessionID string) (*Session, error)
+	// GetSessions returns the metadata for all existing sessions.
+	GetSessions(ctx context.Context) ([]*Session, error)
 	// SetSession updates the session metadata.
 	SetSession(ctx context.Context, sessionID string, session *Session) error
 }

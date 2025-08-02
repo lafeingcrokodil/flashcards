@@ -44,6 +44,7 @@ func (s *Server) Start(port int) error {
 func (s *Server) getRouter() *mux.Router {
 	r := mux.NewRouter()
 	r.HandleFunc("/sessions", s.handleCreateSession).Methods("POST")
+	r.HandleFunc("/sessions", s.handleGetSessions).Methods("GET")
 	r.HandleFunc("/sessions/{sid}", s.handleGetSession).Methods("GET")
 	r.HandleFunc("/sessions/{sid}/flashcards", s.handleGetFlashcards).Methods("GET")
 	r.HandleFunc("/sessions/{sid}/flashcards/next", s.handleNextFlashcard).Methods("POST")
@@ -60,6 +61,15 @@ func (s *Server) handleCreateSession(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	sendResponse(w, http.StatusCreated, session)
+}
+
+func (s *Server) handleGetSessions(w http.ResponseWriter, req *http.Request) {
+	sessions, err := s.reviewer.GetSessions(req.Context())
+	if err != nil {
+		sendError(w, http.StatusInternalServerError, err)
+		return
+	}
+	sendResponse(w, http.StatusOK, sessions)
 }
 
 func (s *Server) handleGetSession(w http.ResponseWriter, req *http.Request) {

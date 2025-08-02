@@ -52,6 +52,11 @@ func (r *Reviewer) CreateSession(ctx context.Context, numProficiencyLevels int) 
 	return session, nil
 }
 
+// GetSessions returns all existing sessions.
+func (r *Reviewer) GetSessions(ctx context.Context) ([]*Session, error) {
+	return r.store.GetSessions(ctx)
+}
+
 // GetSession returns an existing session.
 func (r *Reviewer) GetSession(ctx context.Context, sessionID string) (*Session, error) {
 	return r.store.GetSession(ctx, sessionID)

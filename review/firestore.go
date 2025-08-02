@@ -125,6 +125,28 @@ func (s *FirestoreStore) GetSession(ctx context.Context, sessionID string) (*Ses
 	return &session, nil
 }
 
+// GetSessions returns the metadata for all existing sessions.
+func (s *FirestoreStore) GetSessions(ctx context.Context) ([]*Session, error) {
+	docs, err := s.client.Collection(s.collection).
+		Documents(ctx).
+		GetAll()
+	if err != nil {
+		return nil, err
+	}
+
+	sessions := make([]*Session, 0, len(docs))
+	for _, doc := range docs {
+		var sess Session
+		err = doc.DataTo(&sess)
+		if err != nil {
+			return nil, err
+		}
+		sessions = append(sessions, &sess)
+	}
+
+	return sessions, nil
+}
+
 // SetSession updates the session metadata.
 func (s *FirestoreStore) SetSession(ctx context.Context, sessionID string, session *Session) error {
 	_, err := s.sessionRef(sessionID).

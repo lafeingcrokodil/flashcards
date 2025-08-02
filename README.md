@@ -74,6 +74,22 @@ sequenceDiagram
     Server->>Client: Session
 ```
 
+#### GET /sessions
+
+Returns all existing sessions.
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Server
+    participant Store
+
+    Client->>Server: GET /sessions
+    Server->>Store: GetSessions
+    Store->>Server: []Session
+    Server->>Client: []Session
+```
+
 #### GET /sessions/:sid
 
 Returns an existing session.

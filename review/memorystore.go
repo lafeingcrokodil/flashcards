@@ -162,6 +162,15 @@ func (s *MemoryStore) GetSession(_ context.Context, sessionID string) (*Session,
 	return session, nil
 }
 
+// GetSessions returns the metadata for all existing sessions.
+func (s *MemoryStore) GetSessions(_ context.Context) ([]*Session, error) {
+	sessions := make([]*Session, 0, len(s.session))
+	for _, sess := range s.session {
+		sessions = append(sessions, sess)
+	}
+	return sessions, nil
+}
+
 // SetSession updates the session metadata.
 func (s *MemoryStore) SetSession(_ context.Context, sessionID string, session *Session) error {
 	s.session[sessionID] = session

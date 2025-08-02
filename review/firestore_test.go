@@ -74,6 +74,10 @@ func TestFirestoreStore(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, expectedSession, session)
 
+	sessions, err := store.GetSessions(ctx)
+	require.NoError(t, err)
+	require.Contains(t, sessions, expectedSession)
+
 	err = store.SetFlashcards(ctx, sessionID, expectedMetadata)
 	require.NoError(t, err)
 

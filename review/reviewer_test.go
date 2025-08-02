@@ -182,6 +182,10 @@ func TestReviewer_SyncFlashcards(t *testing.T) {
 	unchangedSession, err := r.GetSession(ctx, session.ID)
 	require.NoError(t, err)
 	require.Equal(t, expectedSession, unchangedSession)
+
+	sessions, err := r.GetSessions(ctx)
+	require.NoError(t, err)
+	require.Equal(t, []*Session{unchangedSession}, sessions)
 }
 
 func TestNewReviewer_getFlashcardMetadata(t *testing.T) {

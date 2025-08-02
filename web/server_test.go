@@ -32,6 +32,7 @@ func TestServer(t *testing.T) {
 	session := testCreateSession(t, router)
 	testInvalidFlashcardID(t, router, session.ID)
 	testGetSession(t, router, session.ID)
+	testGetSessions(t, router, session.ID)
 	testGetFlashcards(t, router, session.ID)
 	testNextFlashcard(t, router, session.ID)
 	testSyncFlashcards(t, router, session.ID)
@@ -88,6 +89,26 @@ func testGetSession(t *testing.T, router *mux.Router, sessionID string) {
 	err := json.NewDecoder(rec.Body).Decode(&session)
 	require.NoError(t, err)
 	require.Equal(t, expectedSession, &session)
+}
+
+func testGetSessions(t *testing.T, router *mux.Router, sessionID string) {
+	expectedSession := &review.Session{
+		ID:                sessionID,
+		IsNewRound:        true,
+		ProficiencyCounts: []int{0, 0, 0},
+		UnreviewedCount:   2,
+	}
+
+	req := httptest.NewRequest("GET", "/sessions", nil)
+	rec := httptest.NewRecorder()
+
+	router.ServeHTTP(rec, req)
+	require.Equal(t, http.StatusOK, rec.Code)
+
+	var sessions []*review.Session
+	err := json.NewDecoder(rec.Body).Decode(&sessions)
+	require.NoError(t, err)
+	require.Equal(t, []*review.Session{expectedSession}, sessions)
 }
 
 func testGetFlashcards(t *testing.T, router *mux.Router, sessionID string) {
