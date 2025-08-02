@@ -27,13 +27,3 @@ variable "terraform_bucket" {
   description = "The name of the Google Cloud Storage bucket for storing the Terraform state"
   type        = string
 }
-
-variable "image_url" {
-  description = "The URL for the app's Docker image"
-  type        = string
-}
-
-variable "staging_invokers" {
-  description = "IAM members, e.g. user:me@example.com, allowed to invoke Cloud Run in staging"
-  type        = list(string)
-}
