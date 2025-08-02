@@ -1,6 +1,6 @@
 {
   "name": "flashcards",
-  "version": "2.1.0-rc8",
+  "version": "2.1.0-rc9",
   "description": "Application for reviewing flashcards",
   "license": "GPL-3.0-or-later",
   "devDependencies": {
