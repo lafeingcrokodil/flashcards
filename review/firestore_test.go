@@ -25,7 +25,7 @@ func TestFirestoreStore(t *testing.T) {
 		{ID: 1, Prompt: "P1", Answer: "A1", Context: "C1"},
 		{ID: 2, Prompt: "P2", Answer: "A2"},
 		{ID: 3, Prompt: "P3", Answer: "A3"},
-		{ID: 4, Prompt: "P4", Answer: "A4"},
+		{ID: 10, Prompt: "P10", Answer: "A10"},
 	}
 
 	expectedFlashcardStats := []*FlashcardStats{
@@ -100,7 +100,7 @@ func TestFirestoreStore(t *testing.T) {
 	err = store.SetFlashcards(ctx, sessionID, []*FlashcardMetadata{expectedUpdatedMetadata})
 	require.NoError(t, err)
 
-	err = store.DeleteFlashcards(ctx, sessionID, []int64{3, 4})
+	err = store.DeleteFlashcards(ctx, sessionID, []int64{3, 10})
 	require.NoError(t, err)
 
 	flashcards, err := store.GetFlashcards(ctx, sessionID)

@@ -90,7 +90,7 @@ func (s *FirestoreStore) NextReviewed(ctx context.Context, sessionID string, rou
 		Where("stats.nextReview", "<=", round).
 		OrderBy("stats.nextReview", firestore.Asc).
 		OrderBy("stats.viewCount", firestore.Desc).
-		OrderBy(firestore.DocumentID, firestore.Asc).
+		OrderBy("metadata.id", firestore.Asc).
 		Limit(1).
 		Documents(ctx)
 	return s.lookupFirstFlashcard(iter)
@@ -101,7 +101,7 @@ func (s *FirestoreStore) NextUnreviewed(ctx context.Context, sessionID string) (
 	iter := s.sessionRef(sessionID).
 		Collection("flashcards").
 		Where("stats.viewCount", "==", 0).
-		OrderBy(firestore.DocumentID, firestore.Asc).
+		OrderBy("metadata.id", firestore.Asc).
 		Limit(1).
 		Documents(ctx)
 	return s.lookupFirstFlashcard(iter)
