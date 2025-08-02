@@ -38,8 +38,8 @@ func TestServer(t *testing.T) {
 	testSubmitFlashcard(t, router, session.ID)
 }
 
-func testCreateSession(t *testing.T, router *mux.Router) review.SessionMetadata {
-	expectedSession := &review.SessionMetadata{
+func testCreateSession(t *testing.T, router *mux.Router) review.Session {
+	expectedSession := &review.Session{
 		IsNewRound:        true,
 		ProficiencyCounts: []int{0, 0, 0},
 		UnreviewedCount:   2,
@@ -51,7 +51,7 @@ func testCreateSession(t *testing.T, router *mux.Router) review.SessionMetadata 
 	router.ServeHTTP(rec, req)
 	require.Equal(t, http.StatusCreated, rec.Code)
 
-	var session review.SessionMetadata
+	var session review.Session
 	err := json.NewDecoder(rec.Body).Decode(&session)
 	require.NoError(t, err)
 	require.NotEmpty(t, session.ID)
@@ -71,7 +71,7 @@ func testInvalidFlashcardID(t *testing.T, router *mux.Router, sessionID string) 
 }
 
 func testGetSession(t *testing.T, router *mux.Router, sessionID string) {
-	expectedSession := &review.SessionMetadata{
+	expectedSession := &review.Session{
 		ID:                sessionID,
 		IsNewRound:        true,
 		ProficiencyCounts: []int{0, 0, 0},
@@ -84,7 +84,7 @@ func testGetSession(t *testing.T, router *mux.Router, sessionID string) {
 	router.ServeHTTP(rec, req)
 	require.Equal(t, http.StatusOK, rec.Code)
 
-	var session review.SessionMetadata
+	var session review.Session
 	err := json.NewDecoder(rec.Body).Decode(&session)
 	require.NoError(t, err)
 	require.Equal(t, expectedSession, &session)
@@ -128,7 +128,7 @@ func testNextFlashcard(t *testing.T, router *mux.Router, sessionID string) {
 }
 
 func testSyncFlashcards(t *testing.T, router *mux.Router, sessionID string) {
-	expectedSession := &review.SessionMetadata{
+	expectedSession := &review.Session{
 		ID:                sessionID,
 		IsNewRound:        true,
 		ProficiencyCounts: []int{0, 0, 0},
@@ -142,7 +142,7 @@ func testSyncFlashcards(t *testing.T, router *mux.Router, sessionID string) {
 	router.ServeHTTP(rec, req)
 	require.Equal(t, http.StatusOK, rec.Code)
 
-	var session review.SessionMetadata
+	var session review.Session
 	err := json.NewDecoder(rec.Body).Decode(&session)
 	require.NoError(t, err)
 	require.Equal(t, expectedSession, &session)
@@ -154,7 +154,7 @@ func testSubmitFlashcard(t *testing.T, router *mux.Router, sessionID string) {
 		flashcardID        int64
 		submission         *review.Submission
 		expectedStatusCode int
-		expectedSession    *review.SessionMetadata
+		expectedSession    *review.Session
 	}{
 		{
 			id:                 "Incorrect answer",
@@ -167,7 +167,7 @@ func testSubmitFlashcard(t *testing.T, router *mux.Router, sessionID string) {
 			flashcardID:        1,
 			submission:         &review.Submission{Answer: "A1", IsFirstGuess: false},
 			expectedStatusCode: 200,
-			expectedSession: &review.SessionMetadata{
+			expectedSession: &review.Session{
 				ID:                sessionID,
 				IsNewRound:        false,
 				ProficiencyCounts: []int{1, 0, 0},
@@ -188,7 +188,7 @@ func testSubmitFlashcard(t *testing.T, router *mux.Router, sessionID string) {
 		require.Equal(t, tc.expectedStatusCode, rec.Code, tc.id)
 
 		if tc.expectedSession != nil {
-			var session review.SessionMetadata
+			var session review.Session
 			err = json.NewDecoder(rec.Body).Decode(&session)
 			require.NoError(t, err, tc.id)
 			require.Equal(t, tc.expectedSession, &session, tc.id)

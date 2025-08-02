@@ -12,7 +12,7 @@ func TestReviewer_NextFlashcard(t *testing.T) {
 	numFlashcards := 2
 	numProficiencyLevels := 3
 
-	expectedInitialSession := &SessionMetadata{
+	expectedInitialSession := &Session{
 		IsNewRound:        true,
 		ProficiencyCounts: make([]int, numProficiencyLevels),
 		UnreviewedCount:   numFlashcards,
@@ -22,7 +22,7 @@ func TestReviewer_NextFlashcard(t *testing.T) {
 		correct           bool
 		isFirstGuess      bool
 		expectedFlashcard *Flashcard
-		expectedSession   *SessionMetadata
+		expectedSession   *Session
 	}{
 		{
 			correct:      true,
@@ -30,7 +30,7 @@ func TestReviewer_NextFlashcard(t *testing.T) {
 			expectedFlashcard: &Flashcard{
 				Metadata: flashcardMetadata(1),
 			},
-			expectedSession: &SessionMetadata{Round: 0, IsNewRound: false, ProficiencyCounts: []int{0, 1, 0}, UnreviewedCount: 1},
+			expectedSession: &Session{Round: 0, IsNewRound: false, ProficiencyCounts: []int{0, 1, 0}, UnreviewedCount: 1},
 		},
 		{
 			correct:      true,
@@ -38,7 +38,7 @@ func TestReviewer_NextFlashcard(t *testing.T) {
 			expectedFlashcard: &Flashcard{
 				Metadata: flashcardMetadata(2),
 			},
-			expectedSession: &SessionMetadata{Round: 1, IsNewRound: false, ProficiencyCounts: []int{0, 2, 0}, UnreviewedCount: 0},
+			expectedSession: &Session{Round: 1, IsNewRound: false, ProficiencyCounts: []int{0, 2, 0}, UnreviewedCount: 0},
 		},
 		{
 			correct:      true,
@@ -47,7 +47,7 @@ func TestReviewer_NextFlashcard(t *testing.T) {
 				Metadata: flashcardMetadata(1),
 				Stats:    FlashcardStats{ViewCount: 1, Repetitions: 1, NextReview: 1},
 			},
-			expectedSession: &SessionMetadata{Round: 1, IsNewRound: false, ProficiencyCounts: []int{0, 1, 1}, UnreviewedCount: 0},
+			expectedSession: &Session{Round: 1, IsNewRound: false, ProficiencyCounts: []int{0, 1, 1}, UnreviewedCount: 0},
 		},
 		{
 			correct:      true,
@@ -56,7 +56,7 @@ func TestReviewer_NextFlashcard(t *testing.T) {
 				Metadata: flashcardMetadata(2),
 				Stats:    FlashcardStats{ViewCount: 1, Repetitions: 1, NextReview: 2},
 			},
-			expectedSession: &SessionMetadata{Round: 2, IsNewRound: false, ProficiencyCounts: []int{0, 0, 2}, UnreviewedCount: 0},
+			expectedSession: &Session{Round: 2, IsNewRound: false, ProficiencyCounts: []int{0, 0, 2}, UnreviewedCount: 0},
 		},
 		{
 			correct:      true,
@@ -65,7 +65,7 @@ func TestReviewer_NextFlashcard(t *testing.T) {
 				Metadata: flashcardMetadata(1),
 				Stats:    FlashcardStats{ViewCount: 2, Repetitions: 2, NextReview: 3},
 			},
-			expectedSession: &SessionMetadata{Round: 3, IsNewRound: false, ProficiencyCounts: []int{0, 0, 2}, UnreviewedCount: 0},
+			expectedSession: &Session{Round: 3, IsNewRound: false, ProficiencyCounts: []int{0, 0, 2}, UnreviewedCount: 0},
 		},
 		{
 			correct:      false,
@@ -74,7 +74,7 @@ func TestReviewer_NextFlashcard(t *testing.T) {
 				Metadata: flashcardMetadata(2),
 				Stats:    FlashcardStats{ViewCount: 2, Repetitions: 2, NextReview: 4},
 			},
-			expectedSession: &SessionMetadata{Round: 4, IsNewRound: true, ProficiencyCounts: []int{0, 0, 2}, UnreviewedCount: 0},
+			expectedSession: &Session{Round: 4, IsNewRound: true, ProficiencyCounts: []int{0, 0, 2}, UnreviewedCount: 0},
 		},
 		{
 			correct:      true,
@@ -83,7 +83,7 @@ func TestReviewer_NextFlashcard(t *testing.T) {
 				Metadata: flashcardMetadata(2),
 				Stats:    FlashcardStats{ViewCount: 2, Repetitions: 2, NextReview: 4},
 			},
-			expectedSession: &SessionMetadata{Round: 4, IsNewRound: false, ProficiencyCounts: []int{1, 0, 1}, UnreviewedCount: 0},
+			expectedSession: &Session{Round: 4, IsNewRound: false, ProficiencyCounts: []int{1, 0, 1}, UnreviewedCount: 0},
 		},
 	}
 
@@ -121,7 +121,7 @@ func TestReviewer_SyncFlashcards(t *testing.T) {
 	const initialNumFlashcards = 6
 	const numProficiencyLevels = 3
 
-	expectedSession := &SessionMetadata{
+	expectedSession := &Session{
 		Round:             1,
 		IsNewRound:        true,
 		ProficiencyCounts: []int{0, 1, 0},
@@ -160,7 +160,7 @@ func TestReviewer_SyncFlashcards(t *testing.T) {
 		require.NoError(t, err, i)
 	}
 
-	err = r.store.SetSessionMetadata(ctx, session.ID, &SessionMetadata{
+	err = r.store.SetSession(ctx, session.ID, &Session{
 		ID:                session.ID,
 		Round:             1,
 		IsNewRound:        true,

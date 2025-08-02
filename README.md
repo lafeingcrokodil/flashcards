@@ -19,7 +19,7 @@ For a list of available commands, run `make`.
 
 ### Data types
 
-#### SessionMetadata
+#### Session
 
 * `id: string` - Uniquely identifies the session.
 * `round: int` - Identifies the current round, starting with 0 and incrementing from there.
@@ -69,9 +69,9 @@ sequenceDiagram
     Server->>Server: randomly generate session ID
     Server->>Source: GetAll
     Source->>Server: []FlashcardMetadata
-    Server->>Store: SetSessionMetadata
+    Server->>Store: SetSession
     Server->>Store: SetFlashcards
-    Server->>Client: SessionMetadata
+    Server->>Client: Session
 ```
 
 #### GET /sessions/:sid
@@ -85,9 +85,9 @@ sequenceDiagram
     participant Store
 
     Client->>Server: GET /sessions/:sid
-    Server->>Store: GetSessionMetadata
-    Store->>Server: SessionMetadata
-    Server->>Client: SessionMetadata
+    Server->>Store: GetSession
+    Store->>Server: Session
+    Server->>Client: Session
 ```
 
 #### GET /sessions/:sid/flashcards
@@ -117,12 +117,12 @@ sequenceDiagram
     participant Store
 
     Client->>Server: POST /sessions/:sid/flashcards/next
-    Server->>Store: GetSessionMetadata
-    Store->>Server: SessionMetadata
+    Server->>Store: GetSession
+    Store->>Server: Session
     loop
         Server->>Store: NextReviewed or NextUnreviewed
         Store->>Server: Flashcard or nil
-        Server->>Store: SetSessionMetadata
+        Server->>Store: SetSession
     end
     Server->>Client: Flashcard
 ```
@@ -146,8 +146,8 @@ sequenceDiagram
     Server->>Server: compute diff
     Server->>Store: DeleteFlashcards
     Server->>Store: SetFlashcards
-    Server->>Store: SetSessionMetadata
-    Server->>Client: SessionMetadata
+    Server->>Store: SetSession
+    Server->>Client: Session
 ```
 
 #### POST /sessions/:sid/flashcards/:fid/submit
@@ -161,13 +161,13 @@ sequenceDiagram
     participant Store
 
     Client->>Server: POST /sessions/:sid/flashcards/:fid/submit
-    Server->>Store: GetSessionMetadata
-    Store->>Server: SessionMetadata
+    Server->>Store: GetSession
+    Store->>Server: Session
     Server->>Store: GetFlashcard
     Server->>Server: check correctness
     Server->>Store: SetFlashcardStats
-    Server->>Store: SetSessionMetadata
-    Server->>Client: SessionMetadata + isCorrect
+    Server->>Store: SetSession
+    Server->>Client: Session + isCorrect
 ```
 
 ### Algorithm

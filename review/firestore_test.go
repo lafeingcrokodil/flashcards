@@ -13,7 +13,7 @@ import (
 func TestFirestoreStore(t *testing.T) {
 	sessionID := uuid.NewString()
 
-	expectedSession := &SessionMetadata{
+	expectedSession := &Session{
 		ID:                sessionID,
 		Round:             2,
 		IsNewRound:        true,
@@ -67,10 +67,10 @@ func TestFirestoreStore(t *testing.T) {
 
 	store := NewFirestoreStore(client, collection)
 
-	err = store.SetSessionMetadata(ctx, sessionID, expectedSession)
+	err = store.SetSession(ctx, sessionID, expectedSession)
 	require.NoError(t, err)
 
-	session, err := store.GetSessionMetadata(ctx, sessionID)
+	session, err := store.GetSession(ctx, sessionID)
 	require.NoError(t, err)
 	require.Equal(t, expectedSession, session)
 

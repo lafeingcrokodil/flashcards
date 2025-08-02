@@ -107,9 +107,9 @@ func (s *FirestoreStore) NextUnreviewed(ctx context.Context, sessionID string) (
 	return s.lookupFirstFlashcard(iter)
 }
 
-// GetSessionMetadata returns the current session metadata.
-func (s *FirestoreStore) GetSessionMetadata(ctx context.Context, sessionID string) (*SessionMetadata, error) {
-	var session SessionMetadata
+// GetSession returns the current session metadata.
+func (s *FirestoreStore) GetSession(ctx context.Context, sessionID string) (*Session, error) {
+	var session Session
 
 	doc, err := s.sessionRef(sessionID).
 		Get(ctx)
@@ -125,8 +125,8 @@ func (s *FirestoreStore) GetSessionMetadata(ctx context.Context, sessionID strin
 	return &session, nil
 }
 
-// SetSessionMetadata updates the session metadata.
-func (s *FirestoreStore) SetSessionMetadata(ctx context.Context, sessionID string, session *SessionMetadata) error {
+// SetSession updates the session metadata.
+func (s *FirestoreStore) SetSession(ctx context.Context, sessionID string, session *Session) error {
 	_, err := s.sessionRef(sessionID).
 		Set(ctx, session)
 	return err

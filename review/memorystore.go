@@ -10,14 +10,14 @@ import (
 // MemoryStore stores a review session's state in memory. It's unoptimized and
 // mainly intended for use in tests.
 type MemoryStore struct {
-	session    map[string]*SessionMetadata
+	session    map[string]*Session
 	flashcards map[string][]*Flashcard
 }
 
 // NewMemoryStore returns a new empty MemoryStore.
 func NewMemoryStore() *MemoryStore {
 	return &MemoryStore{
-		session:    make(map[string]*SessionMetadata),
+		session:    make(map[string]*Session),
 		flashcards: make(map[string][]*Flashcard),
 	}
 }
@@ -153,8 +153,8 @@ func (s *MemoryStore) NextUnreviewed(_ context.Context, sessionID string) (*Flas
 	return nil, ErrNotFound
 }
 
-// GetSessionMetadata returns the current session metadata.
-func (s *MemoryStore) GetSessionMetadata(_ context.Context, sessionID string) (*SessionMetadata, error) {
+// GetSession returns the current session metadata.
+func (s *MemoryStore) GetSession(_ context.Context, sessionID string) (*Session, error) {
 	session, ok := s.session[sessionID]
 	if !ok {
 		return nil, fmt.Errorf("metadata for session %s: %w", sessionID, ErrNotFound)
@@ -162,8 +162,8 @@ func (s *MemoryStore) GetSessionMetadata(_ context.Context, sessionID string) (*
 	return session, nil
 }
 
-// SetSessionMetadata updates the session metadata.
-func (s *MemoryStore) SetSessionMetadata(_ context.Context, sessionID string, session *SessionMetadata) error {
+// SetSession updates the session metadata.
+func (s *MemoryStore) SetSession(_ context.Context, sessionID string, session *Session) error {
 	s.session[sessionID] = session
 	return nil
 }

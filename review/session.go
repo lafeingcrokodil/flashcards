@@ -18,14 +18,14 @@ type SessionStore interface {
 	NextReviewed(ctx context.Context, sessionID string, round int) (*Flashcard, error)
 	// NextUnreviewed returns a flashcard that has never been reviewed before.
 	NextUnreviewed(ctx context.Context, sessionID string) (*Flashcard, error)
-	// GetSessionMetadata returns the current session metadata.
-	GetSessionMetadata(ctx context.Context, sessionID string) (*SessionMetadata, error)
-	// SetSessionMetadata updates the session metadata.
-	SetSessionMetadata(ctx context.Context, sessionID string, session *SessionMetadata) error
+	// GetSession returns the current session metadata.
+	GetSession(ctx context.Context, sessionID string) (*Session, error)
+	// SetSession updates the session metadata.
+	SetSession(ctx context.Context, sessionID string, session *Session) error
 }
 
-// SessionMetadata represents review session metadata.
-type SessionMetadata struct {
+// Session represents review session metadata.
+type Session struct {
 	// ID uniquely identifies a review session.
 	ID string `firestore:"id" json:"id"`
 	// Round is an incrementing counter that identifies the current round.
@@ -38,9 +38,9 @@ type SessionMetadata struct {
 	UnreviewedCount int `firestore:"unreviewedCount" json:"unreviewedCount"`
 }
 
-// NewSessionMetadata initializes session metadata for the case where no flashcards have been added yet.
-func NewSessionMetadata(sessionID string, numProficiencyLevels int) *SessionMetadata {
-	return &SessionMetadata{
+// NewSession initializes session metadata for the case where no flashcards have been added yet.
+func NewSession(sessionID string, numProficiencyLevels int) *Session {
+	return &Session{
 		ID:                sessionID,
 		IsNewRound:        true,
 		ProficiencyCounts: make([]int, numProficiencyLevels),
@@ -50,7 +50,7 @@ func NewSessionMetadata(sessionID string, numProficiencyLevels int) *SessionMeta
 // IncrementProficiency adjusts the proficiency count. Specifically, it adjusts the count
 // of flashcards for the proficiency level corresponding to the number of repetitions
 // (correct answers in a row) by the specified increment (positive or negative).
-func (session *SessionMetadata) IncrementProficiency(repetitions int, increment int) {
+func (session *Session) IncrementProficiency(repetitions int, increment int) {
 	i := min(repetitions, len(session.ProficiencyCounts)-1)
 	session.ProficiencyCounts[i] += increment
 }

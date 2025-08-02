@@ -28,7 +28,7 @@ func NewReviewer(source FlashcardMetadataSource, store SessionStore) *Reviewer {
 }
 
 // CreateSession creates a new session with all flashcards marked as unreviewed.
-func (r *Reviewer) CreateSession(ctx context.Context, numProficiencyLevels int) (*SessionMetadata, error) {
+func (r *Reviewer) CreateSession(ctx context.Context, numProficiencyLevels int) (*Session, error) {
 	sessionID := uuid.NewString()
 
 	flashcardMetadata, err := r.getFlashcardMetadata(ctx)
@@ -36,10 +36,10 @@ func (r *Reviewer) CreateSession(ctx context.Context, numProficiencyLevels int) 
 		return nil, err
 	}
 
-	session := NewSessionMetadata(sessionID, numProficiencyLevels)
+	session := NewSession(sessionID, numProficiencyLevels)
 	session.UnreviewedCount = len(flashcardMetadata)
 
-	err = r.store.SetSessionMetadata(ctx, sessionID, session)
+	err = r.store.SetSession(ctx, sessionID, session)
 	if err != nil {
 		return nil, err
 	}
@@ -53,8 +53,8 @@ func (r *Reviewer) CreateSession(ctx context.Context, numProficiencyLevels int) 
 }
 
 // GetSession returns an existing session.
-func (r *Reviewer) GetSession(ctx context.Context, sessionID string) (*SessionMetadata, error) {
-	return r.store.GetSessionMetadata(ctx, sessionID)
+func (r *Reviewer) GetSession(ctx context.Context, sessionID string) (*Session, error) {
+	return r.store.GetSession(ctx, sessionID)
 }
 
 // GetFlashcards returns all flashcards.
@@ -63,8 +63,8 @@ func (r *Reviewer) GetFlashcards(ctx context.Context, sessionID string) ([]*Flas
 }
 
 // SyncFlashcards ensures that the session data is up to date with the flashcard metadata source.
-func (r *Reviewer) SyncFlashcards(ctx context.Context, sessionID string) (*SessionMetadata, error) {
-	session, err := r.store.GetSessionMetadata(ctx, sessionID)
+func (r *Reviewer) SyncFlashcards(ctx context.Context, sessionID string) (*Session, error) {
+	session, err := r.store.GetSession(ctx, sessionID)
 	if err != nil {
 		return nil, err
 	}
@@ -91,7 +91,7 @@ func (r *Reviewer) SyncFlashcards(ctx context.Context, sessionID string) (*Sessi
 		return nil, err
 	}
 
-	err = r.store.SetSessionMetadata(ctx, sessionID, updatedSession)
+	err = r.store.SetSession(ctx, sessionID, updatedSession)
 	if err != nil {
 		return nil, err
 	}
@@ -101,7 +101,7 @@ func (r *Reviewer) SyncFlashcards(ctx context.Context, sessionID string) (*Sessi
 
 // NextFlashcard returns the next flashcard to be reviewed.
 func (r *Reviewer) NextFlashcard(ctx context.Context, sessionID string) (*Flashcard, error) {
-	session, err := r.store.GetSessionMetadata(ctx, sessionID)
+	session, err := r.store.GetSession(ctx, sessionID)
 	if err != nil {
 		return nil, err
 	}
@@ -121,7 +121,7 @@ func (r *Reviewer) NextFlashcard(ctx context.Context, sessionID string) (*Flashc
 	session.Round++
 	session.IsNewRound = true
 
-	err = r.store.SetSessionMetadata(ctx, sessionID, session)
+	err = r.store.SetSession(ctx, sessionID, session)
 	if err != nil {
 		return nil, err
 	}
@@ -130,8 +130,8 @@ func (r *Reviewer) NextFlashcard(ctx context.Context, sessionID string) (*Flashc
 }
 
 // Submit updates the session state following the review of a flashcard.
-func (r *Reviewer) Submit(ctx context.Context, sessionID string, flashcardID int64, submission *Submission) (*SessionMetadata, bool, error) {
-	session, err := r.store.GetSessionMetadata(ctx, sessionID)
+func (r *Reviewer) Submit(ctx context.Context, sessionID string, flashcardID int64, submission *Submission) (*Session, bool, error) {
+	session, err := r.store.GetSession(ctx, sessionID)
 	if err != nil {
 		return nil, false, err
 	}
@@ -166,7 +166,7 @@ func (r *Reviewer) Submit(ctx context.Context, sessionID string, flashcardID int
 		session.IsNewRound = false
 	}
 
-	err = r.store.SetSessionMetadata(ctx, sessionID, session)
+	err = r.store.SetSession(ctx, sessionID, session)
 	if err != nil {
 		return nil, false, err
 	}
@@ -199,16 +199,16 @@ func (r *Reviewer) getFlashcardMetadata(ctx context.Context) ([]*FlashcardMetada
 }
 
 func diff(
-	session *SessionMetadata,
+	session *Session,
 	flashcards []*Flashcard,
 	metadata []*FlashcardMetadata,
-) (updatedSession *SessionMetadata, toBeDeleted []int64, toBeUpserted []*FlashcardMetadata) {
+) (updatedSession *Session, toBeDeleted []int64, toBeUpserted []*FlashcardMetadata) {
 	metadataByID := make(map[int64]*FlashcardMetadata, len(metadata))
 	for _, m := range metadata {
 		metadataByID[m.ID] = m
 	}
 
-	updatedSession = NewSessionMetadata(session.ID, len(session.ProficiencyCounts))
+	updatedSession = NewSession(session.ID, len(session.ProficiencyCounts))
 	updatedSession.Round = session.Round
 	updatedSession.IsNewRound = session.IsNewRound
 
