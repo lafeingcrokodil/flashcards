@@ -8,18 +8,14 @@ env:
   REGION: europe-west1
   REGISTRY_HOSTNAME: europe-west1-docker.pkg.dev
 jobs:
-  check:
-    name: Pre-deployment checks
+  deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Get commit hash
-        id: commit
-        run: echo "commit_sha=$(git rev-parse "$GITHUB_SHA")" >> $GITHUB_OUTPUT
       - name: Ensure CI passed
         uses: actions/github-script@v7
         with:
           script: |
-            const sha = core.getInput('sha');
+            const sha = github.context.sha;
             const workflowName = 'CI';
 
             const runs = await github.rest.actions.listWorkflowRunsForRepo({
@@ -41,13 +37,6 @@ jobs:
             } else {
               core.info(`"${workflowName}" workflow succeeded for commit ${sha}. Proceeding.`);
             }
-        with:
-          sha: ${{ steps.commit.outputs.commit_sha }}
-  deploy:
-    name: Deployment
-    needs: check
-    runs-on: ubuntu-latest
-    steps:
       - name: Deploy to production
         run: |
           SHORT_SHA=${GITHUB_SHA::7}
