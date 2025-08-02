@@ -1,9 +1,11 @@
 {
-  "include": ["client"],
+  "include": [
+    "client"
+  ],
   "compilerOptions": {
     "outDir": "./public",
     "sourceMap": true,
-    "target": "es6",
+    "target": "es2019",
     "module": "es6",
     "moduleResolution": "node",
     "allowJs": false,
@@ -20,6 +22,10 @@
     "noUnusedParameters": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
-    "lib": ["ES6", "DOM", "DOM.Iterable"],
+    "lib": [
+      "ES2019",
+      "DOM",
+      "DOM.Iterable"
+    ],
   }
 }
