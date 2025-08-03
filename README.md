@@ -4,7 +4,7 @@ Application for reviewing knowledge.
 
 For a list of available commands, run `make`.
 
-[![GoDoc](https://godoc.org/github.com/lafeingcrokodil/flashcards?status.svg)](https://pkg.go.dev/github.com/lafeingcrokodil/flashcards?tab=doc)
+[![GoDoc](https://godoc.org/github.com/lafeingcrokodil/flashcards/v2?status.svg)](https://pkg.go.dev/github.com/lafeingcrokodil/flashcards/v2?tab=doc)
 [![CI](https://github.com/lafeingcrokodil/flashcards/actions/workflows/ci.yml/badge.svg)](https://github.com/lafeingcrokodil/flashcards/actions/workflows/ci.yml)
 [![Go Report Card](https://goreportcard.com/badge/github.com/lafeingcrokodil/flashcards)](https://goreportcard.com/report/github.com/lafeingcrokodil/flashcards)
 

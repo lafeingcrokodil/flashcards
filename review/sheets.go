@@ -4,7 +4,7 @@ import (
 	"context"
 	"strconv"
 
-	"github.com/lafeingcrokodil/flashcards/sheets"
+	"github.com/lafeingcrokodil/flashcards/v2/sheets"
 )
 
 // SheetSource stores flashcard metadata in a Google Sheets spreadsheet.

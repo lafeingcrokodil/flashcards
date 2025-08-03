@@ -8,8 +8,8 @@ import (
 	"strconv"
 
 	"cloud.google.com/go/firestore"
-	"github.com/lafeingcrokodil/flashcards/review"
-	"github.com/lafeingcrokodil/flashcards/web"
+	"github.com/lafeingcrokodil/flashcards/v2/review"
+	"github.com/lafeingcrokodil/flashcards/v2/web"
 )
 
 func main() {

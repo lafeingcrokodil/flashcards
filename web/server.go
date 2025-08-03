@@ -9,7 +9,7 @@ import (
 	"strconv"
 
 	"github.com/gorilla/mux"
-	"github.com/lafeingcrokodil/flashcards/review"
+	"github.com/lafeingcrokodil/flashcards/v2/review"
 )
 
 var (
