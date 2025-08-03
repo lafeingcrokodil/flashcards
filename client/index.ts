@@ -263,7 +263,8 @@ async function createSession(source: Record<string, FormDataEntryValue>): Promis
     body: JSON.stringify(source),
   });
   if (!response.ok) {
-    throw new Error(`HTTP error: ${response.status}`);
+    const errMsg = await response.text();
+    throw new Error(`Request failed with status ${response.status}: ${errMsg}`);
   }
   return response.json();
 }
@@ -271,7 +272,8 @@ async function createSession(source: Record<string, FormDataEntryValue>): Promis
 async function getSessions(): Promise<Session[]> {
   const response = await fetch(`sessions`);
   if (!response.ok) {
-    throw new Error(`HTTP error: ${response.status}`);
+    const errMsg = await response.text();
+    throw new Error(`Request failed with status ${response.status}: ${errMsg}`);
   }
   return response.json();
 }
@@ -279,7 +281,8 @@ async function getSessions(): Promise<Session[]> {
 async function getFlashcards(sessionId: string): Promise<Flashcard[]> {
   const response = await fetch(`sessions/${sessionId}/flashcards`);
   if (!response.ok) {
-    throw new Error(`HTTP error: ${response.status}`);
+    const errMsg = await response.text();
+    throw new Error(`Request failed with status ${response.status}: ${errMsg}`);
   }
   return response.json();
 }
@@ -287,7 +290,8 @@ async function getFlashcards(sessionId: string): Promise<Flashcard[]> {
 async function nextFlashcard(sessionId: string): Promise<Flashcard> {
   const response = await fetch(`sessions/${sessionId}/flashcards/next`, { method: "POST" });
   if (!response.ok) {
-    throw new Error(`HTTP error: ${response.status}`);
+    const errMsg = await response.text();
+    throw new Error(`Request failed with status ${response.status}: ${errMsg}`);
   }
   return response.json();
 }
@@ -298,7 +302,8 @@ async function syncFlashcards(sessionId: string, source: Record<string, FormData
     body: JSON.stringify(source),
   });
   if (!response.ok) {
-    throw new Error(`HTTP error: ${response.status}`);
+    const errMsg = await response.text();
+    throw new Error(`Request failed with status ${response.status}: ${errMsg}`);
   }
   return response.json();
 }
@@ -319,7 +324,8 @@ async function submitAnswer(sessionID: string, flashcardID: number, answer: stri
 
   // The request failed for some reason.
   if (!response.ok) {
-    throw new Error(`HTTP error: ${response.status}`);
+    const errMsg = await response.text();
+    throw new Error(`Request failed with status ${response.status}: ${errMsg}`);
   }
 
   // The answer was correct and the session was modified.
