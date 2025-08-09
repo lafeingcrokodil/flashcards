@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func Test_SheetStore_GetAll(t *testing.T) {
@@ -41,12 +41,14 @@ func Test_SheetStore_GetAll(t *testing.T) {
 	ctx := context.Background()
 
 	for _, tc := range testCases {
-		records, err := ReadSheet(ctx, tc.spreadsheetID, tc.cellRange)
-		// We use assert instead of require so that we can gather errors for all test cases.
-		if tc.expectedErr != "" {
-			assert.EqualError(t, err, tc.expectedErr, tc.id)
-		} else if !assert.NoError(t, err, tc.id) { //nolint:testifylint
-			assert.Equal(t, tc.expectedRecords, records, tc.id)
-		}
+		t.Run(tc.id, func(t *testing.T) {
+			records, err := ReadSheet(ctx, tc.spreadsheetID, tc.cellRange)
+			if tc.expectedErr != "" {
+				require.EqualError(t, err, tc.expectedErr)
+			} else {
+				require.NoError(t, err)
+				require.Equal(t, tc.expectedRecords, records)
+			}
+		})
 	}
 }
