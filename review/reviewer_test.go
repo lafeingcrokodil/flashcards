@@ -197,6 +197,8 @@ func TestNewReviewer_getFlashcardMetadata(t *testing.T) {
 			metadata: []*FlashcardMetadata{
 				{ID: 1, Prompt: "P1", Answer: "A1", Context: "C1"},
 				{ID: 2, Prompt: "P1", Answer: "A2", Context: "C2"},
+				{ID: 3, Prompt: "", Answer: "A1"},
+				{ID: 4, Prompt: "", Answer: "A2"},
 			},
 		},
 		{

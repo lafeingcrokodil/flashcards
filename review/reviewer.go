@@ -187,6 +187,9 @@ func getFlashcardMetadata(ctx context.Context, source FlashcardMetadataSource) (
 	metadataByQualifiedPrompt := make(map[qualifiedPrompt]*FlashcardMetadata)
 
 	for _, m := range metadata {
+		if m.Prompt == "" {
+			continue
+		}
 		e, ok := metadataByQualifiedPrompt[m.qualifiedPrompt()]
 		if ok && e.Answer != m.Answer {
 			return nil, fmt.Errorf("answers %s and %s for prompt %s: %w",
