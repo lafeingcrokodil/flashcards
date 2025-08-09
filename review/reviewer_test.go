@@ -187,9 +187,10 @@ func TestReviewer_SyncFlashcards(t *testing.T) {
 
 func TestNewReviewer_getFlashcardMetadata(t *testing.T) {
 	testCases := []struct {
-		id          string
-		metadata    []*FlashcardMetadata
-		expectedErr string
+		id               string
+		metadata         []*FlashcardMetadata
+		expectedMetadata []*FlashcardMetadata
+		expectedErr      string
 	}{
 		{
 			id: "Unmbiguous",
@@ -198,6 +199,10 @@ func TestNewReviewer_getFlashcardMetadata(t *testing.T) {
 				{ID: 2, Prompt: "P1", Answer: "A2", Context: "C2"},
 				{ID: 3, Prompt: "", Answer: "A1"},
 				{ID: 4, Prompt: "", Answer: "A2"},
+			},
+			expectedMetadata: []*FlashcardMetadata{
+				{ID: 1, Prompt: "P1", Answer: "A1", Context: "C1"},
+				{ID: 2, Prompt: "P1", Answer: "A2", Context: "C2"},
 			},
 		},
 		{
@@ -219,7 +224,7 @@ func TestNewReviewer_getFlashcardMetadata(t *testing.T) {
 				require.EqualError(t, err, tc.expectedErr)
 			} else {
 				require.NoError(t, err)
-				require.Equal(t, tc.metadata, metadata)
+				require.Equal(t, tc.expectedMetadata, metadata)
 			}
 		})
 	}

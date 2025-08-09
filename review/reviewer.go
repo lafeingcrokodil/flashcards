@@ -179,6 +179,10 @@ func (r *Reviewer) Submit(ctx context.Context, sessionID string, flashcardID int
 }
 
 func getFlashcardMetadata(ctx context.Context, source FlashcardMetadataSource) ([]*FlashcardMetadata, error) {
+	// We intentionally don't preallocate the slice, because we don't know how
+	// many flashcards will be filtered out.
+	var filteredMetadata []*FlashcardMetadata //nolint:prealloc
+
 	metadata, err := source.GetAll(ctx)
 	if err != nil {
 		return nil, err
@@ -200,9 +204,10 @@ func getFlashcardMetadata(ctx context.Context, source FlashcardMetadataSource) (
 			)
 		}
 		metadataByQualifiedPrompt[m.qualifiedPrompt()] = m
+		filteredMetadata = append(filteredMetadata, m)
 	}
 
-	return metadata, nil
+	return filteredMetadata, nil
 }
 
 func diff(
