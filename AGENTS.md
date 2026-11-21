@@ -72,9 +72,21 @@ more.
 ### What still gets a close review
 
 A skim is enough only where a mistake would be caught by a check, or would be
-easy to undo and do little harm. Anything else needs a close review: flag it
-in the plan's "Close review" section and in the PR description, pointing at
-the files or lines concerned. This includes, but isn't limited to:
+easy to undo and do little harm. Everything else needs a close review.
+
+To fill in the "Close review" section, go through each part of the change
+(each file, decision or behaviour) and ask:
+
+1. If this were wrong, would a test, linter or other check catch it?
+2. If not, would it be easy to undo, and do little harm in the meantime?
+
+Flag every part where both answers are no, in the plan's "Close review"
+section and in the PR description, pointing at the files or lines concerned.
+Write "None" only if every part passes, and say briefly why the parts that
+come closest do.
+
+Some things almost always need a close review, but they're examples, not a
+checklist: a change can need one without being on this list.
 
 - authentication and authorization (token verification, the allowlist)
 - IAM, service accounts, Workload Identity Federation and secrets
