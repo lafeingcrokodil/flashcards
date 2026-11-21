@@ -204,8 +204,12 @@ function h(tag, attrs, ...kids) {
     else if (k === "text") e.textContent = v;
     else e.setAttribute(k, v === true ? "" : v);
   }
-  for (const c of kids.flat()) if (c !== null && c !== undefined && c !== false) e.append(c.nodeType ? c : String(c));
-  return e;
+  return put(e, ...kids);
+}
+// Append children, skipping null/undefined/false. Plain DOM append() would render those as the text "null".
+function put(el, ...kids) {
+  for (const c of kids.flat()) if (c !== null && c !== undefined && c !== false) el.append(c.nodeType ? c : String(c));
+  return el;
 }
 const note = msg => { document.getElementById("note").textContent = msg || ""; };
 const startOfToday = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d.getTime(); };
@@ -290,6 +294,20 @@ function grade(id, ok) {
   pending.set(id, job);
 }
 
+// Send a studied card back to the first box and make it due now, without counting a miss.
+function reviewAgain(id) {
+  const p = prog.get(id);
+  if (!p) return;
+  const next = { box: 0, due: Date.now(), right: p.right || 0, wrong: p.wrong || 0, last: p.last || 0 };
+  prog.set(id, next);
+  if (!db) return;
+  const prev = pending.get(id) || Promise.resolve();
+  const job = prev.then(() => db.doc("progress/" + id).set(next)).catch(e => {
+    note(e && e.code === "quota_exceeded" ? "Storage is full, so the reset wasn't saved." : "Couldn't reset that card. Check your connection.");
+  });
+  pending.set(id, job);
+}
+
 function advance(ok) {
   const s = state.session;
   const id = s.queue[s.i];
@@ -333,7 +351,7 @@ function renderRead(stage, s) {
 
 function renderRecall(stage, s) {
   const w = words.get(s.queue[s.i]);
-  stage.append(...sessionHeader(s),
+  put(stage, ...sessionHeader(s),
     h("div", { class: "prompt" }, h("span", { class: "big-en" }, w.en)),
     w.exEn ? h("p", { class: "ctx" }, `as in “${w.exEn}”`) : null);
   if (s.checked === null) {
@@ -345,7 +363,7 @@ function renderRecall(stage, s) {
       s.checked = ok; render();
     };
     input.addEventListener("keydown", e => { if (e.key === "Enter" && !e.isComposing) check(); });
-    stage.append(input,
+    put(stage, input,
       s.hint ? h("p", { class: "ctx" }, `Starts with ${[...w.ko][0]}…`) : null,
       h("div", { class: "row" },
         h("button", { class: "btn ghost", type: "button", onclick: () => { s.hint = true; render(); } }, "Hint"),
@@ -354,7 +372,7 @@ function renderRecall(stage, s) {
     setTimeout(() => { const el = document.getElementById("recallIn"); if (el) el.focus(); }, 0);
   } else {
     const ok = s.checked;
-    stage.append(
+    put(stage,
       h("div", { class: "result " + (ok ? "ok" : "no") },
         ok ? "Correct: " : (s.typed ? "Not quite. Answer: " : "Answer: "),
         h("span", { class: "ko", lang: "ko" }, w.ko), " ", speakBtn(w.ko)),
@@ -591,7 +609,7 @@ function saveQuiz(pid, data) {
 }
 
 function renderPassage(stage, p) {
-  stage.append(
+  put(stage,
     h("div", { class: "meta" },
       h("button", { class: "speak", type: "button", onclick: () => { state.passage = null; closeWord(); render(); } }, "← All passages"),
       h("span", null, p.level)),
@@ -647,10 +665,13 @@ function renderPassages(stage) {
 }
 
 /* Word lookup sheet */
+// Gloss fields: d = dictionary form, de = dictionary meaning, en = meaning in this sentence, n = grammar note.
+const cleanGloss = g => ({ d: g.d ? String(g.d) : "", de: g.de ? String(g.de) : "", en: g.en ? String(g.en) : "", n: g.n ? String(g.n) : "" });
 function closeWord() { state.popup = null; renderSheet(); }
 async function openWord(p, i, token) {
   const key = norm(token);
-  const g = p.gloss && p.gloss[key];
+  const raw = p.gloss && p.gloss[key];
+  const g = raw && typeof raw === "object" ? cleanGloss(raw) : null;
   const line = p.lines[i];
   state.popup = { token: token.replace(/[.,!?~…"“”]+$/g, ""), line, gloss: g || null, loading: !g && !!sample, err: "" };
   renderSheet();
@@ -660,9 +681,9 @@ async function openWord(p, i, token) {
     const r = await sample.json(`A Korean learner (A2) tapped a word in this sentence.
 Sentence: ${line.ko}
 Word as written: ${token}
-Reply with only JSON: {"d": "<dictionary form of the word, e.g. 먹다 or 친구>", "en": "<short English meaning in this context>", "n": "<if a grammar ending or particle is attached, explain it in a few English words, e.g. '-거든: giving a reason'; else empty string>"}`, { modelTier: "quick" });
+Reply with only JSON: {"d": "<dictionary form of the word, without particles or endings, e.g. 먹다 or 친구>", "de": "<short English dictionary meaning of that dictionary form, e.g. 'to eat'>", "en": "<short English meaning in this context>", "n": "<if a grammar ending or particle is attached, explain it in a few English words, e.g. '-거든: giving a reason'; else empty string>"}`, { modelTier: "quick" });
     if (state.popup !== pop) return;
-    pop.gloss = { d: String(r.d || ""), en: String(r.en || ""), n: String(r.n || "") };
+    pop.gloss = cleanGloss(r || {});
   } catch (e) {
     if (state.popup !== pop) return;
     pop.err = "Couldn't look this word up right now.";
@@ -694,25 +715,44 @@ function renderSheet() {
   if (!pop) { sheet.hidden = true; inner.replaceChildren(); return; }
   sheet.hidden = false;
   const g = pop.gloss;
-  const dict = g && g.d ? g.d : pop.token;
-  const known = [...words.values()].some(w => norm(w.ko) === norm(dict));
-  inner.replaceChildren(
-    h("div", { class: "w" }, h("span", { lang: "ko" }, pop.token), speakBtn(dict)),
+  // Cards always use the dictionary form and its dictionary meaning.
+  const dict = g && g.d ? g.d : "";
+  const dictEn = g ? (g.de || g.en) : "";
+  const matches = dict ? [...words.values()].filter(w => norm(w.ko) === norm(dict) || w.alt.some(a => norm(a) === norm(dict))) : [];
+  const known = matches.length > 0;
+  const studied = matches.filter(w => prog.get(w.id));
+  const allDue = studied.length > 0 && studied.every(w => { const p = prog.get(w.id); return p.box === 0 && p.due <= Date.now(); });
+  inner.replaceChildren();
+  put(inner,
+    h("div", { class: "w" }, h("span", { lang: "ko" }, pop.token), speakBtn(dict || pop.token)),
     pop.loading ? h("div", { class: "lead" }, "Looking it up…") : null,
     pop.err ? h("div", { class: "lead" }, pop.err) : null,
     !pop.loading && !g && !pop.err ? h("div", { class: "lead" }, "No note for this word yet. Check the line's translation.") : null,
-    g && g.d && norm(g.d) !== norm(pop.token) ? h("div", { class: "d", lang: "ko" }, "Dictionary form: " + g.d) : null,
+    dict && (norm(dict) !== norm(pop.token) || (g.de && g.de !== g.en)) ? h("div", { class: "d" }, "Dictionary form: ", h("span", { lang: "ko" }, dict), g.de && g.de !== g.en ? " · " + g.de : "") : null,
     g && g.en ? h("div", { class: "en", style: "font-weight:600" }, g.en) : null,
     g && g.n ? h("div", { class: "note" }, g.n) : null,
     h("div", { class: "row" },
       h("button", { class: "btn ghost", type: "button", onclick: closeWord }, "Close"),
-      g && g.en ? h("button", { class: "btn", type: "button", disabled: known, onclick: async e => {
+      studied.length ? h("button", { class: "btn", type: "button", disabled: allDue, title: "Puts this card back at the start so it's due in your next Cards session", onclick: e => {
+        studied.forEach(w => reviewAgain(w.id));
+        e.target.disabled = true; e.target.textContent = "Due now ✓";
+        renderStats();
+      } }, allDue ? "Due now" : "Review again")
+      : known ? h("button", { class: "btn", type: "button", disabled: true }, "In your cards")
+      : dict && dictEn ? h("button", { class: "btn", type: "button", onclick: async e => {
         e.target.disabled = true; e.target.textContent = "Saving…";
-        await saveWord(dict, g.en, pop.line.ko, pop.line.en);
+        await saveWord(dict, dictEn, pop.line.ko, pop.line.en);
         e.target.textContent = "Added ✓";
-      } }, known ? "In your cards" : "Add to cards") : h("span")));
+      } }, "Add to cards") : h("span")));
 }
 document.addEventListener("keydown", e => { if (e.key === "Escape" && state.popup) closeWord(); });
+// Clicking anywhere outside the sheet closes it (tapping another word opens that word instead).
+document.addEventListener("click", e => {
+  if (!state.popup) return;
+  const path = e.composedPath();
+  if (path.includes(document.getElementById("sheetInner")) || path.some(n => n.classList && n.classList.contains("tok"))) return;
+  closeWord();
+});
 
 /* ---------- Backup export ---------- */
 let downloads = null;

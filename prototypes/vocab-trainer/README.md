@@ -19,12 +19,18 @@ It has four tabs:
   translated line by line with Claude's feedback and a reference translation,
   or answered as multiple-choice questions. Tapping a word shows its
   dictionary form, meaning and any attached ending, from the passage's glossary
-  or, failing that, from Claude, and can add it to a "My saved words" pack.
+  or, failing that, from Claude. A new word can be added to a "My saved words"
+  pack, always as its dictionary form with its dictionary meaning. A word
+  already studied can be sent back to box 0 and made due now ("Review again"),
+  without counting as a miss. Clicking outside the popup closes it.
 
 Scheduling is a Leitner system shared by Cards and Type: a right answer moves
 a word up one box (due in 1, 2, 4, 8, 16 or 32 days), a wrong one sends it back
 to box 0 and repeats it once at the end of the session. A word counts as
 learned from box 3.
+
+Cards are in dictionary form (먹다, not 먹어요). Spoken forms such as 괜찮아
+go in a card's alternative answers and note.
 
 Words can be filtered by pack. A pack is a list of words, each with Korean,
 English, an example sentence and its translation, an optional note and
@@ -38,11 +44,15 @@ artifact's database, written by Claude.
 | Collection     | One document per | Holds                                                         |
 | -------------- | ---------------- | ------------------------------------------------------------- |
 | `packs`        | pack             | title, order and the words                                    |
-| `passages`     | passage          | title, level, focus, lines, questions and a glossary by token |
+| `passages`     | passage          | title, level, focus, lines, questions and a glossary by token¹ |
 | `progress`     | word             | box, due time, right and wrong counts, last review            |
 | `translations` | passage line     | the latest attempt, verdict and feedback, and earlier attempts |
 | `quiz`         | passage          | answers and score                                             |
 | `sentences`    | sentence         | the word, the sentence and Claude's correction                |
+
+¹ Each glossary entry has `d` (dictionary form), `de` (dictionary meaning,
+when it differs from the meaning in context), `en` (meaning in this sentence)
+and `n` (a note on any attached ending or particle).
 
 ## Backups
 
