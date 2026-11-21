@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"context"
-	"errors"
 	"io"
 	"net"
 	"net/http"
@@ -11,6 +10,9 @@ import (
 	"syscall"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // waitTimeout is how long tests wait for something that should happen
@@ -41,20 +43,13 @@ func TestParsePort(t *testing.T) {
 
 			got, err := parsePort(test.value)
 			if test.wantErr {
-				if !errors.Is(err, errInvalidPort) {
-					t.Errorf("parsePort(%q) error = %v, want %v", test.value, err, errInvalidPort)
-				}
+				require.ErrorIs(t, err, errInvalidPort)
 
 				return
 			}
 
-			if err != nil {
-				t.Fatalf("parsePort(%q) error = %v", test.value, err)
-			}
-
-			if got != test.want {
-				t.Errorf("parsePort(%q) = %q, want %q", test.value, got, test.want)
-			}
+			require.NoError(t, err)
+			assert.Equal(t, test.want, got)
 		})
 	}
 }
@@ -76,12 +71,10 @@ func listen(t *testing.T) net.Listener {
 
 	var lc net.ListenConfig
 
-	ln, err := lc.Listen(t.Context(), "tcp", "127.0.0.1:0")
-	if err != nil {
-		t.Fatalf("listening: %v", err)
-	}
+	listener, err := lc.Listen(t.Context(), "tcp", "127.0.0.1:0")
+	require.NoError(t, err)
 
-	return ln
+	return listener
 }
 
 // get sends a GET request to addr in the background and returns a channel
@@ -159,14 +152,8 @@ func TestServeFinishesInFlightRequests(t *testing.T) {
 	waitForRefusal(t, addr)
 	close(release)
 
-	if got := <-status; got != http.StatusOK {
-		t.Errorf("in-flight request status = %d, want %d", got, http.StatusOK)
-	}
-
-	err := <-serveErr
-	if err != nil {
-		t.Errorf("serve() error = %v, want nil", err)
-	}
+	assert.Equal(t, http.StatusOK, <-status, "status of the in-flight request")
+	require.NoError(t, <-serveErr)
 }
 
 func TestServeTimesOut(t *testing.T) {
@@ -192,9 +179,7 @@ func TestServeTimesOut(t *testing.T) {
 
 	select {
 	case err := <-serveErr:
-		if !errors.Is(err, context.DeadlineExceeded) {
-			t.Errorf("serve() error = %v, want %v", err, context.DeadlineExceeded)
-		}
+		require.ErrorIs(t, err, context.DeadlineExceeded)
 	case <-time.After(waitTimeout):
 		t.Fatalf("serve() still running %v after the shutdown timeout", waitTimeout)
 	}
@@ -235,16 +220,11 @@ func TestRunStopsOnSIGTERM(t *testing.T) {
 
 	waitForLine(t, lines, `"msg":"listening"`, runErr)
 
-	err := syscall.Kill(syscall.Getpid(), syscall.SIGTERM)
-	if err != nil {
-		t.Fatalf("sending SIGTERM: %v", err)
-	}
+	require.NoError(t, syscall.Kill(syscall.Getpid(), syscall.SIGTERM))
 
 	select {
 	case err := <-runErr:
-		if err != nil {
-			t.Errorf("run() error = %v, want nil", err)
-		}
+		require.NoError(t, err)
 	case <-time.After(waitTimeout):
 		t.Fatalf("run() still running %v after SIGTERM", waitTimeout)
 	}

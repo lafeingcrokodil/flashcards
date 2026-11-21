@@ -63,7 +63,7 @@ func run(ctx context.Context, getenv func(string) string, stderr io.Writer) erro
 
 	logger.InfoContext(ctx, "listening", "address", listener.Addr().String())
 
-	err = serve(ctx, listener, server.New(logger), shutdownTimeout)
+	err = serve(ctx, listener, server.New(), shutdownTimeout)
 	if err != nil {
 		return err
 	}

@@ -119,10 +119,21 @@ become stale when those other parts change.
 
 - Linters run with all rules enabled. Only disable a rule with a comment that
   explains why.
+- In Go tests, use testify for assertions: `require` when the test can't
+  usefully go on after a failure (such as an unexpected error), and `assert`
+  otherwise.
 - For front-end changes, check the pages in a browser, and share screenshots
   (light and dark mode, at phone width). Since sign-in needs Firebase, use a
   temporary build that fakes a signed-in user and a mocked API, and don't
   commit it.
+
+## Development environment
+
+- `golangci-lint` must be built with a Go version at least as new as the one
+  in `go.mod`. If the installed one is older, install the version that CI
+  uses (the `lint` job in `.github/workflows/ci.yml`) with the current
+  toolchain, e.g.
+  `go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@<version>`.
 
 ## Branch names
 

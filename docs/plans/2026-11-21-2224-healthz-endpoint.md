@@ -1,9 +1,9 @@
-# Go module and `/healthz` endpoint
+# Go module and `/health` endpoint
 
 ## Goal
 
 Start the Go back end for M0's first item: a Go module, an HTTP server with a
-`GET /healthz` endpoint, its tests, a golangci-lint configuration and a
+`GET /health` endpoint, its tests, a golangci-lint configuration and a
 Makefile to run them.
 
 Left for later PRs: CI (the next item), Dependabot, the front end and serving
@@ -21,9 +21,11 @@ it, the Dockerfile, and anything that needs storage or auth.
     compatible with the old app) and dropping the suffix (tags `v2` and above
     can't be used without it).
 - `go 1.27.4`, the latest Go release (published 2026-11-02).
-- No dependencies: the standard library covers routing (`http.ServeMux` with
-  method patterns), logging (`log/slog`) and testing. Tests use the standard
-  `testing` package rather than testify, so that this PR adds no dependency.
+- The standard library covers routing (`http.ServeMux` with method patterns)
+  and logging (`log/slog`). Tests use testify (`assert` and `require`) for
+  assertions, which are shorter than comparing values and calling `t.Errorf`
+  by hand, and give more helpful failure messages. It's the only dependency,
+  and the one the diary app uses too.
 
 ### Layout
 
@@ -39,11 +41,15 @@ Makefile
 `httptest` without starting a real server. Later areas (packs, progress, ...)
 get their own packages under `internal/`.
 
-### `/healthz`
+### `/health`
 
-- `GET /healthz` returns `200 OK` with `Content-Type: text/plain` and the
-  body `ok`. Health checks only look at the status, so a JSON body would add
-  nothing.
+- `GET /health` returns `200 OK` with `Content-Type: text/plain` and the
+  body `ok\n` (with a newline, so that it reads well in a terminal). Health
+  checks only look at the status, so a JSON body would add nothing.
+- Rejected: `/healthz`. Cloud Run reserves some paths ending in `z`, so
+  requests to it from outside can be answered by Google's front end rather
+  than the app. The diary app moved from `/healthz` to `/health` for the same
+  reason.
 - Other methods get `405 Method Not Allowed` and unknown paths `404`, both from
   `ServeMux` itself.
 - It doesn't check dependencies (there are none yet). If a readiness check for
@@ -80,9 +86,23 @@ each disabled one has a comment explaining why:
 - Deprecated linters whose replacements stay enabled: `gomodguard`
   (→ `gomodguard_v2`) and `wsl` (→ `wsl_v5`).
 
-`depguard` stays enabled, with an allowlist of the standard library and this
-module, so that a new dependency fails the linter until it's added to the
-list deliberately.
+- `noinlineerr`: checking an error inline (`if err := f(); err != nil`)
+  keeps `err` scoped to the check, which is the idiomatic style.
+
+`funlen` and `goconst` are excluded for test files: table-driven tests grow
+with each case and repeat paths and names, which read more easily as literals,
+and splitting a test up to stay within a length limit doesn't make it easier
+to follow.
+
+`depguard` stays enabled, with an allowlist of the standard library, this
+module and testify, so that a new dependency fails the linter until it's
+added to the list deliberately.
+  - Rejected: disabling it, as the diary app does. Its allowlist is one line
+    per dependency, and it turns "a dependency was added" from something a
+    reviewer has to notice into a failing check.
+
+The `gofmt` and `goimports` formatters are enabled too, so that formatting and
+import grouping are checked.
 
 ### Makefile
 
@@ -98,7 +118,7 @@ list deliberately.
 
 ## Risks
 
-- **`/healthz` or routing behaves differently than described:** covered by
+- **`/health` or routing behaves differently than described:** covered by
   table-driven `httptest` tests (status, content type and body for `GET`;
   `405` for `POST`; `404` for an unknown path).
 - **Invalid `PORT` handled wrongly:** the port parsing is a small function
@@ -117,15 +137,17 @@ list deliberately.
 - **Lint config hides real problems:** every disabled linter has a comment
   explaining why, and the list is short enough to skim.
 - **A dependency is added without a close review:** `depguard` fails on any
-  import outside the standard library and this module.
+  import outside its allowlist.
 - **The local golangci-lint can't lint Go 1.27:** the one in this environment
   is v2.5.0, built with Go 1.25, so v2.15.0 (published 2026-10-16) was
   installed with Go 1.27.4 instead.
 
 ## Close review
 
-There's no auth, data, infrastructure, CI or new dependency in this PR, but
-these parts aren't covered by a check and are harder to change later:
+These parts aren't covered by a check and are harder to change later:
+
+- **testify, the first dependency** (`go.mod`, `go.sum`): v1.12.1, published
+  2026-08-17, which brings in `go.yaml.in/yaml/v3` v3.0.5 (2026-07-26).
 
 - **The module path** (`go.mod`, and the imports that use it): changing it
   later means rewriting every import, and once a `v3.x` tag is pushed, the
