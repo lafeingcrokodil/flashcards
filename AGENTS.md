@@ -33,9 +33,12 @@ straight to a PR that's ready for review.
 ### Steps
 
 1. Open a draft PR whose first commit adds the plan as
-   `docs/plans/<short-description>.md` (the branch name without its type),
-   and nothing else. The PR description summarises the plan and links to it,
-   so that the user can comment on individual lines of the plan.
+   `docs/plans/<date>-<short-description>.md`, and nothing else. `<date>` is
+   the day the plan is written, as `YYYY-MM-DD`, so that plans sort
+   chronologically, and `<short-description>` is the branch name without its
+   type (`feat/healthz-endpoint` → `2026-11-21-healthz-endpoint.md`). The
+   PR description summarises the plan and links to it, so that the user can
+   comment on individual lines of the plan.
 2. Wait for the user to approve the plan in the PR. Revise it in response to
    their comments, without starting the implementation.
 3. Once it's approved, implement it in further commits, then mark the PR as
@@ -48,11 +51,14 @@ Keep it concise, with these sections:
 
 - **Goal:** what the change does, and what it leaves for later PRs.
 - **Design:** the decisions and why, with alternatives that were rejected.
-  Diagrams (Mermaid) are optional.
 - **Risks:** what could go wrong, and for each risk, which test or check
   catches it, or that none does.
 - **Close review:** which parts need a closer look than a skim (see below),
   or "none".
+
+Add whatever else helps to review the plan, such as diagrams (Mermaid) or UI
+mockups. Put images in a directory named like the plan without `.md`
+(`docs/plans/2026-11-21-healthz-endpoint/`).
 
 ### Departing from the plan
 
@@ -65,9 +71,10 @@ more.
 
 ### What still gets a close review
 
-A skim is enough only where a mistake would be caught by a check or easy to
-undo. Flag these in the plan's "Close review" section and in the PR
-description, pointing at the files or lines concerned:
+A skim is enough only where a mistake would be caught by a check, or would be
+easy to undo and do little harm. Anything else needs a close review: flag it
+in the plan's "Close review" section and in the PR description, pointing at
+the files or lines concerned. This includes, but isn't limited to:
 
 - authentication and authorization (token verification, the allowlist)
 - IAM, service accounts, Workload Identity Federation and secrets
