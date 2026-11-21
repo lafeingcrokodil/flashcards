@@ -19,6 +19,17 @@
   by a permission check), stop and ask the user rather than working around
   it. Flag limitations of the environment clearly.
 
+## Reference repository
+
+[lafeingcrokodil/diary](https://github.com/lafeingcrokodil/diary) is a
+similar app with the same stack. Treat it as a reference: before designing
+something that it already has (such as the Makefile, the lint configuration,
+CI, the Dockerfile or the Terraform layout), look at how it does it.
+
+Departing from it is fine, and desired where its approach has a problem, but
+flag each departure and give the reason: in the plan's "Design" section, or
+in the PR description for a change without a plan.
+
 ## Plans
 
 The user reviews the plan for a feature rather than every line of its code.
