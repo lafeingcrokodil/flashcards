@@ -5,6 +5,7 @@
 - Work incrementally: each PR should be a small, self-contained change that
   is easy to review.
 - Keep `docs/roadmap.md` up to date as milestones progress.
+- Plan features before implementing them, as described below.
 - Keep PR titles and descriptions up to date: when a PR changes after it's
   opened (e.g. in response to review feedback), update them to match.
 - Don't merge PRs, even once it's agreed that one should be merged: the
@@ -17,6 +18,83 @@
 - If something is blocked (e.g. a domain by the network policy, or an action
   by a permission check), stop and ask the user rather than working around
   it. Flag limitations of the environment clearly.
+
+## Plans
+
+The user reviews the plan for a feature rather than every line of its code.
+
+### When a plan is needed
+
+Write a plan for any change that involves design decisions, such as a new
+endpoint, storage, a page or infrastructure. Changes without any (such as
+dependency bumps, typo fixes or small docs changes) skip the plan and go
+straight to a PR that's ready for review.
+
+### Steps
+
+1. Open a draft PR whose first commit adds the plan as
+   `docs/plans/<time>-<short-description>.md`, and nothing else. `<time>` is
+   when the plan is written, in UTC as `YYYY-MM-DD-HHMM`, so that plans sort
+   chronologically, and `<short-description>` is the branch name without its
+   type (`feat/healthz-endpoint` → `2026-11-21-1405-healthz-endpoint.md`).
+   The PR description summarises the plan and links to it, so that the user
+   can comment on individual lines of the plan.
+2. Wait for the user to approve the plan in the PR. Revise it in response to
+   their comments, without starting the implementation.
+3. Once it's approved, implement it in further commits, then mark the PR as
+   ready for review.
+4. The user skims the implementation and merges the PR.
+
+### What a plan contains
+
+Keep it concise, with these sections:
+
+- **Goal:** what the change does, and what it leaves for later PRs.
+- **Design:** the decisions and why, with alternatives that were rejected.
+- **Risks:** what could go wrong, and for each risk, which test or check
+  catches it, or that none does.
+- **Close review:** which parts need a closer look than a skim (see below),
+  or "none".
+
+Add whatever else helps to review the plan, such as diagrams (Mermaid) or UI
+mockups. Put supplementary files, such as images, in a directory named like
+the plan without `.md` (`docs/plans/2026-11-21-1405-healthz-endpoint/`).
+
+### Departing from the plan
+
+If the implementation departs from the approved plan, update the plan in the
+same PR, and list the departures under "Changes from the plan" in the PR
+description, so that the user can see them without comparing versions. Ask
+before a departure that changes the design rather than a detail. Once the PR
+is merged, the plan is a record of what was decided and isn't updated any
+more.
+
+### What still gets a close review
+
+A skim is enough only where a mistake would be caught by a check, or would be
+easy to undo and do little harm. Anything else needs a close review: flag it
+in the plan's "Close review" section and in the PR description, pointing at
+the files or lines concerned. This includes, but isn't limited to:
+
+- authentication and authorization (token verification, the allowlist)
+- IAM, service accounts, Workload Identity Federation and secrets
+- anything that deletes or migrates data, or could (Firestore writes that
+  overwrite, Terraform changes that destroy or replace resources)
+- CI/CD workflows, their permissions, and branch rulesets
+- new dependencies (as opposed to version bumps)
+
+### Checks before a skim
+
+Before marking a PR as ready for review:
+
+- All CI checks pass. Until CI exists, run the equivalent checks locally and
+  say in the PR description which ones ran.
+- The tests cover the behaviour described in the plan, including its error
+  cases, and each risk in the plan is either covered by a check or flagged
+  for close review.
+- For front-end changes, the PR has screenshots (see below).
+- For Terraform changes, the PR says which resources should change, so that
+  the user can compare that with `terraform plan`.
 
 ## Code comments
 
