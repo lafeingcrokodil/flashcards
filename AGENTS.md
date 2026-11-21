@@ -22,8 +22,7 @@
 ## Reference repository
 
 [lafeingcrokodil/diary](https://github.com/lafeingcrokodil/diary) is a
-similar app with the same stack, built with the same workflow. Treat it as a
-reference: before designing something that it already has (such as the
+similar app with the same stack. Treat it as a reference: before designing something that it already has (such as the
 Makefile, the lint configuration, CI, the Dockerfile or the Terraform
 layout), look at how it does it.
 
