@@ -1,0 +1,22 @@
+version: "2"
+linters:
+  default: all
+  disable:
+    # Requires every field of a struct literal to be set, including optional
+    # ones whose zero values are the intended defaults (such as most fields of
+    # http.Server), which would add noise without catching mistakes.
+    - exhaustruct
+    - exhaustruct_v5
+    # Deprecated, and replaced by gomodguard_v2, which stays enabled.
+    - gomodguard
+    # Deprecated, and replaced by wsl_v5, which stays enabled.
+    - wsl
+  settings:
+    depguard:
+      rules:
+        # Only the standard library and this module may be imported, so that a
+        # new dependency fails the linter until it's added here deliberately.
+        main:
+          allow:
+            - $gostd
+            - github.com/lafeingcrokodil/flashcards/v3

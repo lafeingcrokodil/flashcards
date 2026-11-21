@@ -60,7 +60,7 @@ get their own packages under `internal/`.
   the 10 seconds Cloud Run waits after `SIGTERM` before killing the
   container, so that the server exits cleanly rather than being killed.
 - So that shutdown can be tested, `main` only calls
-  `run(ctx, args, getenv, stderr) error`, which sets up signal handling
+  `run(ctx, getenv, stderr) error`, which sets up signal handling
   (`signal.NotifyContext`) and the server. Serving is a separate function,
   `serve(ctx, listener, handler, shutdownTimeout) error`, which returns once
   `ctx` is cancelled and in-flight requests have finished (or the timeout has
@@ -71,12 +71,18 @@ get their own packages under `internal/`.
 
 ### Linting
 
-`.golangci.yml` enables all linters (`default: all`), per `AGENTS.md`. Any
-that are disabled get a comment explaining why; the expected ones are
-`depguard` (needs an allowlist of packages to be useful),
-`exhaustruct` (would require every field of e.g. `http.Server` to be set) and
-deprecated linters that have a replacement which is also enabled (`wsl` →
-`wsl_v5`). Others are only disabled if they turn out to conflict.
+`.golangci.yml` enables all linters (`default: all`), per `AGENTS.md`, and
+each disabled one has a comment explaining why:
+
+- `exhaustruct` and its replacement `exhaustruct_v5`: they require every
+  field of a struct literal to be set, including optional ones whose zero
+  values are the intended defaults (such as most fields of `http.Server`).
+- Deprecated linters whose replacements stay enabled: `gomodguard`
+  (→ `gomodguard_v2`) and `wsl` (→ `wsl_v5`).
+
+`depguard` stays enabled, with an allowlist of the standard library and this
+module, so that a new dependency fails the linter until it's added to the
+list deliberately.
 
 ### Makefile
 
@@ -110,9 +116,11 @@ deprecated linters that have a replacement which is also enabled (`wsl` →
     signal wiring, which the `serve` tests don't.
 - **Lint config hides real problems:** every disabled linter has a comment
   explaining why, and the list is short enough to skim.
+- **A dependency is added without a close review:** `depguard` fails on any
+  import outside the standard library and this module.
 - **The local golangci-lint can't lint Go 1.27:** the one in this environment
-  is v2.5.0, built with Go 1.25. I'll install a release that supports
-  Go 1.27 and is at least 14 days old; if that's blocked, I'll stop and ask.
+  is v2.5.0, built with Go 1.25, so v2.15.0 (published 2026-10-16) was
+  installed with Go 1.27.4 instead.
 
 ## Close review
 
@@ -122,9 +130,10 @@ these parts aren't covered by a check and are harder to change later:
 - **The module path** (`go.mod`, and the imports that use it): changing it
   later means rewriting every import, and once a `v3.x` tag is pushed, the
   path is effectively fixed. Worth confirming `/v3` now.
-- **The disabled linters** (`.golangci.yml`): no check notices if a linter is
-  disabled without good reason, and code written while a linter is off can
-  pile up findings that make it harder to turn back on.
+- **The disabled linters and the `depguard` allowlist** (`.golangci.yml`): no
+  check notices if a linter is disabled, or a package allowed, without good
+  reason, and code written while a linter is off can pile up findings that
+  make it harder to turn back on.
 
 The rest (routes, timeouts, Makefile targets) is covered by tests or easy to
 change.
