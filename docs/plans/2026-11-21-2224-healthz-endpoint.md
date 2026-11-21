@@ -46,10 +46,11 @@ get their own packages under `internal/`.
 - `GET /health` returns `200 OK` with `Content-Type: text/plain` and the
   body `ok\n` (with a newline, so that it reads well in a terminal). Health
   checks only look at the status, so a JSON body would add nothing.
-- Rejected: `/healthz`. Cloud Run reserves some paths ending in `z`, so
-  requests to it from outside can be answered by Google's front end rather
-  than the app. The diary app moved from `/healthz` to `/health` for the same
-  reason.
+- Rejected: `/healthz`. Cloud Run's
+  [known issues](https://docs.cloud.google.com/run/docs/known-issues#ah)
+  say that "some paths ending with z" can't be used, and recommend "avoiding
+  all paths that end in z". The diary app moved from `/healthz` to `/health`
+  too.
 - Other methods get `405 Method Not Allowed` and unknown paths `404`, both from
   `ServeMux` itself.
 - It doesn't check dependencies (there are none yet). If a readiness check for
