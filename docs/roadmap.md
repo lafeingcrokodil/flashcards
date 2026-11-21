@@ -40,7 +40,7 @@ plan rather than every line of code:
    marked as ready for review.
 3. A quick skim by the user before merging.
 
-- [ ] Work out the details and document the workflow in `AGENTS.md`, e.g.:
+- [x] Work out the details and document the workflow in `AGENTS.md`, e.g.:
   - where the plan lives (the PR description, or a file in the first commit,
     since a PR needs at least one commit)
   - keeping the plan up to date when the implementation departs from it
