@@ -1,9 +1,10 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Korean Vocab Trainer</title>
+<title>Korean</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@700&family=IBM+Plex+Sans:wght@400;500;600&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
@@ -170,7 +171,10 @@ footer { color: var(--muted); font-size: .82rem; }
 
   <div id="sheet" hidden><div class="inner" id="sheetInner" role="dialog" aria-label="Word meaning"></div></div>
 
-  <footer>"Learned" means you've got a word right on at least three spaced reviews. Your progress is saved to this page, so your tutor can see which words need work.</footer>
+  <footer>"Learned" means you've got a word right on at least three spaced reviews. Your progress is saved to this page, so your tutor can see which words need work.
+    <div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:8px"><button class="btn" id="driveBtn" type="button" hidden>Back up to Drive</button><button class="btn ghost" id="exportBtn" type="button" hidden>Download backup (JSON)</button></div>
+    <p id="driveMsg" role="status" style="margin:6px 0 0"></p>
+  </footer>
 </div>
 
 <script>
@@ -710,6 +714,90 @@ function renderSheet() {
 }
 document.addEventListener("keydown", e => { if (e.key === "Escape" && state.popup) closeWord(); });
 
+/* ---------- Backup export ---------- */
+let downloads = null;
+const EXPORT_COLS = ["packs", "progress", "passages", "translations", "quiz", "sentences"];
+async function buildExport() {
+  const collections = {};
+  for (const name of EXPORT_COLS) {
+    const snap = await db.collection(name).get();
+    collections[name] = {};
+    for (const d of snap.docs) if (d.exists) collections[name][d.id] = d.data();
+  }
+  const now = new Date();
+  const out = { format: "korean-vocab-trainer-export", version: 1, exportedAt: now.toISOString(), source: "https://claude.ai/artifact/DiymVuAMXqkvH7GwEDzK16", collections };
+  return { json: JSON.stringify(out, null, 2), stamp: now.toISOString().slice(0, 16).replace("T", "_").replace(":", "-") };
+}
+
+let mcp = null;
+const DRIVE = "Google Drive";
+const DRIVE_FOLDER = "Korean Vocab Backups";
+const FOLDER_MIME = "application/vnd.google-apps.folder";
+function driveMsg(text, link) {
+  const el = document.getElementById("driveMsg");
+  el.replaceChildren(text || "");
+  if (link) { el.append(" "); el.append(h("a", { href: link, target: "_blank", rel: "noopener" }, "Open folder")); }
+}
+async function driveFolderId() {
+  const q = `title = '${DRIVE_FOLDER}' and mimeType = '${FOLDER_MIME}' and trashed = false`;
+  const r = await mcp.callTool(DRIVE, "search_files", { query: q, excludeContentSnippets: true, pageSize: 5 }, { cache: false });
+  const files = (r.payload && Array.isArray(r.payload.files)) ? r.payload.files : [];
+  const hit = files.find(f => f && f.id && f.title === DRIVE_FOLDER);
+  if (hit) return { id: hit.id, url: hit.viewUrl || "" };
+  const made = await mcp.callTool(DRIVE, "create_file", { title: DRIVE_FOLDER, contentMimeType: FOLDER_MIME }, { cache: false });
+  const p = made.payload || {};
+  if (!p.id) throw { code: "tool_error" };
+  return { id: p.id, url: p.viewUrl || "" };
+}
+let driveBusy = false;
+async function backupToDrive(btn) {
+  if (driveBusy) return;
+  if (!db || !mcp) { driveMsg("Drive backup isn't available here."); return; }
+  driveBusy = true; btn.disabled = true; btn.textContent = "Backing up…"; driveMsg("");
+  let stage = "read", folder = null;
+  try {
+    const { json, stamp } = await buildExport();
+    stage = "folder";
+    folder = await driveFolderId();
+    stage = "upload";
+    const r = await mcp.callTool(DRIVE, "create_file", { title: `korean-vocab-backup-${stamp}.json`, parentId: folder.id, textContent: json, contentMimeType: "application/json", disableConversionToGoogleType: true }, { cache: false });
+    if (!r.payload || !r.payload.id) throw { code: "tool_error" };
+    driveMsg(`Backed up to “${DRIVE_FOLDER}” in your Drive.`, folder.url);
+  } catch (e) {
+    const c = e && e.code;
+    if (stage === "read") driveMsg("Couldn't read your data. Check your connection and try again.");
+    else if (c === "server_not_connected" || c === "server_not_found") driveMsg("Google Drive isn't connected. Add it in claude.ai Settings → Connectors.");
+    else if (c === "needs_reauth") driveMsg("Google Drive needs reconnecting. Reconnect it in claude.ai Settings → Connectors.");
+    else if (c === "selection_required") driveMsg("You have more than one Google Drive connection. Choose one when Claude asks, then try again.");
+    else if (c === "approval_required" || c === "not_in_manifest" || c === "consent_required") driveMsg("This page needs your OK to use Google Drive. Press the button again and allow it.");
+    else if (c === "blocked_by_policy") driveMsg("Your organization doesn't allow this page to use Google Drive.");
+    else if (["not_granted", "capability_disabled", "capability_removed"].includes(c)) { driveMsg("Drive backup isn't available in this view. Use Download instead."); btn.hidden = true; }
+    else if (stage === "upload" && (c === "server_unavailable" || c === "upstream_error" || c === "cancelled")) driveMsg("Drive didn't confirm the upload. It may still have worked, so check the folder before trying again.", folder && folder.url);
+    else if (c === "tool_error") driveMsg("Google Drive refused the upload. Try again later.");
+    else driveMsg("Couldn't reach Google Drive. Try again in a moment.");
+  }
+  driveBusy = false; btn.disabled = false; btn.textContent = "Back up to Drive";
+}
+document.getElementById("driveBtn").addEventListener("click", e => backupToDrive(e.currentTarget));
+
+async function exportData(btn) {
+  if (!db || !downloads) { note("Backup isn't available here."); return; }
+  btn.disabled = true; btn.textContent = "Preparing…";
+  try {
+    const { json, stamp } = await buildExport();
+    await downloads.save({ filename: `korean-vocab-backup-${stamp}.json`, data: json });
+    note("Backup saved.");
+  } catch (e) {
+    const c = e && e.code;
+    if (c === "declined") note("");
+    else if (c === "rate_limited") note("A save prompt is already open. Try again in a moment.");
+    else if (["unavailable", "not_granted", "capability_disabled", "capability_removed"].includes(c)) { note("Downloads aren't available in this view."); btn.hidden = true; }
+    else note("Couldn't build the backup. Check your connection and try again.");
+  }
+  btn.disabled = false; btn.textContent = "Download backup (JSON)";
+}
+document.getElementById("exportBtn").addEventListener("click", e => exportData(e.currentTarget));
+
 function render() {
   renderStats();
   document.querySelectorAll(".tab").forEach(t => t.setAttribute("aria-selected", String(t.dataset.mode === state.mode)));
@@ -748,6 +836,8 @@ render();
   }
   c.use("tts").then(t => { tts = t; render(); }).catch(() => {});
   c.use("sample").then(s => { sample = s; render(); }).catch(() => {});
+  c.use("downloads").then(d => { downloads = d; document.getElementById("exportBtn").hidden = !d; }).catch(() => {});
+  c.use("mcp").then(m => { mcp = m; document.getElementById("driveBtn").hidden = !m; }).catch(() => {});
   db = await c.use("db").catch(() => null);
   if (!db) { loading = false; loadError = "Couldn't reach your word list. Make sure you're signed in, then reopen the page."; render(); return; }
 
@@ -813,3 +903,5 @@ render();
 </script>
 </body>
 </html>
+
+</body></html>

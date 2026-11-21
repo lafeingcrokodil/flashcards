@@ -44,10 +44,47 @@ artifact's database, written by Claude.
 | `quiz`         | passage          | answers and score                                             |
 | `sentences`    | sentence         | the word, the sentence and Claude's correction                |
 
+## Backups
+
+The data lives only in the artifact's database, so the page's footer offers
+two ways to export it, both producing the same JSON file:
+
+- **Back up to Drive** uploads `korean-vocab-backup-<YYYY-MM-DD_HH-MM>.json`
+  (UTC) to a "Korean Vocab Backups" folder in the viewer's Google Drive. The
+  folder is found by its exact name and created if it's missing. Each backup
+  is a new file; older ones are never overwritten.
+- **Download backup (JSON)** offers the same file as a download.
+
+The file is meant to be imported into the app later:
+
+```json
+{
+  "format": "korean-vocab-trainer-export",
+  "version": 1,
+  "exportedAt": "2026-11-21T12:30:00.000Z",
+  "source": "https://claude.ai/artifact/DiymVuAMXqkvH7GwEDzK16",
+  "collections": {
+    "packs": { "<doc id>": { "...": "document fields as stored" } },
+    "progress": {},
+    "passages": {},
+    "translations": {},
+    "quiz": {},
+    "sentences": {}
+  }
+}
+```
+
+Each collection from the table above maps document IDs to their fields,
+unchanged. Progress and sentences are personal, so backups belong in private
+storage, never in this repository.
+
 ## Running it
 
 The page expects the artifact runtime's `window.claude.use()`: `db` for the
-data above, `sample` for Claude's feedback and word lookups, and `tts` for
+data above, `sample` for Claude's feedback and word lookups, `tts` for
 hearing words in a Claude voice, which isn't offered in Safari or the mobile
-apps. Without `sample` or `tts`, those features are hidden. Opened as a plain
+apps, `downloads` for saving a backup file, and `mcp` for backing up to
+Google Drive through the viewer's Google Drive connector (only its
+`search_files` and `create_file` tools). Without any of these, the features
+that need it are hidden. Opened as a plain
 file, without the runtime, there's no data to load, so the page only says so.
