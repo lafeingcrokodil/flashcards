@@ -70,6 +70,9 @@ plan rather than every line of code:
 - [ ] Cloud Run managed by Terraform, and Artifact Registry with a cleanup
       policy
 - [ ] Continuous deployment from `main` via Workload Identity Federation
+- [ ] Firestore database with delete protection (and abandoned rather than
+      deleted by Terraform), and a backup schedule, possibly with
+      point-in-time recovery
 - [ ] Budget alert
 
 ### M2 – Authentication
@@ -109,11 +112,7 @@ plan rather than every line of code:
 - [ ] Tapping a word to see its glossary entry, and saving it to a pack
 - [ ] Sending a word back to the first box ("Review again")
 
-### M7 – Backups
-
-- [ ] Exporting all of a user's data as a JSON file
-
-### M8 – Feedback and lookups
+### M7 – Feedback, lookups and speech
 
 Features that the prototype implements with Claude. They might use an AI
 model in the app too, but don't have to.
@@ -121,12 +120,11 @@ model in the app too, but don't have to.
 - [ ] Writing sentences with a word, with feedback and a corrected sentence
 - [ ] Translating passage lines, with feedback
 - [ ] Looking up words that aren't in a passage's glossary
+- [ ] Hearing words read out (e.g. with the browser's speech synthesis)
 
 ### Later ideas
 
 - A staging environment, in a separate GCP project
-- Backups to Google Drive
-- Hearing words read out (e.g. with the browser's speech synthesis)
 - Installable PWA
 
 ## Open questions
