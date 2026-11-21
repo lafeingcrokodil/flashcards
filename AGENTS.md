@@ -4,7 +4,6 @@
 
 - Work incrementally: each PR should be a small, self-contained change that
   is easy to review.
-- Keep `docs/roadmap.md` up to date as milestones progress.
 - Keep PR titles and descriptions up to date: when a PR changes after it's
   opened (e.g. in response to review feedback), update them to match.
 - Don't merge PRs, even once it's agreed that one should be merged: the
@@ -34,16 +33,6 @@ become stale when those other parts change.
   temporary build that fakes a signed-in user and a mocked API, and don't
   commit it.
 
-## Development environment
-
-- `golangci-lint` must be built with a Go version at least as new as the one
-  in `go.mod`. If the installed one is older, install the version that CI
-  uses (the `lint` job in `.github/workflows/ci.yml`) with the current
-  toolchain, e.g.
-  `go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@<version>`.
-- The Firestore tests need the emulator (`make emulator`) and fail without
-  it: run them with `FIRESTORE_EMULATOR_HOST=localhost:8085 make cover`.
-
 ## Branch names
 
 Name branches after their purpose, in the form `<type>/<short-description>`,
@@ -51,7 +40,7 @@ using kebab-case. For example:
 
 - `feat/healthz-endpoint`
 - `ci/github-actions`
-- `fix/diary-date-timezone`
+- `fix/review-scheduling`
 - `docs/roadmap`
 
 Use this convention instead of generated branch names (such as
@@ -62,11 +51,4 @@ branch for each PR.
 
 Only use dependency versions that were published at least 14 days ago (Go
 modules, GitHub Actions, npm packages, Terraform providers and container
-images). This is enforced where the tooling supports it: pnpm's
-`minimumReleaseAge` and Dependabot's cooldown.
-
-The one exception is the distroless runtime image in the `Dockerfile`. Its
-images have no publication date, so Dependabot's cooldown can't apply, and its
-tag is republished often enough that the newest digest would rarely be 14 days
-old. Its digest updates can be merged as they come, since the image only
-contains CA certificates, time zone data and user account files.
+images).
