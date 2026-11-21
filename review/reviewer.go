@@ -181,7 +181,7 @@ func (r *Reviewer) Submit(ctx context.Context, sessionID string, flashcardID int
 func getFlashcardMetadata(ctx context.Context, source FlashcardMetadataSource) ([]*FlashcardMetadata, error) {
 	// We intentionally don't preallocate the slice, because we don't know how
 	// many flashcards will be filtered out.
-	var filteredMetadata []*FlashcardMetadata //nolint:prealloc
+	var filteredMetadata []*FlashcardMetadata
 
 	metadata, err := source.GetAll(ctx)
 	if err != nil {
