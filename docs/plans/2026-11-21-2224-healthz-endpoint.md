@@ -56,7 +56,15 @@ get their own packages under `internal/`.
   to `8080`. An invalid value is an error at startup, not a silent fallback.
 - `http.Server` with `ReadHeaderTimeout` set (gosec flags servers without it).
 - On `SIGINT` or `SIGTERM`, it stops accepting connections and waits up to
-  10 seconds for in-flight requests (`Server.Shutdown`).
+  5 seconds for in-flight requests (`Server.Shutdown`). That's shorter than
+  the 10 seconds Cloud Run waits after `SIGTERM` before killing the
+  container, so that the server exits cleanly rather than being killed.
+- So that shutdown can be tested, `main` only calls
+  `run(ctx, args, getenv, stderr) error`, which sets up signal handling
+  (`signal.NotifyContext`) and the server. Serving is a separate function,
+  `serve(ctx, listener, handler, shutdownTimeout) error`, which returns once
+  `ctx` is cancelled and in-flight requests have finished (or the timeout has
+  passed).
 - Logs with `log/slog`'s JSON handler to stderr, since structured logs are
   easier to filter. Only startup, shutdown and errors are logged for now; no
   request logging yet.
@@ -89,9 +97,17 @@ deprecated linters that have a replacement which is also enabled (`wsl` →
   `405` for `POST`; `404` for an unknown path).
 - **Invalid `PORT` handled wrongly:** the port parsing is a small function
   with tests for unset, valid and invalid values.
-- **Graceful shutdown doesn't work:** not covered by a test (it'd need to send
-  a signal to a real process). Checked by hand: run the server, send
-  `SIGTERM`, see it log the shutdown and exit with status 0.
+- **Graceful shutdown doesn't work, or breaks later:** covered by tests, so
+  that a regression fails CI once it exists:
+  - `serve` with a handler that blocks until the test releases it: cancelling
+    `ctx` mid-request still lets the request complete with `200`, new
+    connections are refused, and `serve` returns `nil`.
+  - `serve` with a request that outlasts the shutdown timeout: `serve`
+    returns an error instead of hanging.
+  - `run` on port `0`: the test sends `SIGTERM` to its own process (which
+    `signal.NotifyContext` catches, so the test binary isn't killed) and
+    checks that `run` returns `nil` within a few seconds. This covers the
+    signal wiring, which the `serve` tests don't.
 - **Lint config hides real problems:** every disabled linter has a comment
   explaining why, and the list is short enough to skim.
 - **The local golangci-lint can't lint Go 1.27:** the one in this environment
@@ -100,4 +116,15 @@ deprecated linters that have a replacement which is also enabled (`wsl` →
 
 ## Close review
 
-None. There's no auth, data, infrastructure, CI or new dependency in this PR.
+There's no auth, data, infrastructure, CI or new dependency in this PR, but
+these parts aren't covered by a check and are harder to change later:
+
+- **The module path** (`go.mod`, and the imports that use it): changing it
+  later means rewriting every import, and once a `v3.x` tag is pushed, the
+  path is effectively fixed. Worth confirming `/v3` now.
+- **The disabled linters** (`.golangci.yml`): no check notices if a linter is
+  disabled without good reason, and code written while a linter is off can
+  pile up findings that make it harder to turn back on.
+
+The rest (routes, timeouts, Makefile targets) is covered by tests or easy to
+change.
