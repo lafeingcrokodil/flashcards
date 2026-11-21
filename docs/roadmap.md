@@ -30,8 +30,8 @@ can each be reviewed comfortably on their own.
 
 ### Before M0 – Development workflow
 
-- [x] Plan features in a draft PR before implementing them, as described in
-      [`AGENTS.md`](../AGENTS.md#plans)
+- [x] Extend `AGENTS.md` to describe a development workflow that includes
+      planning features before they're implemented
 
 ### M0 – Walking skeleton
 

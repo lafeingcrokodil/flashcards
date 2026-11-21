@@ -33,12 +33,12 @@ straight to a PR that's ready for review.
 ### Steps
 
 1. Open a draft PR whose first commit adds the plan as
-   `docs/plans/<date>-<short-description>.md`, and nothing else. `<date>` is
-   the day the plan is written, as `YYYY-MM-DD`, so that plans sort
+   `docs/plans/<time>-<short-description>.md`, and nothing else. `<time>` is
+   when the plan is written, in UTC as `YYYY-MM-DD-HHMM`, so that plans sort
    chronologically, and `<short-description>` is the branch name without its
-   type (`feat/healthz-endpoint` → `2026-11-21-healthz-endpoint.md`). The
-   PR description summarises the plan and links to it, so that the user can
-   comment on individual lines of the plan.
+   type (`feat/healthz-endpoint` → `2026-11-21-1405-healthz-endpoint.md`).
+   The PR description summarises the plan and links to it, so that the user
+   can comment on individual lines of the plan.
 2. Wait for the user to approve the plan in the PR. Revise it in response to
    their comments, without starting the implementation.
 3. Once it's approved, implement it in further commits, then mark the PR as
@@ -57,8 +57,8 @@ Keep it concise, with these sections:
   or "none".
 
 Add whatever else helps to review the plan, such as diagrams (Mermaid) or UI
-mockups. Put images in a directory named like the plan without `.md`
-(`docs/plans/2026-11-21-healthz-endpoint/`).
+mockups. Put supplementary files, such as images, in a directory named like
+the plan without `.md` (`docs/plans/2026-11-21-1405-healthz-endpoint/`).
 
 ### Departing from the plan
 
