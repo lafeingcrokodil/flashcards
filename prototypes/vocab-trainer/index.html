@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Korean Vocab Trainer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@700&family=IBM+Plex+Sans:wght@400;500;600&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* Layout: one narrow column, thumb-friendly. Stats strip → mode tabs → one card on stage. */
+:root {
+  --bg: #f2f4f6;
+  --surface: #ffffff;
+  --ink: #17212b;
+  --muted: #5a6774;
+  --line: #d7dee5;
+  --accent: #0f6e6a;
+  --accent-ink: #ffffff;
+  --accent-soft: #e1f0ee;
+  --hl: #b8452f;
+  --good: #2c7a39;
+  --good-soft: #e3f2e5;
+  --bad: #b13838;
+  --bad-soft: #f8e5e5;
+  --font-display: "Gowun Batang", "Noto Serif KR", Georgia, serif;
+  --font-body: "IBM Plex Sans", "Noto Sans KR", system-ui, -apple-system, sans-serif;
+  --font-ko: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #10161c; --surface: #172029; --ink: #e5ebf0; --muted: #98a6b3; --line: #29353f;
+    --accent: #4fb3aa; --accent-ink: #0b1918; --accent-soft: #1a2e2d; --hl: #e07b62;
+    --good: #6cc27a; --good-soft: #1b2e1f; --bad: #e07474; --bad-soft: #352020; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #10161c; --surface: #172029; --ink: #e5ebf0; --muted: #98a6b3; --line: #29353f;
+  --accent: #4fb3aa; --accent-ink: #0b1918; --accent-soft: #1a2e2d; --hl: #e07b62;
+  --good: #6cc27a; --good-soft: #1b2e1f; --bad: #e07474; --bad-soft: #352020; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--ink); font: 16px/1.55 var(--font-body); }
+.wrap { max-width: 560px; margin: 0 auto; padding: 18px 16px 56px; display: grid; gap: 14px; }
+header h1 { font-family: var(--font-display); font-size: 1.6rem; line-height: 1.2; margin: 0; text-wrap: balance; }
+header h1 span { font-family: var(--font-ko); color: var(--accent); }
+header p { margin: 4px 0 0; color: var(--muted); font-size: .92rem; }
+
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.stat { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; }
+.stat b { display: block; font-size: 1.35rem; font-variant-numeric: tabular-nums; line-height: 1.2; }
+.stat span { font-size: .78rem; color: var(--muted); }
+
+.tabs { display: grid; grid-template-columns: repeat(4, 1fr); background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 4px; gap: 4px; }
+.tab { font: inherit; font-weight: 600; border: 0; border-radius: 7px; padding: 8px 4px; background: transparent; color: var(--muted); cursor: pointer; }
+.tab[aria-selected="true"] { background: var(--accent); color: var(--accent-ink); }
+
+.controls { display: flex; flex-wrap: wrap; gap: 8px 16px; }
+.controls label { font-size: .86rem; color: var(--muted); display: flex; gap: 6px; align-items: center; }
+select, input[type="text"], textarea { font: inherit; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; }
+
+.stage { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px 16px; display: grid; gap: 14px; min-height: 300px; align-content: start; }
+.meta { display: flex; justify-content: space-between; gap: 8px; font-size: .82rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.bar { height: 4px; background: var(--line); border-radius: 2px; overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--accent); }
+.prompt { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; padding: 18px 0 6px; text-align: center; }
+.big-ko { font: 700 2.3rem/1.2 var(--font-ko); }
+.big-en { font-size: 1.45rem; font-weight: 600; }
+.ctx { text-align: center; color: var(--muted); font-size: .92rem; margin: 0; }
+.answer { border-top: 1px solid var(--line); padding-top: 12px; display: grid; gap: 6px; }
+.answer .en { font-size: 1.15rem; font-weight: 600; }
+.ex { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.ex .ko { font-family: var(--font-ko); font-size: 1.05rem; }
+.exen { color: var(--muted); font-size: .9rem; }
+.note { font-size: .88rem; color: var(--muted); }
+.result { border-radius: 10px; padding: 10px 12px; font-weight: 600; }
+.result.ok { background: var(--good-soft); color: var(--good); }
+.result.no { background: var(--bad-soft); color: var(--bad); }
+.result .ko { font-family: var(--font-ko); }
+
+.btn { font: inherit; font-weight: 600; border-radius: 10px; padding: 11px 14px; border: 1px solid var(--accent); background: var(--accent); color: var(--accent-ink); cursor: pointer; }
+.btn.ghost { background: transparent; color: var(--accent); }
+.btn.again { background: var(--bad-soft); color: var(--bad); border-color: var(--bad); }
+.btn.gotit { background: var(--good-soft); color: var(--good); border-color: var(--good); }
+.btn:disabled { opacity: .55; cursor: default; }
+.row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.row.one { grid-template-columns: 1fr; }
+.speak { font: inherit; font-size: .85rem; border: 1px solid var(--line); background: var(--bg); color: var(--ink); border-radius: 999px; padding: 3px 10px; cursor: pointer; }
+.speak[hidden] { display: none; }
+input.ko-in { width: 100%; font: 1.3rem/1.4 var(--font-ko); padding: 10px 12px; text-align: center; }
+textarea { width: 100%; min-height: 90px; font: 1.1rem/1.5 var(--font-ko); resize: vertical; }
+.chip { display: inline-block; font-size: .75rem; font-weight: 600; padding: 2px 8px; border-radius: 999px; }
+.chip.correct { background: var(--good-soft); color: var(--good); }
+.chip.minor { background: var(--accent-soft); color: var(--accent); }
+.chip.wrong { background: var(--bad-soft); color: var(--bad); }
+.history { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.history li { border-top: 1px solid var(--line); padding-top: 8px; display: grid; gap: 2px; font-size: .92rem; }
+.history .ko { font-family: var(--font-ko); }
+h2 { margin: 0; font-size: 1.05rem; }
+h3 { margin: 0; font-size: .78rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.lead { margin: 0; color: var(--muted); }
+#note { margin: 0; font-size: .88rem; color: var(--hl); min-height: 1.2em; }
+footer { color: var(--muted); font-size: .82rem; }
+.plist { display: grid; gap: 8px; }
+.pitem { text-align: left; font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; cursor: pointer; display: grid; gap: 4px; }
+.pitem.done { border-left: 4px solid var(--good); }
+.pitem .t { font-weight: 600; }
+.pitem .t .ko { font-family: var(--font-ko); }
+.pitem .s { font-size: .82rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chip.lvl { border: 1px solid var(--line); color: var(--muted); }
+.chip.foc { background: var(--accent-soft); color: var(--accent); }
+.seg { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; background: var(--bg); border: 1px solid var(--line); border-radius: 9px; padding: 3px; }
+.seg button { font: inherit; font-weight: 600; font-size: .9rem; border: 0; border-radius: 6px; padding: 6px; background: transparent; color: var(--muted); cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,.12); }
+.pline { display: grid; gap: 6px; padding: 8px 0; border-top: 1px solid var(--line); }
+.pline.current { background: var(--accent-soft); margin: 0 -10px; padding: 8px 10px; border-radius: 8px; border-top-color: transparent; }
+.kline { font: 1.12rem/1.9 var(--font-ko); display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 2px; }
+.spkr { font: 700 .85rem var(--font-body); color: var(--accent); margin-right: 6px; }
+.tok { font: inherit; color: inherit; background: none; border: 0; padding: 0 2px; border-radius: 4px; cursor: pointer; border-bottom: 1px dotted var(--muted); }
+.tok:hover, .tok.sel { background: var(--accent-soft); }
+.tok:focus-visible { outline: 2px solid var(--hl); }
+.attempt { font-size: .92rem; display: grid; gap: 3px; }
+.attempt .mine { color: var(--ink); }
+.attempt .ref, .attempt .fb { color: var(--muted); }
+.qblock { display: grid; gap: 6px; }
+.qblock p { margin: 0; font-weight: 500; }
+.opt { text-align: left; font: inherit; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); cursor: pointer; }
+.opt.right { border-color: var(--good); color: var(--good); font-weight: 600; }
+.opt.wrong { border-color: var(--bad); color: var(--bad); text-decoration: line-through; }
+#sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; display: flex; justify-content: center; padding: 0 12px 12px; pointer-events: none; }
+#sheet[hidden] { display: none; }
+#sheet .inner { pointer-events: auto; width: 100%; max-width: 540px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 8px 28px rgba(0,0,0,.22); padding: 14px 16px; display: grid; gap: 8px; }
+#sheet .w { font: 700 1.3rem var(--font-ko); display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+#sheet .d { font-family: var(--font-ko); color: var(--muted); font-size: .95rem; }
+.btn:focus-visible, .tab:focus-visible, .speak:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px solid var(--hl); outline-offset: 2px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Vocab Trainer <span>단어</span></h1>
+    <p>Spaced repetition for drama and idol-content vocabulary. Missed words come back sooner.</p>
+  </header>
+
+  <section class="stats" aria-label="Your progress">
+    <div class="stat"><b id="sDue">–</b><span>due now</span></div>
+    <div class="stat"><b id="sNew">–</b><span>not seen yet</span></div>
+    <div class="stat"><b id="sLearned">–</b><span>learned</span></div>
+  </section>
+
+  <nav class="tabs" role="tablist" aria-label="Practice mode">
+    <button class="tab" role="tab" id="tab-read" data-mode="read" aria-selected="true">Cards</button>
+    <button class="tab" role="tab" id="tab-recall" data-mode="recall" aria-selected="false">Type</button>
+    <button class="tab" role="tab" id="tab-write" data-mode="write" aria-selected="false">Write</button>
+    <button class="tab" role="tab" id="tab-passages" data-mode="passages" aria-selected="false">Read</button>
+  </nav>
+
+  <div class="controls">
+    <label for="packSel">Pack <select id="packSel"><option value="all">All packs</option></select></label>
+    <label for="newSel">New words per session
+      <select id="newSel"><option value="5">5</option><option value="8" selected>8</option><option value="12">12</option></select>
+    </label>
+  </div>
+
+  <section class="stage" id="stage" aria-live="polite"></section>
+  <p id="note" role="status"></p>
+
+  <div id="sheet" hidden><div class="inner" id="sheetInner" role="dialog" aria-label="Word meaning"></div></div>
+
+  <footer>"Learned" means you've got a word right on at least three spaced reviews. Your progress is saved to this page, so your tutor can see which words need work.</footer>
+</div>
+
+<script>
+const INTERVALS = [0, 1, 2, 4, 8, 16, 32];
+const DAY = 86400000;
+const SESSION = 15;
+
+let db = null, tts = null, sample = null;
+let packs = [];
+const words = new Map();
+const prog = new Map();
+let loading = true, loadError = "";
+let recentSentences = [];
+const state = { mode: "read", pack: "all", session: null, writeWord: null, writeResult: null, checking: false };
+
+const ls = {
+  get(k, d) { try { const v = localStorage.getItem("kv:" + k); return v === null ? d : v; } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem("kv:" + k, v); } catch (e) {} }
+};
+
+function h(tag, attrs, ...kids) {
+  const e = document.createElement(tag);
+  if (attrs) for (const [k, v] of Object.entries(attrs)) {
+    if (v === undefined || v === null || v === false) continue;
+    if (k === "class") e.className = v;
+    else if (k.startsWith("on")) e.addEventListener(k.slice(2), v);
+    else if (k === "text") e.textContent = v;
+    else e.setAttribute(k, v === true ? "" : v);
+  }
+  for (const c of kids.flat()) if (c !== null && c !== undefined && c !== false) e.append(c.nodeType ? c : String(c));
+  return e;
+}
+const note = msg => { document.getElementById("note").textContent = msg || ""; };
+const startOfToday = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d.getTime(); };
+const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const norm = s => String(s || "").normalize("NFC").replace(/[\s.,!?~'"“”‘’…·]/g, "");
+
+function speakBtn(text) {
+  const b = h("button", { class: "speak", type: "button", "aria-label": "Hear it", onclick: () => {
+    if (!tts) return;
+    tts.speak(String(text), { language: "ko", rate: 0.9 }).catch(e => {
+      if (e && e.code === "not_granted") { tts = null; render(); }
+      else if (e && e.code === "rate_limited") note("Audio is busy. Try again in a moment.");
+    });
+  } }, "🔊 Hear");
+  b.hidden = !tts;
+  return b;
+}
+
+function poolWords() {
+  return [...words.values()].filter(w => state.pack === "all" || w.pack === state.pack);
+}
+
+function renderStats() {
+  const now = Date.now();
+  const pool = poolWords();
+  let due = 0, fresh = 0, learned = 0;
+  for (const w of pool) {
+    const p = prog.get(w.id);
+    if (!p) fresh++;
+    else { if (p.due <= now) due++; if (p.box >= 3) learned++; }
+  }
+  document.getElementById("sDue").textContent = loading ? "–" : due;
+  document.getElementById("sNew").textContent = loading ? "–" : fresh;
+  document.getElementById("sLearned").textContent = loading ? "–" : `${learned}/${pool.length}`;
+}
+
+function renderPackSel() {
+  const sel = document.getElementById("packSel");
+  const cur = state.pack;
+  sel.replaceChildren(h("option", { value: "all" }, "All packs"), ...packs.map(p => h("option", { value: p.id }, `${p.title} (${p.words.length})`)));
+  if (cur === "all" || packs.some(p => p.id === cur)) sel.value = cur; else { state.pack = "all"; sel.value = "all"; }
+}
+
+function buildSession(mode, extra) {
+  const now = Date.now();
+  const pool = poolWords();
+  const seen = pool.filter(w => prog.get(w.id));
+  const due = seen.filter(w => prog.get(w.id).due <= now).sort((a, b) => prog.get(a.id).due - prog.get(b.id).due);
+  let q = [];
+  if (extra) {
+    q = seen.slice().sort((a, b) => (prog.get(a.id).box - prog.get(b.id).box) || (prog.get(b.id).wrong - prog.get(a.id).wrong)).slice(0, SESSION);
+  } else if (mode === "read") {
+    const nNew = parseInt(document.getElementById("newSel").value, 10) || 8;
+    q = due.slice(0, SESSION);
+    const fresh = pool.filter(w => !prog.get(w.id));
+    q = q.concat(fresh.slice(0, Math.max(0, Math.min(nNew, SESSION - q.length))));
+  } else {
+    q = due.slice(0, SESSION);
+  }
+  if (!q.length) return null;
+  return { mode, queue: shuffle(q.map(w => w.id)), i: 0, revealed: false, right: 0, wrong: 0, requeued: new Set(), typed: "", checked: null, hint: false };
+}
+
+const pending = new Map();
+function grade(id, ok) {
+  const p = prog.get(id) || { box: 0, right: 0, wrong: 0 };
+  const box = ok ? Math.min((p.box || 0) + 1, 6) : 0;
+  const next = {
+    box,
+    due: ok ? startOfToday() + INTERVALS[box] * DAY : Date.now(),
+    right: (p.right || 0) + (ok ? 1 : 0),
+    wrong: (p.wrong || 0) + (ok ? 0 : 1),
+    last: Date.now(),
+    lastMode: state.session ? state.session.mode : "read"
+  };
+  prog.set(id, next);
+  if (!db) return;
+  const prev = pending.get(id) || Promise.resolve();
+  const job = prev.then(() => db.doc("progress/" + id).set(next)).catch(e => {
+    note(e && e.code === "quota_exceeded" ? "Storage is full, so this answer wasn't saved." : "Couldn't save that answer. Check your connection.");
+  });
+  pending.set(id, job);
+}
+
+function advance(ok) {
+  const s = state.session;
+  const id = s.queue[s.i];
+  grade(id, ok);
+  if (ok) s.right++; else { s.wrong++; if (!s.requeued.has(id)) { s.requeued.add(id); s.queue.push(id); } }
+  s.i++; s.revealed = false; s.typed = ""; s.checked = null; s.hint = false;
+  render();
+}
+
+function sessionHeader(s) {
+  const w = words.get(s.queue[s.i]);
+  const pack = packs.find(p => p.id === w.pack);
+  return [
+    h("div", { class: "meta" }, h("span", null, `${s.i + 1} / ${s.queue.length}`), h("span", null, pack ? pack.title : "")),
+    h("div", { class: "bar" }, h("i", { style: `width:${Math.round(100 * s.i / s.queue.length)}%` }))
+  ];
+}
+
+function answerBlock(w) {
+  return h("div", { class: "answer" },
+    h("div", { class: "en" }, w.en),
+    w.ex ? h("div", { class: "ex" }, h("span", { class: "ko", lang: "ko" }, w.ex), speakBtn(w.ex)) : null,
+    w.exEn ? h("div", { class: "exen" }, w.exEn) : null,
+    w.note ? h("div", { class: "note" }, w.note) : null
+  );
+}
+
+function renderRead(stage, s) {
+  const w = words.get(s.queue[s.i]);
+  stage.append(...sessionHeader(s),
+    h("div", { class: "prompt" }, h("span", { class: "big-ko", lang: "ko" }, w.ko), speakBtn(w.ko)));
+  if (!s.revealed) {
+    stage.append(h("div", { class: "row one" }, h("button", { class: "btn", type: "button", onclick: () => { s.revealed = true; render(); } }, "Show meaning")));
+  } else {
+    stage.append(answerBlock(w),
+      h("div", { class: "row" },
+        h("button", { class: "btn again", type: "button", onclick: () => advance(false) }, "Didn't know"),
+        h("button", { class: "btn gotit", type: "button", onclick: () => advance(true) }, "Knew it")));
+  }
+}
+
+function renderRecall(stage, s) {
+  const w = words.get(s.queue[s.i]);
+  stage.append(...sessionHeader(s),
+    h("div", { class: "prompt" }, h("span", { class: "big-en" }, w.en)),
+    w.exEn ? h("p", { class: "ctx" }, `as in “${w.exEn}”`) : null);
+  if (s.checked === null) {
+    const input = h("input", { type: "text", class: "ko-in", id: "recallIn", lang: "ko", autocomplete: "off", autocapitalize: "off", spellcheck: "false", "aria-label": "Type the Korean word", placeholder: /다$/.test(w.ko) && w.ko.length > 1 ? "Dictionary form (…다)" : "Type the Korean" });
+    input.value = s.typed;
+    input.addEventListener("input", e => { s.typed = e.target.value; });
+    const check = () => {
+      const ok = norm(s.typed) === norm(w.ko) || (w.alt || []).some(a => norm(a) === norm(s.typed));
+      s.checked = ok; render();
+    };
+    input.addEventListener("keydown", e => { if (e.key === "Enter" && !e.isComposing) check(); });
+    stage.append(input,
+      s.hint ? h("p", { class: "ctx" }, `Starts with ${[...w.ko][0]}…`) : null,
+      h("div", { class: "row" },
+        h("button", { class: "btn ghost", type: "button", onclick: () => { s.hint = true; render(); } }, "Hint"),
+        h("button", { class: "btn", type: "button", onclick: check }, "Check")),
+      h("div", { class: "row one" }, h("button", { class: "btn ghost", type: "button", onclick: () => { s.checked = false; s.typed = s.typed || ""; render(); } }, "I don't know")));
+    setTimeout(() => { const el = document.getElementById("recallIn"); if (el) el.focus(); }, 0);
+  } else {
+    const ok = s.checked;
+    stage.append(
+      h("div", { class: "result " + (ok ? "ok" : "no") },
+        ok ? "Correct: " : (s.typed ? "Not quite. Answer: " : "Answer: "),
+        h("span", { class: "ko", lang: "ko" }, w.ko), " ", speakBtn(w.ko)),
+      (!ok && s.typed) ? h("p", { class: "ctx" }, h("span", null, "You wrote: "), h("span", { lang: "ko" }, s.typed)) : null,
+      answerBlock(w),
+      ok ? h("div", { class: "row one" }, h("button", { class: "btn gotit", type: "button", onclick: () => advance(true) }, "Next"))
+         : h("div", { class: "row" },
+             h("button", { class: "btn ghost", type: "button", onclick: () => advance(true) }, "I was right"),
+             h("button", { class: "btn again", type: "button", onclick: () => advance(false) }, "Next")));
+  }
+}
+
+function renderSummary(stage, s) {
+  stage.append(
+    h("h2", null, "Session done"),
+    h("p", { class: "lead" }, `${s.right} right, ${s.wrong} missed. Missed words come back in your next session.`),
+    h("div", { class: "row" },
+      h("button", { class: "btn ghost", type: "button", onclick: () => { state.session = null; render(); } }, "Back"),
+      h("button", { class: "btn", type: "button", onclick: () => startSession(false) }, "Another round")));
+}
+
+function startSession(extra) {
+  const s = buildSession(state.mode, extra);
+  state.session = s;
+  if (!s) note(state.mode === "recall" ? "Nothing to recall yet. Learn some words in Read first." : "Nothing due right now.");
+  else note("");
+  render();
+}
+
+function renderStart(stage) {
+  const now = Date.now();
+  const pool = poolWords();
+  const due = pool.filter(w => { const p = prog.get(w.id); return p && p.due <= now; }).length;
+  const seen = pool.filter(w => prog.get(w.id)).length;
+  const fresh = pool.length - seen;
+  if (state.mode === "read") {
+    const nNew = Math.min(parseInt(document.getElementById("newSel").value, 10) || 8, fresh);
+    const total = Math.min(SESSION, due + nNew);
+    stage.append(h("h2", null, "Read: Korean → English"),
+      h("p", { class: "lead" }, "See the Korean, think of the meaning, then check. Be honest with yourself."),
+      h("p", { class: "lead" }, total ? `${total} cards ready: ${Math.min(due, SESSION)} reviews, ${Math.max(0, total - Math.min(due, SESSION))} new.` : "You're all caught up."));
+    stage.append(h("div", { class: total ? "row one" : "row" },
+      total ? h("button", { class: "btn", type: "button", onclick: () => startSession(false) }, "Start") : null,
+      !total && seen ? h("button", { class: "btn ghost", type: "button", onclick: () => startSession(true) }, "Extra practice") : null));
+  } else {
+    const total = Math.min(SESSION, due);
+    stage.append(h("h2", null, "Recall: English → Korean"),
+      h("p", { class: "lead" }, "Type the Korean word. This trains spelling and active recall, so it's harder than Read."),
+      h("p", { class: "lead" }, !seen ? "Learn some words in Read first." : total ? `${total} words due.` : "Nothing due. Extra practice uses your weakest words."));
+    if (seen) stage.append(h("div", { class: "row one" },
+      total ? h("button", { class: "btn", type: "button", onclick: () => startSession(false) }, "Start")
+            : h("button", { class: "btn ghost", type: "button", onclick: () => startSession(true) }, "Extra practice")));
+  }
+}
+
+function pickWriteWord() {
+  const seen = poolWords().filter(w => prog.get(w.id));
+  if (!seen.length) return null;
+  const weighted = seen.filter(w => prog.get(w.id).box <= 3);
+  const from = weighted.length ? weighted : seen;
+  let w = from[Math.floor(Math.random() * from.length)];
+  if (state.writeWord && from.length > 1 && w.id === state.writeWord) w = from[(from.indexOf(w) + 1) % from.length];
+  return w.id;
+}
+
+async function checkSentence(w, text) {
+  state.checking = true; state.writeResult = null; render();
+  let result = null;
+  if (sample) {
+    const prompt = `You are a friendly Korean tutor. The learner is around CEFR A2 / TOPIK 2 and mostly practises casual speech (반말) and polite 해요체 for watching dramas and K-pop content.
+
+Target word: ${w.ko} (${w.en})
+Learner's sentence: ${text}
+
+Judge whether the sentence is grammatical, natural, and uses the target word (any conjugated form) correctly. Ignore a missing final full stop. Reply with only JSON:
+{"verdict": "correct" | "minor" | "wrong", "corrected": "<the most natural corrected Korean sentence; same as the original if correct>", "explanation": "<English, at most 2 short sentences: the single most important fix, or if correct, one thing done well or a more natural alternative>"}`;
+    try {
+      const r = await sample.json(prompt, { cache: false });
+      if (r && typeof r === "object" && typeof r.verdict === "string") {
+        result = { verdict: ["correct", "minor", "wrong"].includes(r.verdict) ? r.verdict : "minor", corrected: String(r.corrected || ""), explanation: String(r.explanation || "") };
+      } else throw { code: "invalid_json" };
+    } catch (e) {
+      if (e && (e.code === "not_granted" || e.code === "sampling_disabled" || e.code === "not_declared" || e.code === "capability_disabled" || e.code === "capability_removed")) sample = null;
+      note(e && e.code === "rate_limited" ? "Too many checks in a row. Wait a bit, then try again." : "Couldn't get feedback this time. Your sentence is saved for your tutor to review.");
+    }
+  }
+  state.checking = false;
+  state.writeResult = result || { verdict: "", corrected: "", explanation: sample ? "" : "Saved. Ask your tutor in chat to review your sentences." };
+  if (db) {
+    try {
+      await db.collection("sentences").add({ wordId: w.id, word: w.ko, text, verdict: result ? result.verdict : null, corrected: result ? result.corrected : null, explanation: result ? result.explanation : null, ts: Date.now() });
+    } catch (e) { note("Couldn't save the sentence. Check your connection."); }
+  }
+  render();
+}
+
+function renderWrite(stage) {
+  if (!state.writeWord || !words.get(state.writeWord)) state.writeWord = pickWriteWord();
+  const w = state.writeWord && words.get(state.writeWord);
+  stage.append(h("h2", null, "Write a sentence"));
+  if (!w) { stage.append(h("p", { class: "lead" }, "Learn some words in Read first, then come back to use them in sentences.")); return; }
+  stage.append(
+    h("p", { class: "lead" }, sample ? "Write one sentence using this word, in any form. Claude will correct it." : "Write one sentence using this word. It's saved for your tutor to review."),
+    h("div", { class: "prompt" }, h("span", { class: "big-ko", lang: "ko" }, w.ko), speakBtn(w.ko)),
+    h("p", { class: "ctx" }, w.en));
+  const ta = h("textarea", { id: "writeIn", lang: "ko", placeholder: "한국어로 문장을 써 보세요", "aria-label": "Your sentence" });
+  ta.value = state.writeDraft || "";
+  ta.addEventListener("input", e => { state.writeDraft = e.target.value; });
+  stage.append(ta,
+    h("div", { class: "row" },
+      h("button", { class: "btn ghost", type: "button", disabled: state.checking, onclick: () => { state.writeWord = pickWriteWord(); state.writeDraft = ""; state.writeResult = null; render(); } }, "Different word"),
+      h("button", { class: "btn", type: "button", disabled: state.checking, onclick: () => { const t = (state.writeDraft || "").trim(); if (!t) { note("Write a sentence first."); return; } note(""); checkSentence(w, t); } }, state.checking ? "Checking…" : (sample ? "Check" : "Save"))));
+  const r = state.writeResult;
+  if (r) {
+    const label = { correct: "Correct", minor: "Small fix", wrong: "Needs work" }[r.verdict];
+    stage.append(h("div", { class: "answer" },
+      label ? h("div", null, h("span", { class: "chip " + r.verdict }, label)) : null,
+      r.corrected && r.verdict !== "correct" ? h("div", { class: "ex" }, h("span", { class: "ko", lang: "ko" }, r.corrected), speakBtn(r.corrected)) : null,
+      r.explanation ? h("div", { class: "exen" }, r.explanation) : null,
+      h("div", { class: "row one" }, h("button", { class: "btn ghost", type: "button", onclick: () => { state.writeWord = pickWriteWord(); state.writeDraft = ""; state.writeResult = null; render(); } }, "Next word"))));
+  }
+  if (recentSentences.length) {
+    stage.append(h("h3", null, "Recent sentences"),
+      h("ul", { class: "history" }, ...recentSentences.map(d => h("li", null,
+        h("span", { class: "ko", lang: "ko" }, String(d.text || "")),
+        d.corrected && d.verdict !== "correct" ? h("span", { class: "ko exen", lang: "ko" }, "→ " + String(d.corrected)) : null))));
+  }
+}
+
+/* ---------- Reading passages ---------- */
+let passages = [];
+const translations = new Map();
+const quizzes = new Map();
+Object.assign(state, { passage: null, pView: "translate", retry: new Set(), trDraft: "", trChecking: false, popup: null });
+
+const trKey = (pid, i) => `${pid}__${i}`;
+const curPassage = () => passages.find(p => p.id === state.passage) || null;
+
+function passageStatus(p) {
+  const n = p.lines.filter((_, i) => translations.has(trKey(p.id, i))).length;
+  const q = quizzes.get(p.id);
+  const parts = [`Translated ${n}/${p.lines.length}`];
+  if (p.qs.length) parts.push(q ? `Questions ${q.score}/${p.qs.length}` : "Questions not tried");
+  return { text: parts.join(" · "), done: n === p.lines.length || (q && Object.keys(q.answers || {}).length === p.qs.length) };
+}
+
+function renderPassageList(stage) {
+  stage.append(h("h2", null, "Reading practice"),
+    h("p", { class: "lead" }, "Short dialogues and texts at your level. Translate them line by line, or answer questions. Tap any word you don't know."));
+  if (!passages.length) { stage.append(h("p", { class: "lead" }, "No passages yet. Ask your tutor in chat to add some.")); return; }
+  stage.append(h("div", { class: "plist" }, ...passages.map(p => {
+    const st = passageStatus(p);
+    return h("button", { class: "pitem" + (st.done ? " done" : ""), type: "button", onclick: () => { state.passage = p.id; state.pView = "translate"; state.retry = new Set(); state.trDraft = ""; render(); window.scrollTo(0, 0); } },
+      h("span", { class: "t" }, h("span", { class: "ko", lang: "ko" }, p.title), p.titleEn ? ` · ${p.titleEn}` : ""),
+      h("span", { class: "chips" }, h("span", { class: "chip lvl" }, p.level), ...p.focus.map(f => h("span", { class: "chip foc" }, f))),
+      h("span", { class: "s" }, st.text));
+  })));
+}
+
+function tokenLine(p, i) {
+  const line = p.lines[i];
+  const parts = String(line.ko).split(/(\s+)/);
+  return h("div", { class: "kline", lang: "ko" },
+    line.spk ? h("span", { class: "spkr" }, line.spk) : null,
+    ...parts.map(part => /^\s+$/.test(part) || !part ? " " :
+      h("button", { class: "tok", type: "button", onclick: () => openWord(p, i, part) }, part)),
+    " ", speakBtn(line.ko));
+}
+
+function currentLine(p) {
+  for (let i = 0; i < p.lines.length; i++) if (!translations.has(trKey(p.id, i)) || state.retry.has(i)) return i;
+  return -1;
+}
+
+async function checkTranslation(p, i, text, skipped) {
+  const line = p.lines[i];
+  state.trChecking = true; render();
+  let verdict = skipped ? "skipped" : null, feedback = "";
+  if (!skipped && sample) {
+    const before = p.lines.slice(Math.max(0, i - 2), i).map(l => (l.spk ? l.spk + ": " : "") + l.ko).join("\n");
+    const prompt = `You are a friendly Korean tutor checking a reading exercise. The learner is around CEFR A2 / TOPIK 2.
+
+Previous lines for context:
+${before || "(none)"}
+
+Korean line: ${line.ko}
+Reference translation: ${line.en}
+Learner's English translation: ${text}
+
+Judge only whether the learner understood the Korean correctly, not their English style. Small wording differences are fine. Reply with only JSON:
+{"verdict": "correct" | "close" | "wrong", "feedback": "<English, at most 2 short sentences. If not correct, name the exact Korean word or grammar ending they misread and what it really means. If correct, confirm briefly or note one nuance.>"}`;
+    try {
+      const r = await sample.json(prompt, { cache: false });
+      if (r && typeof r.verdict === "string") { verdict = ["correct", "close", "wrong"].includes(r.verdict) ? r.verdict : "close"; feedback = String(r.feedback || ""); }
+      else throw { code: "invalid_json" };
+    } catch (e) {
+      if (e && ["not_granted", "sampling_disabled", "not_declared", "capability_disabled", "capability_removed"].includes(e.code)) sample = null;
+      note(e && e.code === "rate_limited" ? "Too many checks in a row. Wait a bit, then try again." : "Couldn't get feedback this time. Compare with the reference below.");
+    }
+  }
+  const prev = translations.get(trKey(p.id, i));
+  const history = (prev && Array.isArray(prev.history) ? prev.history.slice(-4) : []);
+  if (prev && prev.attempt) history.push({ attempt: prev.attempt, verdict: prev.verdict || null });
+  const doc = { passageId: p.id, line: i, ko: line.ko, attempt: skipped ? "" : text, verdict, feedback, history, ts: Date.now() };
+  translations.set(trKey(p.id, i), doc);
+  state.retry.delete(i); state.trDraft = ""; state.trChecking = false;
+  render();
+  if (db) {
+    try { await db.doc("translations/" + trKey(p.id, i)).set(doc); }
+    catch (e) { note("Couldn't save your translation. Check your connection."); }
+  }
+}
+
+function attemptBlock(p, i) {
+  const t = translations.get(trKey(p.id, i));
+  const line = p.lines[i];
+  const label = { correct: "Correct", close: "Almost", wrong: "Misread", skipped: "Skipped" }[t.verdict];
+  const cls = { correct: "correct", close: "minor", wrong: "wrong", skipped: "minor" }[t.verdict];
+  return h("div", { class: "attempt" },
+    label ? h("div", null, h("span", { class: "chip " + cls }, label)) : null,
+    t.attempt ? h("div", { class: "mine" }, "You: " + t.attempt) : null,
+    t.feedback ? h("div", { class: "fb" }, t.feedback) : null,
+    h("div", { class: "ref" }, "Reference: " + line.en),
+    h("div", null, h("button", { class: "speak", type: "button", onclick: () => { state.retry.add(i); state.trDraft = ""; render(); } }, "Try again")));
+}
+
+const pendingQuiz = new Map();
+function saveQuiz(pid, data) {
+  quizzes.set(pid, data);
+  if (!db) return;
+  const prev = pendingQuiz.get(pid) || Promise.resolve();
+  const job = prev.then(() => db.doc("quiz/" + pid).set(data)).catch(() => note("Couldn't save your answer. Check your connection."));
+  pendingQuiz.set(pid, job);
+}
+
+function renderPassage(stage, p) {
+  stage.append(
+    h("div", { class: "meta" },
+      h("button", { class: "speak", type: "button", onclick: () => { state.passage = null; closeWord(); render(); } }, "← All passages"),
+      h("span", null, p.level)),
+    h("h2", null, h("span", { lang: "ko", style: "font-family:var(--font-ko)" }, p.title), p.titleEn ? ` · ${p.titleEn}` : ""),
+    p.intro ? h("p", { class: "lead" }, p.intro) : null,
+    h("div", { class: "seg", role: "group", "aria-label": "Exercise" },
+      h("button", { type: "button", "aria-pressed": String(state.pView === "translate"), onclick: () => { state.pView = "translate"; render(); } }, "Translate"),
+      h("button", { type: "button", "aria-pressed": String(state.pView === "questions"), onclick: () => { state.pView = "questions"; render(); } }, `Questions (${p.qs.length})`)),
+    h("p", { class: "ctx" }, "Tap a word to see its meaning."));
+
+  if (state.pView === "translate") {
+    const cur = currentLine(p);
+    p.lines.forEach((_, i) => {
+      const block = h("div", { class: "pline" + (i === cur ? " current" : "") }, tokenLine(p, i));
+      if (i === cur) {
+        const ta = h("textarea", { id: "trIn", placeholder: "Your English translation", "aria-label": `Translate line ${i + 1}`, style: "min-height:64px;font-family:var(--font-body);font-size:1rem" });
+        ta.value = state.trDraft;
+        ta.addEventListener("input", e => { state.trDraft = e.target.value; });
+        block.append(ta, h("div", { class: "row" },
+          h("button", { class: "btn ghost", type: "button", disabled: state.trChecking, onclick: () => checkTranslation(p, i, "", true) }, "Show answer"),
+          h("button", { class: "btn", type: "button", disabled: state.trChecking, onclick: () => { const t = state.trDraft.trim(); if (!t) { note("Write your translation first."); return; } note(""); checkTranslation(p, i, t, false); } }, state.trChecking ? "Checking…" : "Check")));
+      } else if (translations.has(trKey(p.id, i)) && !state.retry.has(i)) {
+        block.append(attemptBlock(p, i));
+      }
+      stage.append(block);
+    });
+    if (cur === -1) stage.append(h("p", { class: "lead" }, "Passage done. Try the questions, or go back for another passage."));
+  } else {
+    p.lines.forEach((_, i) => stage.append(h("div", { class: "pline" }, tokenLine(p, i))));
+    const q = quizzes.get(p.id) || { answers: {}, score: 0 };
+    p.qs.forEach((qq, qi) => {
+      const chosen = q.answers[qi];
+      stage.append(h("div", { class: "qblock" },
+        h("p", null, `${qi + 1}. ${qq.q}`),
+        ...qq.opts.map((o, oi) => {
+          const answered = chosen !== undefined;
+          const cls = "opt" + (answered && oi === qq.a ? " right" : "") + (answered && oi === chosen && oi !== qq.a ? " wrong" : "");
+          return h("button", { class: cls, type: "button", disabled: answered, onclick: () => {
+            const answers = Object.assign({}, q.answers, { [qi]: oi });
+            const score = Object.entries(answers).filter(([k, v]) => p.qs[k] && p.qs[k].a === v).length;
+            saveQuiz(p.id, { answers, score, total: p.qs.length, ts: Date.now() });
+            render();
+          } }, o);
+        })));
+    });
+    if (Object.keys(q.answers).length) stage.append(h("button", { class: "btn ghost", type: "button", onclick: () => { saveQuiz(p.id, { answers: {}, score: 0, total: p.qs.length, ts: Date.now() }); render(); } }, "Reset questions"));
+  }
+}
+
+function renderPassages(stage) {
+  const p = curPassage();
+  if (p) renderPassage(stage, p); else renderPassageList(stage);
+}
+
+/* Word lookup sheet */
+function closeWord() { state.popup = null; renderSheet(); }
+async function openWord(p, i, token) {
+  const key = norm(token);
+  const g = p.gloss && p.gloss[key];
+  const line = p.lines[i];
+  state.popup = { token: token.replace(/[.,!?~…"“”]+$/g, ""), line, gloss: g || null, loading: !g && !!sample, err: "" };
+  renderSheet();
+  if (g || !sample) return;
+  const pop = state.popup;
+  try {
+    const r = await sample.json(`A Korean learner (A2) tapped a word in this sentence.
+Sentence: ${line.ko}
+Word as written: ${token}
+Reply with only JSON: {"d": "<dictionary form of the word, e.g. 먹다 or 친구>", "en": "<short English meaning in this context>", "n": "<if a grammar ending or particle is attached, explain it in a few English words, e.g. '-거든: giving a reason'; else empty string>"}`, { modelTier: "quick" });
+    if (state.popup !== pop) return;
+    pop.gloss = { d: String(r.d || ""), en: String(r.en || ""), n: String(r.n || "") };
+  } catch (e) {
+    if (state.popup !== pop) return;
+    pop.err = "Couldn't look this word up right now.";
+  }
+  pop.loading = false;
+  renderSheet();
+}
+
+let savedChain = Promise.resolve();
+function saveWord(ko, en, ex, exEn) {
+  if (!db) { note("Can't save words right now."); return; }
+  savedChain = savedChain.then(async () => {
+    const ref = db.doc("packs/p9-saved");
+    const snap = await ref.get();
+    const cur = snap.exists ? (snap.data() || {}) : {};
+    const list = Array.isArray(cur.words) ? cur.words.slice() : [];
+    if (list.some(w => norm(w.ko) === norm(ko))) return;
+    list.push({ id: "s" + Date.now().toString(36), ko, en, ex, exEn });
+    await ref.set({ title: "My saved words", order: 9, words: list });
+  }).catch(e => note(e && e.code === "quota_exceeded" ? "Storage is full, so the word wasn't saved." : "Couldn't save the word. Check your connection."));
+  return savedChain;
+}
+
+function renderSheet() {
+  const sheet = document.getElementById("sheet");
+  const inner = document.getElementById("sheetInner");
+  const pop = state.popup;
+  document.querySelectorAll(".tok.sel").forEach(t => t.classList.remove("sel"));
+  if (!pop) { sheet.hidden = true; inner.replaceChildren(); return; }
+  sheet.hidden = false;
+  const g = pop.gloss;
+  const dict = g && g.d ? g.d : pop.token;
+  const known = [...words.values()].some(w => norm(w.ko) === norm(dict));
+  inner.replaceChildren(
+    h("div", { class: "w" }, h("span", { lang: "ko" }, pop.token), speakBtn(dict)),
+    pop.loading ? h("div", { class: "lead" }, "Looking it up…") : null,
+    pop.err ? h("div", { class: "lead" }, pop.err) : null,
+    !pop.loading && !g && !pop.err ? h("div", { class: "lead" }, "No note for this word yet. Check the line's translation.") : null,
+    g && g.d && norm(g.d) !== norm(pop.token) ? h("div", { class: "d", lang: "ko" }, "Dictionary form: " + g.d) : null,
+    g && g.en ? h("div", { class: "en", style: "font-weight:600" }, g.en) : null,
+    g && g.n ? h("div", { class: "note" }, g.n) : null,
+    h("div", { class: "row" },
+      h("button", { class: "btn ghost", type: "button", onclick: closeWord }, "Close"),
+      g && g.en ? h("button", { class: "btn", type: "button", disabled: known, onclick: async e => {
+        e.target.disabled = true; e.target.textContent = "Saving…";
+        await saveWord(dict, g.en, pop.line.ko, pop.line.en);
+        e.target.textContent = "Added ✓";
+      } }, known ? "In your cards" : "Add to cards") : h("span")));
+}
+document.addEventListener("keydown", e => { if (e.key === "Escape" && state.popup) closeWord(); });
+
+function render() {
+  renderStats();
+  document.querySelectorAll(".tab").forEach(t => t.setAttribute("aria-selected", String(t.dataset.mode === state.mode)));
+  document.querySelector(".controls").style.display = state.mode === "passages" ? "none" : "";
+  const stage = document.getElementById("stage");
+  stage.replaceChildren();
+  if (loading) { stage.append(h("p", { class: "lead" }, "Loading your words…")); return; }
+  if (loadError) { stage.append(h("p", { class: "lead" }, loadError)); return; }
+  if (state.mode === "passages") { renderPassages(stage); return; }
+  if (!words.size) { stage.append(h("p", { class: "lead" }, "No words yet. Ask your tutor in chat to add a pack.")); return; }
+  if (state.mode === "write") { renderWrite(stage); return; }
+  const s = state.session;
+  if (s && s.mode === state.mode) {
+    if (s.i >= s.queue.length) renderSummary(stage, s);
+    else if (s.mode === "read") renderRead(stage, s);
+    else renderRecall(stage, s);
+  } else renderStart(stage);
+}
+
+document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => {
+  state.mode = t.dataset.mode; ls.set("mode", state.mode); note(""); closeWord(); render();
+}));
+const packSel = document.getElementById("packSel");
+packSel.addEventListener("change", () => { state.pack = packSel.value; ls.set("pack", state.pack); state.session = null; state.writeWord = null; render(); });
+const newSel = document.getElementById("newSel");
+newSel.value = ls.get("new", "8");
+newSel.addEventListener("change", () => { ls.set("new", newSel.value); render(); });
+state.mode = ["read", "recall", "write", "passages"].includes(ls.get("mode", "read")) ? ls.get("mode", "read") : "read";
+state.pack = ls.get("pack", "all");
+render();
+
+(async () => {
+  const c = window.claude;
+  if (!c || typeof c.use !== "function") {
+    loading = false; loadError = "Open this page in Claude (the app or claude.ai) to load your words."; render(); return;
+  }
+  c.use("tts").then(t => { tts = t; render(); }).catch(() => {});
+  c.use("sample").then(s => { sample = s; render(); }).catch(() => {});
+  db = await c.use("db").catch(() => null);
+  if (!db) { loading = false; loadError = "Couldn't reach your word list. Make sure you're signed in, then reopen the page."; render(); return; }
+
+  let gotPacks = false, gotProg = false;
+  const timer = setTimeout(() => {
+    if (loading) { loading = false; loadError = "Your words can't be reached yet. Check your connection; the page will update when they load."; render(); }
+  }, 10000);
+  const done = () => { if (gotPacks && gotProg) { clearTimeout(timer); loading = false; loadError = ""; render(); } };
+
+  db.collection("packs").onSnapshot(snap => {
+    packs = snap.docs.filter(d => d.exists).map(d => {
+      const v = d.data() || {};
+      return { id: d.id, title: String(v.title || d.id), order: Number(v.order) || 0, words: Array.isArray(v.words) ? v.words : [] };
+    }).sort((a, b) => a.order - b.order);
+    words.clear();
+    for (const p of packs) for (const w of p.words) {
+      if (w && w.id && w.ko) words.set(String(w.id), { id: String(w.id), ko: String(w.ko), en: String(w.en || ""), ex: w.ex ? String(w.ex) : "", exEn: w.exEn ? String(w.exEn) : "", note: w.note ? String(w.note) : "", alt: Array.isArray(w.alt) ? w.alt.map(String) : [], pack: p.id });
+    }
+    renderPackSel();
+    if (!snap.metadata.fromCache) { gotPacks = true; done(); } else render();
+  }, () => { gotPacks = true; done(); });
+
+  db.collection("progress").onSnapshot(snap => {
+    prog.clear();
+    for (const d of snap.docs) {
+      if (!d.exists) continue;
+      const v = d.data() || {};
+      prog.set(d.id, { box: Number(v.box) || 0, due: Number(v.due) || 0, right: Number(v.right) || 0, wrong: Number(v.wrong) || 0, last: Number(v.last) || 0 });
+    }
+    if (!snap.metadata.fromCache) { gotProg = true; done(); } else render();
+  }, () => { gotProg = true; done(); });
+
+  db.collection("passages").onSnapshot(snap => {
+    passages = snap.docs.filter(d => d.exists).map(d => {
+      const v = d.data() || {};
+      return {
+        id: d.id, title: String(v.title || d.id), titleEn: v.titleEn ? String(v.titleEn) : "", level: String(v.level || ""), order: Number(v.order) || 0,
+        intro: v.intro ? String(v.intro) : "",
+        focus: Array.isArray(v.focus) ? v.focus.map(String) : [],
+        lines: Array.isArray(v.lines) ? v.lines.filter(l => l && l.ko).map(l => ({ spk: l.spk ? String(l.spk) : "", ko: String(l.ko), en: String(l.en || "") })) : [],
+        qs: Array.isArray(v.qs) ? v.qs.filter(q => q && Array.isArray(q.opts)).map(q => ({ q: String(q.q || ""), opts: q.opts.map(String), a: Number(q.a) })) : [],
+        gloss: v.gloss && typeof v.gloss === "object" ? v.gloss : {}
+      };
+    }).sort((a, b) => a.order - b.order);
+    if (state.mode === "passages") render();
+  }, () => {});
+
+  db.collection("translations").onSnapshot(snap => {
+    for (const d of snap.docs) if (d.exists) translations.set(d.id, d.data() || {});
+    if (state.mode === "passages" && !state.trChecking && !document.activeElement?.matches?.("textarea")) render();
+  }, () => {});
+
+  db.collection("quiz").onSnapshot(snap => {
+    for (const d of snap.docs) if (d.exists) { const v = d.data() || {}; quizzes.set(d.id, { answers: v.answers && typeof v.answers === "object" ? v.answers : {}, score: Number(v.score) || 0 }); }
+    if (state.mode === "passages" && !document.activeElement?.matches?.("textarea")) render();
+  }, () => {});
+
+  db.collection("sentences").orderBy("ts", "desc").limit(5).onSnapshot(snap => {
+    recentSentences = snap.docs.filter(d => d.exists).map(d => d.data() || {});
+    if (state.mode === "write") render();
+  }, () => {});
+})();
+</script>
+</body>
+</html>
