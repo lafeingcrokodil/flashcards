@@ -34,8 +34,7 @@ const (
 var errInvalidPort = errors.New("invalid port")
 
 func main() {
-	err := run(context.Background(), os.Getenv, os.Stderr)
-	if err != nil {
+	if err := run(context.Background(), os.Getenv, os.Stderr); err != nil {
 		slog.New(slog.NewJSONHandler(os.Stderr, nil)).Error("exiting", "error", err)
 		os.Exit(1)
 	}
@@ -63,8 +62,7 @@ func run(ctx context.Context, getenv func(string) string, stderr io.Writer) erro
 
 	logger.InfoContext(ctx, "listening", "address", listener.Addr().String())
 
-	err = serve(ctx, listener, server.New(), shutdownTimeout)
-	if err != nil {
+	if err := serve(ctx, listener, server.New(), shutdownTimeout); err != nil {
 		return err
 	}
 
@@ -111,8 +109,7 @@ func serve(ctx context.Context, listener net.Listener, handler http.Handler, tim
 	shutdownCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), timeout)
 	defer cancel()
 
-	err := srv.Shutdown(shutdownCtx)
-	if err != nil {
+	if err := srv.Shutdown(shutdownCtx); err != nil {
 		// Close the connections that are still open, so that their requests
 		// don't keep running after serve returns.
 		closeErr := srv.Close()

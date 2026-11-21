@@ -36,8 +36,9 @@ can each be reviewed comfortably on their own.
 ### M0 – Walking skeleton
 
 - [x] Go module, `/health` endpoint, test, Makefile
-- [ ] GitHub Actions CI (`go vet`, `go test`, `golangci-lint` with all linters
-      enabled), with the `main` ruleset requiring its jobs
+- [ ] GitHub Actions CI (`go vet`, `go test` with a minimum coverage per
+      package in `internal/` checked by a `make cover` target, `golangci-lint`
+      with all linters enabled), with the `main` ruleset requiring its jobs
 - [ ] Dependabot version updates, with a 14-day cooldown
 - [ ] SvelteKit + TypeScript app scaffold, with linting in CI
 - [ ] Serve the front end from the Go binary, local dev setup
@@ -60,6 +61,8 @@ can each be reviewed comfortably on their own.
       deleted by Terraform), and a backup schedule, possibly with
       point-in-time recovery
 - [ ] Budget alert
+- [ ] Logs in the JSON format that Cloud Logging understands (`severity` and
+      `message` fields), so that entries show with their severity
 
 ### M2 – Authentication
 

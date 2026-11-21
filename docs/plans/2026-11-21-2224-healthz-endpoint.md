@@ -110,11 +110,20 @@ import grouping are checked.
 | --- | --- |
 | `help` (default) | lists the targets |
 | `test` | `go test -race ./...` |
-| `lint` | `go vet ./...` and `golangci-lint run` |
+| `vet` | `go vet ./...` |
+| `lint` | `golangci-lint run ./...` |
 | `run` | `go run ./cmd/flashcards` |
 | `build` | `go build -o bin/flashcards ./cmd/flashcards` |
 
-`bin/` is added to `.gitignore`.
+`bin/` is added to `.gitignore`. `vet` and `lint` are separate targets, as in
+the diary app, so that each maps to one CI step. Unlike diary, there's a
+`help` target, so that the targets and what they do can be listed without
+reading the Makefile.
+
+A `cover` target that checks a minimum coverage per package is left for the
+CI PR, and logs in Cloud Logging's format (`severity` and `message` fields,
+as diary's `internal/logging` writes) are left for M1, when the app is first
+deployed. Both are on the roadmap.
 
 ## Risks
 

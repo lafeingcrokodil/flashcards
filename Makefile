@@ -1,5 +1,5 @@
 .DEFAULT_GOAL := help
-.PHONY: help test lint run build
+.PHONY: help test vet lint run build
 
 help: ## List the targets.
 	@grep -E '^[a-z]+:.*## ' $(MAKEFILE_LIST) | awk -F ':.*## ' '{printf "%-6s %s\n", $$1, $$2}'
@@ -7,11 +7,13 @@ help: ## List the targets.
 test: ## Run the tests.
 	go test -race ./...
 
-lint: ## Run go vet and golangci-lint.
+vet: ## Run go vet.
 	go vet ./...
-	golangci-lint run
 
-run: ## Run the server locally.
+lint: ## Run golangci-lint.
+	golangci-lint run ./...
+
+run: ## Run the server locally, on port 8080 unless PORT is set.
 	go run ./cmd/flashcards
 
 build: ## Build the server into bin/.
