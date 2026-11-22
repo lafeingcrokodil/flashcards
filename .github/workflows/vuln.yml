@@ -5,7 +5,9 @@ on:
     branches: [main]
   pull_request:
   # New vulnerabilities are published independently of changes to the code,
-  # so main is also checked daily.
+  # so main is also checked daily. The minute is arbitrary, but not 0:
+  # scheduled runs at the start of the hour are more likely to be delayed or
+  # dropped when GitHub Actions is busy.
   schedule:
     - cron: "17 5 * * *"
 
