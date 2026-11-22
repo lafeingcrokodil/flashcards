@@ -25,12 +25,15 @@
 - Before every force-push, ask the user in chat, saying exactly what will be
   pushed where.
 - The user runs `terraform plan` and `terraform apply`.
-- Don't repeat in chat what's already on GitHub (a PR or issue
-  description, a plan, a comment, a task thread): link to it, and only say
-  in chat what isn't there and needs the user's attention, such as a
-  question that needs an answer before work can go on. After opening or
-  updating a PR or issue, the link is the summary: don't recap what was
-  done, what the checks showed or which task threads are open.
+- Chat is for what isn't on GitHub. Before each message, check every
+  sentence: if it says something a PR, issue, plan, comment or thread
+  already says, or describes something done there (opening, updating,
+  replying, resolving, pushing), cut it, and link instead. That includes
+  pointing out parts of a plan: its 🟡 and 🔴 markers already do that.
+  What's left is what needs the user and isn't on GitHub, such as a
+  question that blocks the work, or something found outside the PR's scope.
+  If nothing's left, the message is just the link, or nothing at all when
+  a notification changed nothing.
 - If something is blocked (e.g. a domain by the network policy, or an action
   by a permission check), stop and ask the user rather than working around
   it. Flag limitations of the environment clearly.
