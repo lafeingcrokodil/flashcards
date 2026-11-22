@@ -22,9 +22,11 @@
   pushed where.
 - The user runs `terraform plan` and `terraform apply`.
 - Don't repeat in chat what's already on GitHub (a PR or issue
-  description, a plan, a comment): link to it, and only say in chat what
-  isn't there, such as a question that needs an answer before work can go
-  on.
+  description, a plan, a comment, a task thread): link to it, and only say
+  in chat what isn't there and needs the user's attention, such as a
+  question that needs an answer before work can go on. After opening or
+  updating a PR or issue, the link is the summary: don't recap what was
+  done, what the checks showed or which task threads are open.
 - If something is blocked (e.g. a domain by the network policy, or an action
   by a permission check), stop and ask the user rather than working around
   it. Flag limitations of the environment clearly.
@@ -199,7 +201,7 @@ follow-up gets a GitHub issue, and the issue is where it's marked as done:
 - If the PR is closed without being merged, close its follow-up issues too.
 - Anything else that's left to do, such as a limitation found during a PR
   that's out of its scope, also gets an issue: in a milestone if it's
-  planned work, or with the `idea` label if it isn't planned yet. The
+  planned work, or without a milestone if it isn't planned yet (an idea). The
   `follow-up` label is only for tasks after a PR.
 - Issues with the `automated` label are opened and closed by scheduled
   checks (with `.github/scripts/report-issue.js`), one per check: leave them
@@ -226,11 +228,17 @@ become stale when those other parts change.
 
 ## Development environment
 
+- Before every push, run all of CI's checks locally (for the Go code, that
+  includes `make lint`), so that problems show up before CI runs rather than
+  after. If a tool that a check needs is missing or too old, install it
+  rather than leaving the check to CI. If it can't be installed, say so in
+  chat, and don't push until the user has agreed how to proceed.
 - `golangci-lint` must be built with a Go version at least as new as the one
   in `go.mod`. If the installed one is older, install the version that CI
-  uses (the `lint` job in `.github/workflows/ci.yml`) with the current
-  toolchain, e.g.
-  `go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@<version>`.
+  uses (the `lint` job in `.github/workflows/ci.yml`) with the toolchain
+  that `go.mod` asks for. `go install` with a version ignores `go.mod`, so set
+  the toolchain explicitly, from the repository's root:
+  `GOTOOLCHAIN=$(go env GOVERSION) go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@<version>`.
 
 ## Branch names
 
