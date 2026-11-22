@@ -9,7 +9,7 @@ risky or uncertain.
 
 A PR can't be merged while any of its "Before merging" tasks (close reviews,
 settings changes, `terraform plan`, approving the "After merging" tasks) is
-open. Instead of a checklist in the description and a custom check that
+open, and the plan is approved in the same way. Instead of a checklist in the description and a custom check that
 parses it, each task becomes a review thread on the PR, and the `main`
 ruleset's built-in "Require conversation resolution before merging" blocks
 the merge until every thread is resolved.
@@ -52,6 +52,7 @@ I start a review thread for each task, on the line it's about:
 
 | Task | Where the thread goes |
 | --- | --- |
+| Approving the plan | The plan's title |
 | A close review | The lines to review (the code, or the plan's line for a decision that isn't in the code) |
 | A setting to change | The plan's line for the setting, or for a PR without a plan, the line of the change that needs it |
 | `terraform plan` | The Terraform file whose resources change |
@@ -60,6 +61,13 @@ I start a review thread for each task, on the line it's about:
 Each thread starts with **Before merging:** and says what to do, briefly,
 pointing at the plan's "Close review" section rather than repeating it. It
 ends with the usual footer for comments I post.
+
+The thread for approving the plan goes up when I open the draft PR, and
+resolving it is how you approve the plan. I start the implementation only
+once it's resolved, and if you've left other comments on the plan, I take
+the approval to mean that my replies and revisions settle them. Being
+resolved, it doesn't hold up the merge later; until then, the PR is a
+draft, which can't be merged anyway.
 
 The threads for close reviews go up when I mark the PR as ready for review,
 since the code they point at exists only then. Threads for settings can go
@@ -98,6 +106,8 @@ their follow-up issues.
   instead of an item in the "Before merging" checklist.
 - **"Follow-up issues":** the "After merging" tasks are approved by resolving
   their thread.
+- **"Plans" → "Steps":** you approve a plan by resolving its approval
+  thread.
 - **"Workflow":** the example of what you may have edited in a description
   (ticked checklist items) is changed, since there's no checklist any more.
 
@@ -105,10 +115,8 @@ their follow-up issues.
 
 "Require conversation resolution before merging" is an option of the `main`
 ruleset's "Require a pull request before merging" rule, which you turn on in
-the settings (Settings → Rules → Rulesets → `main`). 🔴 I can't see the
-ruleset from this environment, so I don't know whether that rule is on yet.
-If it isn't, turning it on with 0 required approvals only means that
-changes to `main` need a PR, which is already how changes are made.
+the settings (Settings → Rules → Rulesets → `main`). That rule is already
+on, so this only ticks the option.
 
 ## Risks
 
