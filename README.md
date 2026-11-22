@@ -7,6 +7,10 @@ The app is being rebuilt from scratch. Until then,
 The Terraform configuration for its infrastructure lives in
 [`infra/`](infra/README.md).
 
+[`docs/architecture.md`](docs/architecture.md) describes how the app is built,
+and the [milestones](https://github.com/lafeingcrokodil/flashcards/milestones)
+track the planned work.
+
 ## Development
 
 Requires:

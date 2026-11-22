@@ -4,7 +4,12 @@
 
 - Work incrementally: each PR should be a small, self-contained change that
   is easy to review.
-- Keep `docs/roadmap.md` up to date as milestones progress.
+- Track planned work as issues in the repository's
+  [milestones](https://github.com/lafeingcrokodil/flashcards/milestones),
+  one issue per PR-sized item. A PR that finishes an issue says
+  `Closes lafeingcrokodil/flashcards#N` in its summary, so that merging it
+  closes the issue. New planned work gets a new issue in the right
+  milestone.
 - Plan features before implementing them, as described below.
 - Keep PR titles and descriptions up to date: when a PR changes after it's
   opened (e.g. in response to review feedback), update them to match.
@@ -49,7 +54,8 @@ straight to a PR that's ready for review.
    chronologically, and `<short-description>` is the branch name without its
    type (`feat/healthz-endpoint` → `2026-11-21-1405-healthz-endpoint.md`).
    The PR description links to the plan, so that the user comments on
-   individual lines of the plan itself (see "PR descriptions").
+   individual lines of the plan itself, and names the issue that the PR
+   closes (see "PR descriptions").
 2. Wait for the user to approve the plan in the PR. Revise it in response to
    their comments, without starting the implementation.
 3. Once it's approved, implement it in further commits, then mark the PR as
@@ -66,6 +72,16 @@ Keep it concise, with these sections:
   catches it, or that none does.
 - **Close review:** which parts need a closer look than a skim (see below),
   or "none".
+
+Mark the points that most need the user's attention, so that they stand out
+when skimming the plan:
+
+- 🟡 a judgement call: there's a reasonable alternative, and the user might
+  prefer it.
+- 🔴 risky or uncertain: not covered by a check and hard to undo (so it's in
+  "Close review" too), or based on something that couldn't be verified.
+
+Use them sparingly: a plan where everything is marked has nothing marked.
 
 Add whatever else helps to review the plan, such as diagrams (Mermaid) or UI
 mockups. Put supplementary files, such as images, in a directory named like
@@ -93,7 +109,7 @@ To fill in the "Close review" section, go through each part of the change
 
 Flag every part where both answers are no in the plan's "Close review"
 section, pointing at the files or lines concerned, and add each one to the
-PR description's "For you" checklist (see "PR descriptions").
+PR description's "Before merging" checklist (see "PR descriptions").
 Write "None" only if every part passes, and say briefly why the parts that
 come closest do.
 
@@ -127,11 +143,36 @@ Follow `.github/pull_request_template.md`. In particular:
 - For a PR with a plan, the description only adds what the plan doesn't say,
   so that the user doesn't read the same thing twice and the two can't drift
   apart. Don't summarise the plan: link to it.
-- Everything that needs the user's action goes in the "For you" section as a
-  checklist, so that nothing is missed: each close review (a short pointer
-  to the files and the plan's "Close review" section, not a copy of it),
-  settings to change, `terraform plan` and `terraform apply`, and anything
-  else that only the user can do.
+- Everything that needs the user's action goes in the "For you" section,
+  split by when it's due:
+  - **Before merging**, as a checklist: each close review (a short pointer
+    to the files and the plan's "Close review" section, not a copy of it),
+    settings to change before the PR can work, `terraform plan` for
+    Terraform changes (to compare with the resources the PR says should
+    change), and anything else that has to be done first. If there are
+    "After merging" tasks, the last item is to approve them.
+  - **After merging**, as a plain list rather than a checklist, since each
+    task is tracked in its own issue (see below): checks that can only be
+    done once the change is on `main` (such as whether Dependabot picked up
+    its configuration), and `terraform apply` for Terraform changes.
+
+### Follow-up issues
+
+A task in a PR description is easy to lose once the PR is merged, so each
+"After merging" task gets a GitHub issue, and the issue is where it's marked
+as done:
+
+- Until the user has approved the "After merging" tasks (by ticking that
+  item in "Before merging"), list them without issues, so that the user can
+  change them first. Once approved, open an issue for each, with the
+  `follow-up` label, assigned to the user. Its description says what to do
+  and links to the PR. Then replace each task in the PR description with a
+  link to its issue.
+- If the PR is closed without being merged, close its follow-up issues too.
+- Anything else that's left to do, such as a limitation found during a PR
+  that's out of its scope, also gets an issue: in a milestone if it's
+  planned work, or with the `idea` label if it isn't planned yet. The
+  `follow-up` label is only for the user's tasks after a PR.
 
 ## Code comments
 
@@ -168,7 +209,7 @@ using kebab-case. For example:
 - `feat/healthz-endpoint`
 - `ci/github-actions`
 - `fix/review-scheduling`
-- `docs/roadmap`
+- `docs/architecture`
 
 Use this convention instead of generated branch names (such as
 `claude/<random-words>`). Pick the name when starting the work, and use a new
