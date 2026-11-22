@@ -38,8 +38,11 @@ risky or uncertain.
   `init -backend=false`, `validate`, with `hashicorp/setup-terraform` v4.0.1
   pinned by SHA like our other actions.
 - **Dependabot updates the providers** (`/infra`), as in diary.
-- 🟡 **Nothing checks for a new Terraform CLI version.** I'd add it to
-  lafeingcrokodil/flashcards#93's scope rather than here.
+- **The version check covers Terraform**, since Dependabot doesn't update
+  the CLI: a `versions/terraform.js` like the others, comparing the `terraform`
+  job's `terraform_version` with HashiCorp's release API
+  (`api.releases.hashicorp.com`, which gives each release's date), with a
+  `terraform` input for manual runs.
 - **Left out:** diary's other differences (descriptions, variable defaults,
   `depends_on` on the APIs, the Workload Identity condition), which belong to
   lafeingcrokodil/flashcards#52–#54.
@@ -57,6 +60,9 @@ risky or uncertain.
   `git status`.
 - **Dependabot ignores the Terraform entry:** a follow-up check once it's on
   `main`.
+- **The version check misreads Terraform's version or releases:** run
+  locally, with and without an override, and a manual run with the
+  `terraform` input as a follow-up once it's on `main`.
 
 ## Careful review
 
