@@ -77,9 +77,17 @@ straight to a PR that's ready for review.
 
 ### What a plan contains
 
-Keep it concise, with these sections:
+Keep it to at most 400 words, not counting code blocks, tables and
+diagrams. That's a ceiling rather than a target: a small change gets a short
+plan. If a plan can't stay under it without leaving out something the user
+needs or becoming hard to read, go over, and say why in a 🟡 line at the top,
+including whether the change could be split into smaller PRs instead.
 
-- **Goal:** what the change does, and what it leaves for later PRs.
+A plan has no goal section: the goal is in the issue the PR closes, or for a
+PR without an issue, in the PR description (see "PR descriptions"). If the
+PR does less than its issue asks, that's a decision, so it goes in "Design".
+The sections are:
+
 - **Design:** the decisions and why, with alternatives that were rejected.
 - **Risks:** what could go wrong, and for each risk, which test or check
   catches it, or that none does.
