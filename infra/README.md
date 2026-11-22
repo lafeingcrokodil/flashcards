@@ -1,5 +1,8 @@
 # Infrastructure
 
+Terraform configuration for the app's GCP resources and its DNS record in
+Cloudflare. Requires Terraform 1.17 or later.
+
 ## One-off setup
 
 The project and the bucket for Terraform's state have to exist before
@@ -19,7 +22,7 @@ steps are only needed for a new project.
 
 1. Create the bucket for Terraform's state, with versioning so that earlier
    states can be recovered. Its name is the one in the `backend` block in
-   `main.tf`.
+   `versions.tf`.
 
    ```sh
    gcloud storage buckets create gs://lafeingcrokodil-flashcards-terraform \
@@ -46,3 +49,14 @@ steps are only needed for a new project.
     ```sh
     terraform apply
     ```
+
+CI checks the configuration's formatting and validity on every pull request,
+but doesn't apply it.
+
+`.terraform.lock.hcl` records the providers' versions and checksums for
+Linux, macOS and Windows. After changing a provider's version, update it for
+all of them:
+
+```sh
+terraform providers lock -platform=linux_amd64 -platform=darwin_arm64 -platform=darwin_amd64 -platform=windows_amd64
+```

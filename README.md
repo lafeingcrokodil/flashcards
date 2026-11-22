@@ -58,7 +58,7 @@ server.
 | --- | --- | --- |
 | [`ci.yml`](.github/workflows/ci.yml) | every pull request and push to `main` | `make vet`, `make cover` and golangci-lint, the front end's `pnpm check`, `pnpm lint` and `pnpm build`, and `make image`, checking that the image serves the app and that its Go and Node versions match `go.mod` and `web/.nvmrc` |
 | [`vuln.yml`](.github/workflows/vuln.yml) | every pull request and push to `main`, and daily | `make vuln` |
-| [`versions.yml`](.github/workflows/versions.yml) | monthly | checks whether Go or golangci-lint is behind the newest release that's at least 14 days old |
+| [`versions.yml`](.github/workflows/versions.yml) | monthly | checks whether Go, golangci-lint, Node, pnpm or Terraform is behind the newest release that's at least 14 days old |
 
 When a daily or monthly run finds a problem, it opens an issue with the
 `automated` label, which is closed automatically once the check passes again.

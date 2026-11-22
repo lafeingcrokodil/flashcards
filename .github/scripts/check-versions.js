@@ -6,9 +6,9 @@
 // root.
 const report = require('./report-issue.js')
 
-const tools = ['go', 'golangci-lint', 'node', 'pnpm'].map((name) => require(`./versions/${name}.js`))
+const tools = ['go', 'golangci-lint', 'node', 'pnpm', 'terraform'].map((name) => require(`./versions/${name}.js`))
 
-// main runs the check. overrides maps a tool's key (go, lint, node or pnpm)
+// main runs the check. overrides maps a tool's key (go, lint, node, pnpm or terraform)
 // to a version that replaces the one read from the files, so that a manual
 // run can test what happens when one is out of date. Each tool is reported
 // before the next one is checked, so that one source being unreachable

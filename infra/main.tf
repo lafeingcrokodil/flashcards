@@ -1,27 +1,29 @@
-terraform {
-  required_version = ">= 1.12.2"
-  required_providers {
-    cloudflare = {
-      source  = "cloudflare/cloudflare"
-      version = "5.8.2"
-    }
-    google = {
-      source  = "hashicorp/google"
-      version = "6.46.0"
-    }
-  }
-  # The state bucket can't be managed by the configuration that stores its
-  # state in it, so it's created by hand (see README.md).
-  backend "gcs" {
-    bucket = "lafeingcrokodil-flashcards-terraform"
-  }
+provider "google" {
+  project = var.project_id
+  region  = var.region
+  zone    = var.zone
 }
 
-# The state bucket used to be managed here. This removes it from the state
-# without deleting it.
-removed {
-  from = google_storage_bucket.terraform_state
-  lifecycle {
-    destroy = false
-  }
+provider "cloudflare" {
+  api_token = var.cloudflare_api_token
+}
+
+# Used to look up the project number.
+data "google_project" "project" {
+  project_id = var.project_id
+}
+
+resource "google_project_service" "enable_apis" {
+  for_each = toset([
+    "artifactregistry.googleapis.com",
+    "firebaserules.googleapis.com",
+    "firestore.googleapis.com",
+    "iamcredentials.googleapis.com",
+    "run.googleapis.com",
+  ])
+  service = each.key
+
+  # Disable an API when it's removed from the list, so that APIs the app no
+  # longer uses don't stay enabled.
+  disable_on_destroy = true
 }
