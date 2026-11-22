@@ -13,6 +13,9 @@
 - Plan features before implementing them, as described below.
 - Keep PR titles and descriptions up to date: when a PR changes after it's
   opened (e.g. in response to review feedback), update them to match.
+  Before each update, read the current version and build on it, since the
+  user may have edited it since (e.g. ticked checklist items), and an update
+  replaces the whole description. The same goes for issue descriptions.
 - Don't merge PRs, even once it's agreed that one should be merged: the
   user merges them.
 - Before every force-push, ask the user in chat, saying exactly what will be
