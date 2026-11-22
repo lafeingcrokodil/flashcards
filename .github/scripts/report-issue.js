@@ -14,7 +14,8 @@ module.exports = async ({ github, context, title, body }) => {
   const { owner, repo } = context.repo
 
   // Issues with other titles or without the label, such as ones opened by
-  // hand, are never touched.
+  // hand, are never touched. The API filters by state and label itself, but
+  // has no filter for an exact title, so that's checked below.
   const issues = await github.paginate(github.rest.issues.listForRepo, {
     owner,
     repo,
@@ -22,7 +23,8 @@ module.exports = async ({ github, context, title, body }) => {
     labels: label,
     per_page: 100,
   })
-  // The issues API also lists pull requests.
+  // The issues API also lists pull requests, and has no filter to leave
+  // them out.
   const existing = issues.find(
     (issue) => !issue.pull_request && issue.title === title,
   )
