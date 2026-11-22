@@ -215,9 +215,10 @@ the user resolves once it's done. Start one, on the line it's about, for:
 
 For Terraform changes, `terraform apply` runs from the PR's branch, once the
 other task threads are resolved and nothing more is to be pushed, so that
-what's applied is what gets merged, and `main` always matches what's
-deployed. If the PR changes after that, it's applied again, and if it's
-closed without being merged, `main` is applied again to undo it.
+what's applied is what gets merged, and what's deployed only differs from
+`main` until the PR is merged. If the PR changes after that, it's applied
+again, and if it's closed without being merged, `main` is applied again to
+undo it.
 
 ### Follow-up issues
 
