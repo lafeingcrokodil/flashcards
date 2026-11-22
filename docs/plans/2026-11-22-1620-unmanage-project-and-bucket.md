@@ -9,6 +9,9 @@ risky or uncertain.
 
 - **The backend names the bucket**, `lafeingcrokodil-flashcards-terraform`.
   The README describes creating it and the project by hand, as diary's does.
+  Rejected: a separate bootstrap configuration for the two. Its own state
+  would need a home (a local file, or yet another bucket), for resources that
+  are created once.
 - **`removed` blocks with `destroy = false`**, rather than
   `terraform state rm` by hand. They're reviewed in the PR, and can't be
   forgotten: deleting the resources without them would make `plan` propose
@@ -17,7 +20,9 @@ risky or uncertain.
   lafeingcrokodil/flashcards#50 reorganises the files anyway, so it can delete
   them.
 - **The project's ID and number** come from `var.project_id` and a
-  `data "google_project"`, as in diary.
+  `data "google_project"`, as in diary. Rejected: the number as a variable or
+  literal. The workload identity member needs it, and a wrong number is easy
+  to make and only shows up when GitHub Actions can't authenticate.
 - **The unused variables** (`project_name`, `billing_account_id`,
   `terraform_bucket`) are removed. A `terraform.tfvars` that still sets them
   only gets a warning.
