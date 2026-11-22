@@ -21,8 +21,8 @@ Without a plan: what the change does and why.
 ## For you
 
 <!--
-Everything that needs your action, as checklists. Remove a subsection if
-it's empty, or write "Nothing beyond skimming and merging." instead of both.
+Everything that needs your action. Remove a subsection if it's empty, or
+write "Nothing beyond skimming and merging." instead of both.
 -->
 
 ### Before merging
@@ -32,12 +32,16 @@ For example:
 - [ ] Close review: <what>, in <files> (see the plan's "Close review" section)
 - [ ] <A setting to change>
 - [ ] Run `terraform plan` and compare it with the resources that should change
+- [ ] Approve the "After merging" tasks below (follow-up issues are opened once this is ticked)
 -->
 
 ### After merging
 
 <!--
-Each item links to its follow-up issue, for example:
-- [ ] <A check that needs the change on main> (owner/repo#N)
-- [ ] Run `terraform apply` (owner/repo#N)
+A plain list, not a checklist: each task is tracked in its own follow-up
+issue, which is where it's marked as done. Until the tasks are approved:
+- <A check that needs the change on main>
+- Run `terraform apply`
+Once approved, each task links to its issue:
+- <A check that needs the change on main>: owner/repo#N
 -->

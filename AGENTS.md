@@ -137,25 +137,31 @@ Follow `.github/pull_request_template.md`. In particular:
 - For a PR with a plan, the description only adds what the plan doesn't say,
   so that the user doesn't read the same thing twice and the two can't drift
   apart. Don't summarise the plan: link to it.
-- Everything that needs the user's action goes in the "For you" section as a
-  checklist, so that nothing is missed, split by when it's due:
-  - **Before merging:** each close review (a short pointer to the files and
-    the plan's "Close review" section, not a copy of it), settings to change
-    before the PR can work, `terraform plan` for Terraform changes (to
-    compare with the resources the PR says should change), and anything else
-    that has to be done first.
-  - **After merging:** checks that can only be done once the change is on
-    `main` (such as whether Dependabot picked up its configuration), and
-    `terraform apply` for Terraform changes.
+- Everything that needs the user's action goes in the "For you" section,
+  split by when it's due:
+  - **Before merging**, as a checklist: each close review (a short pointer
+    to the files and the plan's "Close review" section, not a copy of it),
+    settings to change before the PR can work, `terraform plan` for
+    Terraform changes (to compare with the resources the PR says should
+    change), and anything else that has to be done first. If there are
+    "After merging" tasks, the last item is to approve them.
+  - **After merging**, as a plain list rather than a checklist, since each
+    task is tracked in its own issue (see below): checks that can only be
+    done once the change is on `main` (such as whether Dependabot picked up
+    its configuration), and `terraform apply` for Terraform changes.
 
 ### Follow-up issues
 
 A task in a PR description is easy to lose once the PR is merged, so each
-"After merging" item also gets a GitHub issue:
+"After merging" task gets a GitHub issue, and the issue is where it's marked
+as done:
 
-- Open it when the PR is marked as ready for review, with the `follow-up`
-  label, assigned to the user. Its description says what to do and links to
-  the PR, and the PR's checklist item links to the issue.
+- Until the user has approved the "After merging" tasks (by ticking that
+  item in "Before merging"), list them without issues, so that the user can
+  change them first. Once approved, open an issue for each, with the
+  `follow-up` label, assigned to the user. Its description says what to do
+  and links to the PR. Then replace each task in the PR description with a
+  link to its issue.
 - If the PR is closed without being merged, close its follow-up issues too.
 - Also open a `follow-up` issue for anything else that's left to do and
   isn't on the roadmap, such as a limitation found during a PR that's out of
