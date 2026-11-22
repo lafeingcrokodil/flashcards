@@ -19,9 +19,35 @@ Requires:
 - the Go version specified in `go.mod`, or later
 - [golangci-lint](https://golangci-lint.run/docs/welcome/install/) v2.15.0
   (for `make lint`)
-- for the front end, the requirements in [`web/README.md`](web/README.md)
+- for the front end, and for `make web`, `make run` and `make build`, which
+  build it: the requirements in [`web/README.md`](web/README.md)
 
 Run `make help` (or just `make`) to list the available targets.
+
+The Go binary embeds the built front end (`web/build/`) and serves it, so the
+whole app is a single binary. `make run` builds the front end and starts the
+server on http://localhost:8080, and `make build` builds a binary that
+includes it.
+
+`make test`, `make cover`, `make vet`, `make lint` and `make vuln` don't need
+the front end: if it hasn't been built, they create a placeholder page so that
+the Go code compiles.
+
+### Working on the front end
+
+For instant reloading while you edit the front end, run the Go server and
+Vite's dev server side by side:
+
+```bash
+make run
+```
+
+```bash
+cd web && pnpm dev
+```
+
+Then open http://localhost:5173. Vite forwards requests under `/api` to the Go
+server.
 
 ### Automated checks
 
