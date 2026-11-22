@@ -1,4 +1,5 @@
-<main>
-	<h1>Flashcards</h1>
-	<p>A web app for learning languages, with flashcards and reading practice.</p>
-</main>
+<script lang="ts">
+	let x = 1;
+</script>
+
+<p class="foo">{x}</p>
