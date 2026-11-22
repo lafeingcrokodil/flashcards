@@ -8,9 +8,7 @@
   [milestones](https://github.com/lafeingcrokodil/flashcards/milestones),
   one issue per PR-sized item. A PR that finishes an issue says
   `Closes lafeingcrokodil/flashcards#N` in its summary, so that merging it
-  closes the issue. New planned work gets a new issue in the right
-  milestone.
-- Plan features before implementing them, as described below.
+  closes the issue.
 - Keep PR titles and descriptions up to date: when a PR changes after it's
   opened (e.g. in response to review feedback), update them to match.
   Before each update, read the current version and build on it, since the
@@ -85,8 +83,8 @@ Keep it concise, with these sections:
 - **Design:** the decisions and why, with alternatives that were rejected.
 - **Risks:** what could go wrong, and for each risk, which test or check
   catches it, or that none does.
-- **Close review:** which parts need a closer look than a skim (see below),
-  or "none".
+- **Careful review:** which parts need a closer look than a skim (see
+  below), or "none".
 
 Mark the points that most need the user's attention, so that they stand out
 when skimming the plan:
@@ -94,7 +92,7 @@ when skimming the plan:
 - 🟡 a judgement call: there's a reasonable alternative, and the user might
   prefer it.
 - 🔴 risky or uncertain: not covered by a check and hard to undo (so it's in
-  "Close review" too), or based on something that couldn't be verified.
+  "Careful review" too), or based on something that couldn't be verified.
 
 Use them sparingly: a plan where everything is marked has nothing marked.
 
@@ -111,24 +109,23 @@ before a departure that changes the design rather than a detail. Once the PR
 is merged, the plan is a record of what was decided and isn't updated any
 more.
 
-### What still gets a close review
+### What still gets a careful review
 
 A skim is enough only where a mistake would be caught by a check, or would be
-easy to undo and do little harm. Everything else needs a close review.
+easy to undo and do little harm. Everything else needs a careful review.
 
-To fill in the "Close review" section, go through each part of the change
+To fill in the "Careful review" section, go through each part of the change
 (each file, decision or behaviour) and ask:
 
 1. If this were wrong, would a test, linter or other check catch it?
 2. If not, would it be easy to undo, and do little harm in the meantime?
 
-Flag every part where both answers are no in the plan's "Close review"
-section, pointing at the files or lines concerned, and start a task thread
-for each one (see "Task threads").
+Flag every part where both answers are no in the plan's "Careful review"
+section, pointing at the files or lines concerned.
 Write "None" only if every part passes, and say briefly why the parts that
 come closest do.
 
-Some things almost always need a close review, but they're examples, not a
+Some things almost always need a careful review, but they're examples, not a
 checklist: a change can need one without being on this list.
 
 - authentication and authorization (token verification, the allowlist)
@@ -142,15 +139,13 @@ checklist: a change can need one without being on this list.
 
 Before marking a PR as ready for review:
 
-- All CI checks pass. Until CI exists, run the equivalent checks locally and
-  say in the PR description which ones ran.
+- All CI checks pass.
 - The tests cover the behaviour described in the plan, including its error
   cases, and each risk in the plan is either covered by a check or flagged
-  for close review.
+  for careful review.
 - For front-end changes, the PR has screenshots (see below).
 - For Terraform changes, the PR says which resources should change, so that
   the user can compare that with `terraform plan`.
-- Each close review in the plan has its task thread.
 
 ## PR titles
 
@@ -183,7 +178,7 @@ the user resolves once it's done. Start one, on the line it's about, for:
 | Task | Where the thread goes |
 | --- | --- |
 | Approving the plan | The plan's title |
-| A close review | The lines to review (the code, or the plan's line for a decision that isn't in the code) |
+| A careful review | The lines to review (the code, or the plan's line for a decision that isn't in the code) |
 | A setting to change before the PR can work | The plan's line for the setting, or for a PR without a plan, the line of the change that needs it |
 | `terraform plan`, to compare with the resources the PR says should change | The Terraform file whose resources change |
 | Adding a new CI job to the `main` ruleset's required checks, once it has run on the PR | The job's name in the workflow |
@@ -191,7 +186,7 @@ the user resolves once it's done. Start one, on the line it's about, for:
 | Anything else that has to be done first | The line it's about |
 
 - Each thread starts with **Before merging:** and says briefly what to do,
-  pointing at the plan (e.g. its "Close review" section) rather than
+  pointing at the plan (e.g. its "Careful review" section) rather than
   repeating it.
 - The plan's thread goes up with the draft PR. The other threads go up when
   the PR is marked as ready for review, since the code they point at exists
