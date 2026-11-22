@@ -94,14 +94,16 @@ the "Files changed" tab shows them in place.
   wouldn't show which threads are resolved, so it would only repeat the
   threads, which is the kind of duplication you'd rather avoid.
 
-"For you" keeps "After merging" as it is. Approving those tasks is now done
+"For you" keeps the "After merging" list, which is now all it holds, so
+its "After merging" subheading is dropped. Approving those tasks is now done
 by resolving that thread rather than ticking a box, and that's when I open
 their follow-up issues.
 
 ### Changes to `AGENTS.md`
 
-- **"PR descriptions":** the "Before merging" checklist is replaced by the
-  task threads above, including when they go up and who resolves them. This
+- **"PR descriptions":** the "Before merging" checklist is replaced by a new
+  "Task threads" subsection with the rules above, including when the
+  threads go up and who resolves them. This
   also allows me to post them, since otherwise I only comment on GitHub when
   asked.
 - **"What still gets a close review":** each close review gets a task thread,
@@ -110,6 +112,8 @@ their follow-up issues.
   their thread.
 - **"Plans" → "Steps":** you approve a plan by resolving its approval
   thread.
+- **"Checks before a skim":** each close review has its task thread before
+  the PR is marked as ready.
 - **"Workflow":** the example of what you may have edited in a description
   (ticked checklist items) is changed, since there's no checklist any more.
 
