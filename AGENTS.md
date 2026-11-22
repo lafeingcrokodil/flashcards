@@ -185,7 +185,7 @@ Follow `.github/pull_request_template.md`. In particular:
   for an agent, as a plain list rather than a checklist, since each task is
   tracked in its own issue (see "Follow-up issues"): checks that can only be
   done once the change is on `main` (such as whether Dependabot picked up
-  its configuration), and `terraform apply` for Terraform changes.
+  its configuration).
 
 ### Task threads
 
@@ -198,7 +198,7 @@ the user resolves once it's done. Start one, on the line it's about, for:
 | Approving the plan | The plan's title |
 | A careful review | The lines to review (the code, or the plan's line for a decision that isn't in the code) |
 | A setting to change before the PR can work | The plan's line for the setting, or for a PR without a plan, the line of the change that needs it |
-| `terraform plan`, to compare with the resources the PR says should change | The Terraform file whose resources change |
+| `terraform plan`, to compare with the resources the PR says should change, then `terraform apply` just before merging (see below) | The Terraform file whose resources change |
 | Adding a new CI job to the `main` ruleset's required checks, once it has run on the PR | The job's name in the workflow |
 | Approving the follow-ups | The plan's line for the first task, or for a PR without a plan, the line of the change it checks |
 | Anything else that has to be done first | The line it's about |
@@ -212,6 +212,13 @@ the user resolves once it's done. Start one, on the line it's about, for:
 - Only the user resolves threads: task threads, and the ones the user
   starts, even once they've been answered. Otherwise a thread could be
   resolved without the user having seen it.
+
+For Terraform changes, `terraform apply` runs from the PR's branch, once the
+other task threads are resolved and nothing more is to be pushed, so that
+what's applied is what gets merged, and what's deployed only differs from
+`main` until the PR is merged. If the PR changes after that, it's applied
+again, and if it's closed without being merged, `main` is applied again to
+undo it.
 
 ### Follow-up issues
 

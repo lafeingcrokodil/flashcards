@@ -30,7 +30,6 @@ AGENTS.md). Write "None." if there are none.
 A plain list, not a checklist: each task is tracked in its own follow-up
 issue, which is where it's marked as done. Until the tasks are approved:
 - <A check that needs the change on main>
-- Run `terraform apply`
 Once approved, each task is replaced by just its issue's reference, which
 GitHub shows as the issue's title:
 - owner/repo#N
