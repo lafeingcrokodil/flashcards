@@ -231,8 +231,8 @@ become stale when those other parts change.
 - Before every push, run all of CI's checks locally (for the Go code, that
   includes `make lint`), so that problems show up before CI runs rather than
   after. If a tool that a check needs is missing or too old, install it
-  rather than leaving the check to CI, and if it can't be installed, say so
-  in the PR description.
+  rather than leaving the check to CI. If it can't be installed, say so in
+  chat, and don't push until the user has agreed how to proceed.
 - `golangci-lint` must be built with a Go version at least as new as the one
   in `go.mod`. If the installed one is older, install the version that CI
   uses (the `lint` job in `.github/workflows/ci.yml`) with the toolchain
