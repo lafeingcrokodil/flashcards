@@ -21,19 +21,20 @@ out to be needed (see "Design").
 
 ### Milestones
 
-One GitHub milestone per roadmap milestone, with the same name and the
-heading's description:
+One GitHub milestone per roadmap milestone, with the same name and a short
+description. M7's is the roadmap's own; the others are new, written from the
+roadmap's items and the prototype:
 
 | Milestone | Description |
 | --- | --- |
-| M0 – Walking skeleton | (none) |
-| M1 – Deployed to GCP | (none) |
-| M2 – Authentication | (none) |
-| M3 – Packs | (none) |
-| M4 – Cards | (none) |
-| M5 – Type | (none) |
-| M6 – Read | (none) |
-| M7 – Feedback, lookups and speech | "Features that the prototype implements with Claude. They might use an AI model in the app too, but don't have to." |
+| M0 – Walking skeleton | The smallest app that builds, tests and runs end to end: a Go server and a SvelteKit front end in one container, with CI and dependency updates. No features yet. |
+| M1 – Deployed to GCP | The app runs on Cloud Run in the existing GCP project, deployed from `main`, with its infrastructure managed by Terraform and Firestore set up for the data to come. |
+| M2 – Authentication | Only allowed users can use the app: they sign in with Google through Firebase Authentication, and the server checks their ID token against an allowlist. |
+| M3 – Packs | Packs of words, each word with its translation, an example sentence and a note, which can be created and edited in the app. They're what Cards, Type and Read build on. |
+| M4 – Cards | Flashcard review sessions with Leitner scheduling: due words first, then new ones, with progress stored per word and shown per pack. |
+| M5 – Type | Typed recall in the other direction, sharing Cards' scheduling, with alternative answers, a hint and an "I was right" override. |
+| M6 – Read | Short passages to read, translate line by line or answer questions on, with a glossary for tapping words and saving them to a pack. |
+| M7 – Feedback, lookups and speech | Features that the prototype implements with Claude. They might use an AI model in the app too, but don't have to. |
 
 No due dates: the app is built when there's time, not to a schedule.
 
