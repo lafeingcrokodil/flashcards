@@ -28,3 +28,16 @@ updates:
     groups:
       actions:
         update-types: [minor, patch]
+
+  # The front end's dependencies. pnpm uses the npm ecosystem.
+  - package-ecosystem: npm
+    directory: /web
+    schedule:
+      interval: monthly
+    # Matches minimumReleaseAge in web/pnpm-workspace.yaml, so that Dependabot
+    # doesn't propose versions that pnpm would refuse to install.
+    cooldown:
+      default-days: 14
+    groups:
+      web:
+        update-types: [minor, patch]

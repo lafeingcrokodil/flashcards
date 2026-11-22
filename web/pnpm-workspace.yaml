@@ -1,0 +1,4 @@
+# Only install package versions that were published at least 14 days ago
+# (value in minutes), to reduce the risk from compromised releases, which
+# are usually caught and removed within days.
+minimumReleaseAge: 20160
