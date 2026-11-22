@@ -79,15 +79,16 @@ a comment on the issue rather than an edit.
 ### Labels
 
 - `follow-up` (from #38), `idea` and `question`.
-- 🔴 I don't know whether creating an issue with a label that doesn't exist
-  yet creates the label. I'll try it with the first issue. If it doesn't, I'll
-  stop and ask you to create the three labels too (Issues → Labels → New
-  label).
+- Creating an issue with a label that doesn't exist yet creates the label:
+  tried with the first `idea` issue (#80), which created `idea`. (`question`
+  already existed.)
 
 ### `docs/architecture.md`
 
 The introduction and the "Architecture" section of `docs/roadmap.md`, moved
-unchanged. `docs/roadmap.md` is deleted rather than kept as a pointer to the
+with two small edits: the sentence about building incrementally now points
+to the milestones, and the "Architecture" heading is dropped, since it's the
+page's title. `docs/roadmap.md` is deleted rather than kept as a pointer to the
 milestones, since a link in the README and `AGENTS.md` does that job.
 
 The README gets a link to the milestones and to `docs/architecture.md`.
@@ -102,7 +103,8 @@ The README gets a link to the milestones and to `docs/architecture.md`.
 - The "Follow-up issues" section (from #38) stops distinguishing between the
   roadmap and issues: anything left to do is an issue, and `follow-up` marks
   the ones that are your tasks after a PR.
-- The plan steps say that a plan names the issue it's for.
+- The plan steps say that a plan's PR names the issue it closes, and the PR
+  template's summary asks for the `Closes` line.
 
 🟡 **Departure from diary,** which keeps a `docs/roadmap.md`. A file there
 works too, but it splits tasks between the file and issues, which is the
