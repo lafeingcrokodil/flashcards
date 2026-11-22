@@ -87,6 +87,30 @@ Harmless, so no need to find out first.
 doesn't update mentions Node and pnpm too. Nothing else changes: same
 schedule, same permissions.
 
+### One module per tool
+
+With four tools, `check-versions.js` would read four versions, fetch four
+sources and make four reports in one `main`, and each new tool (Terraform,
+say) would make that worse. So the script is split by tool (decided in
+review):
+
+- `.github/scripts/versions/common.js`: what all the tools share
+  (`minAgeDays`, `parseVersion`, `compareVersions`, `newestEligible`,
+  `isBehind`, `readVersion`, `fetchText`, `day`).
+- `versions/go.js`, `golangci-lint.js`, `node.js` and `pnpm.js`: each
+  exports `{ key, title, check({ override, now }) }`, where `check` reads
+  the version in use, fetches the releases, logs, and returns the issue's
+  body (`''` if up to date), and `key` names its entry in the workflow's
+  overrides.
+- `check-versions.js`: only `main`, a loop over the tools that calls
+  `check`, then `report`, so that each tool is reported before the next
+  one's releases are fetched. The workflow's call doesn't change.
+
+Go and golangci-lint behave as before.
+
+- Rejected: one file with a table of tools. That makes `main` a loop too,
+  but the file would still grow with every tool.
+
 ### Testing
 
 As for #44, there are no committed tests for these scripts. Instead:
