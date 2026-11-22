@@ -84,18 +84,17 @@ Three resources refer to `google_project.project`:
 `terraform.tfvars` that still sets them gets a warning ("Value for undeclared
 variable"), not an error, and the README says to delete them.
 
-### 🔴 The bucket's name in the backend block
+### The bucket's name in the backend block
 
 ```hcl
 backend "gcs" {
-  bucket = "<bucket>"
+  bucket = "lafeingcrokodil-flashcards-terraform"
 }
 ```
 
-A backend block can't use variables, so the name is written out. **I can't
-find it**: it's only in your `terraform.tfvars` (as `terraform_bucket`). Please
-tell me in a comment on this line. Following diary, I'd guess
-`lafeingcrokodil-flashcards-tfstate`.
+A backend block can't use variables, so the name is written out. It's the
+`terraform_bucket` value from your `terraform.tfvars`, which isn't in the
+repository, so the name is as you gave it to me rather than checked.
 
 If the name is the same as the one passed to `terraform init` so far,
 Terraform doesn't ask to initialise again: I tried this with Terraform 1.12.2
@@ -145,10 +144,9 @@ starting with an empty state.
 
 ## Careful review
 
-- 🔴 **The bucket's name** in the backend block: see above. A wrong name
-  fails `plan`, but the one to compare is yours.
-
-The other parts come close but pass: a wrong `removed` block or reference
-shows up in `terraform plan` (which you run before `apply`) as a destroy or a
-replacement, and behind that the deletion policy and the non-empty bucket stop
-a destroy; the README and `docs/architecture.md` are easy to fix.
+None. The parts that come closest pass: a wrong bucket name in the backend
+block stops `plan` and `init` with an error (see above), a wrong `removed`
+block or reference shows up in `terraform plan` (which you run before
+`apply`) as a destroy or a replacement, and behind that the deletion policy
+and the non-empty bucket stop a destroy; the README and `docs/architecture.md`
+are easy to fix.
