@@ -16,7 +16,8 @@ conversation resolution before merging" blocks the merge until every thread
 is resolved.
 
 This PR changes `AGENTS.md` and the PR template. There's no workflow or
-script, and the ruleset already has the option on. Once the plan is approved, I'll update the title and description of
+script, and the ruleset already has the option on. Once the plan is
+approved, I'll update the title and description of
 lafeingcrokodil/flashcards#45, which ask for a required check, to match.
 
 diary has nothing like this, so there's nothing to compare with.
