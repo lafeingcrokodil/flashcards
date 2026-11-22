@@ -26,7 +26,9 @@ make test   # run the tests
 make cover  # run the tests and check the coverage of each package in internal/ (see Makefile)
 make vet    # run go vet
 make lint   # run golangci-lint (see .golangci.yml)
+make vuln   # check for known vulnerabilities with govulncheck
 ```
 
 CI (`.github/workflows/ci.yml`) runs `make vet`, `make cover` and
 golangci-lint on every pull request and every push to `main`.
+`.github/workflows/vuln.yml` runs `make vuln` on the same events and daily.

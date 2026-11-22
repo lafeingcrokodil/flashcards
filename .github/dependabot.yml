@@ -7,6 +7,11 @@ updates:
     directory: /
     schedule:
       interval: monthly
+    # Direct dependencies, as by default, and govulncheck, which go.mod lists
+    # as indirect because it's only a tool.
+    allow:
+      - dependency-type: direct
+      - dependency-name: golang.org/x/vuln
     # New versions are only proposed once they're at least 14 days old.
     cooldown:
       default-days: 14
