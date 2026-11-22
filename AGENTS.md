@@ -17,9 +17,9 @@
   user may have edited it since (e.g. to add a note), and an update replaces
   the whole description. The same goes for issue descriptions.
 - Subscribe to the activity (comments, reviews, CI results) of each PR you
-  open, straight after opening it, without asking first, if the environment
-  can do that. That way, review comments and CI failures get a response
-  without the user having to point them out.
+  open, straight after opening it, without asking first. That way, review
+  comments and CI failures get a response without the user having to point
+  them out. If the environment can't subscribe, say so in chat.
 - Don't merge PRs, even once it's agreed that one should be merged: the
   user merges them.
 - Before every force-push, ask the user in chat, saying exactly what will be
