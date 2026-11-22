@@ -1,1 +1,3 @@
 /bin/
+# Test coverage profile.
+coverage.out

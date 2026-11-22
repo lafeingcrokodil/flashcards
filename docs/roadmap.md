@@ -36,7 +36,7 @@ can each be reviewed comfortably on their own.
 ### M0 – Walking skeleton
 
 - [x] Go module, `/health` endpoint, test, Makefile
-- [ ] GitHub Actions CI (`go vet`, `go test` with a minimum coverage per
+- [x] GitHub Actions CI (`go vet`, `go test` with a minimum coverage per
       package in `internal/` checked by a `make cover` target, `golangci-lint`
       with all linters enabled), with the `main` ruleset requiring its jobs
 - [ ] Dependabot version updates, with a 14-day cooldown
