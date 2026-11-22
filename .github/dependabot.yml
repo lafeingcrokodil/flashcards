@@ -29,6 +29,18 @@ updates:
       actions:
         update-types: [minor, patch]
 
+  # Base images in the Dockerfile. A new Go or Node version also needs go.mod
+  # or web/.nvmrc to be updated, which CI checks.
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: monthly
+    cooldown:
+      default-days: 14
+    groups:
+      docker:
+        update-types: [minor, patch]
+
   # The front end's dependencies. pnpm uses the npm ecosystem.
   - package-ecosystem: npm
     directory: /web
