@@ -9,13 +9,14 @@ risky or uncertain.
 
 A PR can't be merged while any of its "Before merging" tasks (close reviews,
 settings changes, `terraform plan`, approving the "After merging" tasks) is
-open, and the plan is approved in the same way. Instead of a checklist in the description and a custom check that
-parses it, each task becomes a review thread on the PR, and the `main`
-ruleset's built-in "Require conversation resolution before merging" blocks
-the merge until every thread is resolved.
+open, and the plan is approved in the same way. Instead of a checklist in
+the description and a custom check that parses it, each task becomes a
+review thread on the PR, and the `main` ruleset's built-in "Require
+conversation resolution before merging" blocks the merge until every thread
+is resolved.
 
 This PR changes `AGENTS.md` and the PR template. There's no workflow or
-script. Once the plan is approved, I'll update the title and description of
+script, and the ruleset already has the option on. Once the plan is approved, I'll update the title and description of
 lafeingcrokodil/flashcards#45, which ask for a required check, to match.
 
 diary has nothing like this, so there's nothing to compare with.
@@ -114,16 +115,14 @@ their follow-up issues.
 ### The ruleset
 
 "Require conversation resolution before merging" is an option of the `main`
-ruleset's "Require a pull request before merging" rule, which you turn on in
-the settings (Settings → Rules → Rulesets → `main`). That rule is already
-on, so this only ticks the option.
+ruleset's "Require a pull request before merging" rule. Both are already on,
+so the ruleset doesn't change.
 
 ## Risks
 
-- **The ruleset option isn't on, or doesn't block the merge:** tested on this
-  PR itself. Its task threads stay open until you've turned the option on,
-  and the merge box should then say the PR can't be merged until they're
-  resolved.
+- **The ruleset option doesn't block the merge:** tested on this PR itself.
+  While its task threads are open, the merge box should say the PR can't be
+  merged until they're resolved.
 - **I forget to post a task thread:** not caught by any check, the same as
   forgetting a checklist item before. The plan's "Close review" section lists
   what the threads should cover, so a missing one shows when you compare
@@ -137,7 +136,5 @@ on, so this only ticks the option.
 
 - 🔴 **`AGENTS.md`:** the new rules for task threads, since they govern what
   I do on every PR, and no check tests them.
-- **The `main` ruleset:** turning on conversation resolution is done by hand
-  in the settings, so nothing in the PR shows it.
 - The PR template only needs a skim: a mistake there is easy to fix and
   does little harm.
