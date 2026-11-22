@@ -38,6 +38,7 @@ jobs:
       # The step fails if govulncheck does, and passes its output on to the
       # report job either way.
       - id: govulncheck
+        name: Run govulncheck
         shell: bash
         run: |
           status=0
