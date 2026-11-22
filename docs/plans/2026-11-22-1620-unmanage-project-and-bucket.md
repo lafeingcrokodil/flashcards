@@ -21,8 +21,8 @@ risky or uncertain.
   them.
 - **The project's ID and number** come from `var.project_id` and a
   `data "google_project"`, as in diary. Rejected: the number as a variable or
-  literal. The workload identity member needs it, and a wrong number is easy
-  to make and only shows up when GitHub Actions can't authenticate.
+  literal: one more value to get right by hand, where the data source can't
+  be wrong.
 - **The unused variables** (`project_name`, `billing_account_id`,
   `terraform_bucket`) are removed. A `terraform.tfvars` that still sets them
   only gets a warning.
