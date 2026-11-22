@@ -67,6 +67,16 @@ Keep it concise, with these sections:
 - **Close review:** which parts need a closer look than a skim (see below),
   or "none".
 
+Mark the points that most need the user's attention, so that they stand out
+when skimming the plan:
+
+- 🟡 a judgement call: there's a reasonable alternative, and the user might
+  prefer it.
+- 🔴 risky or uncertain: not covered by a check and hard to undo (so it's in
+  "Close review" too), or based on something that couldn't be verified.
+
+Use them sparingly: a plan where everything is marked has nothing marked.
+
 Add whatever else helps to review the plan, such as diagrams (Mermaid) or UI
 mockups. Put supplementary files, such as images, in a directory named like
 the plan without `.md` (`docs/plans/2026-11-21-1405-healthz-endpoint/`).
@@ -93,7 +103,7 @@ To fill in the "Close review" section, go through each part of the change
 
 Flag every part where both answers are no in the plan's "Close review"
 section, pointing at the files or lines concerned, and add each one to the
-PR description's "For you" checklist (see "PR descriptions").
+PR description's "Before merging" checklist (see "PR descriptions").
 Write "None" only if every part passes, and say briefly why the parts that
 come closest do.
 
@@ -127,11 +137,36 @@ Follow `.github/pull_request_template.md`. In particular:
 - For a PR with a plan, the description only adds what the plan doesn't say,
   so that the user doesn't read the same thing twice and the two can't drift
   apart. Don't summarise the plan: link to it.
-- Everything that needs the user's action goes in the "For you" section as a
-  checklist, so that nothing is missed: each close review (a short pointer
-  to the files and the plan's "Close review" section, not a copy of it),
-  settings to change, `terraform plan` and `terraform apply`, and anything
-  else that only the user can do.
+- Everything that needs the user's action goes in the "For you" section,
+  split by when it's due:
+  - **Before merging**, as a checklist: each close review (a short pointer
+    to the files and the plan's "Close review" section, not a copy of it),
+    settings to change before the PR can work, `terraform plan` for
+    Terraform changes (to compare with the resources the PR says should
+    change), and anything else that has to be done first. If there are
+    "After merging" tasks, the last item is to approve them.
+  - **After merging**, as a plain list rather than a checklist, since each
+    task is tracked in its own issue (see below): checks that can only be
+    done once the change is on `main` (such as whether Dependabot picked up
+    its configuration), and `terraform apply` for Terraform changes.
+
+### Follow-up issues
+
+A task in a PR description is easy to lose once the PR is merged, so each
+"After merging" task gets a GitHub issue, and the issue is where it's marked
+as done:
+
+- Until the user has approved the "After merging" tasks (by ticking that
+  item in "Before merging"), list them without issues, so that the user can
+  change them first. Once approved, open an issue for each, with the
+  `follow-up` label, assigned to the user. Its description says what to do
+  and links to the PR. Then replace each task in the PR description with a
+  link to its issue.
+- If the PR is closed without being merged, close its follow-up issues too.
+- Also open a `follow-up` issue for anything else that's left to do and
+  isn't on the roadmap, such as a limitation found during a PR that's out of
+  its scope. Planned features stay on the roadmap rather than becoming
+  issues.
 
 ## Code comments
 
