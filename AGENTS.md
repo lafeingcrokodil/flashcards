@@ -83,12 +83,10 @@ plan. If a plan can't stay under it without leaving out something the user
 needs or becoming hard to read, go over, and say why in a 🟡 line at the top,
 including whether the change could be split into smaller PRs instead.
 
-A plan has no goal section: the goal is in the issue the PR closes, or for a
-PR without an issue, in the PR description (see "PR descriptions"). If the
-PR does less than its issue asks, that's a decision, so it goes in "Design".
-The sections are:
+It has these sections:
 
-- **Design:** the decisions and why, with alternatives that were rejected.
+- **Design:** the decisions and why, with alternatives that were rejected,
+  including any part of the issue that the PR leaves for later.
 - **Risks:** what could go wrong, and for each risk, which test or check
   catches it, or that none does.
 - **Careful review:** which parts need a closer look than a skim (see
