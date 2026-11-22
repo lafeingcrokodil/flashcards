@@ -86,6 +86,18 @@ Keep it concise, with these sections:
 - **Careful review:** which parts need a closer look than a skim (see
   below), or "none".
 
+Write down the decisions the user might make differently, and what the user
+needs to check. Leave out what doesn't help with either:
+
+- evidence for a claim that a check would catch anyway (how it was
+  verified, provider internals, experiments): "checked locally" is enough
+- changes that the diff makes obvious, and that have no alternative the user
+  might prefer
+- the case for the change itself, which the issue already made
+- repetition: say each thing once, so a risk with a check is one line naming
+  the check, and "Careful review" points at the risks rather than restating
+  them
+
 Mark the points that most need the user's attention, so that they stand out
 when skimming the plan:
 
