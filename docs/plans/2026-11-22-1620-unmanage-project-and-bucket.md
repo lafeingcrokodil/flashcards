@@ -5,18 +5,10 @@ For lafeingcrokodil/flashcards#49.
 Markers: 🟡 a judgement call where you might prefer the alternative; 🔴
 risky or uncertain.
 
-## Goal
-
-Take the GCP project and the state bucket out of the Terraform configuration
-without deleting them, and name the bucket in the `gcs` backend block
-(`lafeingcrokodil-flashcards-terraform`) instead of passing it to
-`terraform init`. The README describes creating both by hand, as diary's does.
-
-Left for later: the rest of the restructuring (lafeingcrokodil/flashcards#50)
-and removing staging and unused APIs (lafeingcrokodil/flashcards#51).
-
 ## Design
 
+- **The backend names the bucket**, `lafeingcrokodil-flashcards-terraform`.
+  The README describes creating it and the project by hand, as diary's does.
 - **`removed` blocks with `destroy = false`**, rather than
   `terraform state rm` by hand. They're reviewed in the PR, and can't be
   forgotten: deleting the resources without them would make `plan` propose
