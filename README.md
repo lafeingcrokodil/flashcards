@@ -26,3 +26,6 @@ golangci-lint on every pull request and every push to `main`.
 `.github/workflows/vuln.yml` runs `make vuln` on the same events and daily.
 When a daily run fails, it opens an issue with the `automated` label, which is
 closed automatically once the check passes again.
+`.github/workflows/versions.yml` checks monthly whether Go or golangci-lint is
+behind the newest release that's at least 14 days old, and reports it the
+same way.

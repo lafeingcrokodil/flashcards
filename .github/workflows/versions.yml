@@ -1,0 +1,47 @@
+name: Versions
+
+on:
+  # Go and golangci-lint aren't updated by Dependabot, so this checks monthly
+  # whether they're behind. The minute is arbitrary, but not 0: scheduled runs
+  # at the start of the hour are more likely to be delayed or dropped when
+  # GitHub Actions is busy.
+  schedule:
+    - cron: "41 6 3 * *"
+  # A manual run reports like a scheduled one. Its inputs let the reporting be
+  # tested while both versions are up to date.
+  workflow_dispatch:
+    inputs:
+      go:
+        description: Go version to check instead of the one in go.mod (e.g. 1.27.0)
+        required: false
+        default: ""
+      golangci-lint:
+        description: golangci-lint version to check instead of the one in ci.yml (e.g. v2.14.0)
+        required: false
+        default: ""
+
+# The check reads the repository and opens, updates or closes issues.
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  versions:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          GO_VERSION: ${{ inputs.go }}
+          GOLANGCI_LINT_VERSION: ${{ inputs.golangci-lint }}
+        with:
+          script: |
+            const check = require('./.github/scripts/check-versions.js')
+            await check({
+              github,
+              context,
+              overrides: {
+                go: process.env.GO_VERSION,
+                lint: process.env.GOLANGCI_LINT_VERSION,
+              },
+            })
