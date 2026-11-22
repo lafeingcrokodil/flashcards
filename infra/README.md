@@ -10,7 +10,7 @@ steps are only needed for a new project.
    accounts list` shows the account ID):
 
    ```sh
-   gcloud projects create lafeingcrokodil-flashcards --name="<project_name>"
+   gcloud projects create lafeingcrokodil-flashcards --name="Flashcards"
    ```
 
    ```sh
@@ -37,8 +37,7 @@ steps are only needed for a new project.
 
 1. Create a `terraform.tfvars` that defines the variables listed in
    `variables.tf`, optionally skipping any variables that already have
-   defaults. (`project_name`, `billing_account_id` and `terraform_bucket` are
-   no longer used, and can be deleted from an existing one.)
+   defaults.
 1. Initialize the directory.
     ```sh
     terraform init
