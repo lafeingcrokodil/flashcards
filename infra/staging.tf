@@ -3,7 +3,7 @@ resource "google_service_account" "staging" {
 }
 
 resource "google_project_iam_member" "staging" {
-  project = google_project.project.id
+  project = var.project_id
   for_each = toset([
     "roles/datastore.user",
   ])

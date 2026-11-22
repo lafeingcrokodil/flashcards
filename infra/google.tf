@@ -4,12 +4,19 @@ provider "google" {
   zone    = var.zone
 }
 
-resource "google_project" "project" {
-  name            = var.project_name
-  project_id      = var.project_id
-  billing_account = var.billing_account_id
+# The project has to exist before Terraform can create anything in it, so
+# it's created by hand (see README.md). It used to be managed here: this
+# removes it from the state without deleting it.
+removed {
+  from = google_project.project
+  lifecycle {
+    destroy = false
+  }
+}
 
-  auto_create_network = false
+# Used to look up the project number.
+data "google_project" "project" {
+  project_id = var.project_id
 }
 
 resource "google_project_service" "enable_apis" {

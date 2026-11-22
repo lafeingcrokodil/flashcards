@@ -23,4 +23,5 @@ done in small PRs that can each be reviewed comfortably on their own.
 - **Infrastructure:** GCP, in the existing project `lafeingcrokodil-flashcards`,
   managed with Terraform (state in a GCS bucket): Cloud Run, Firestore,
   Artifact Registry and Workload Identity Federation, with DNS records in
-  Cloudflare. There is a single environment, without staging.
+  Cloudflare. The project and the state bucket are created by hand. There is
+  a single environment, without staging.
