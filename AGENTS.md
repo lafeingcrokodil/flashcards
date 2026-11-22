@@ -77,14 +77,32 @@ straight to a PR that's ready for review.
 
 ### What a plan contains
 
-Keep it concise, with these sections:
+Keep it to at most 400 words, not counting code blocks, tables and
+diagrams. That's a ceiling rather than a target: a small change gets a short
+plan. If a plan can't stay under it without leaving out something the user
+needs or becoming hard to read, go over, and say why in a 🟡 line at the top,
+including whether the change could be split into smaller PRs instead.
 
-- **Goal:** what the change does, and what it leaves for later PRs.
-- **Design:** the decisions and why, with alternatives that were rejected.
+It has these sections:
+
+- **Design:** the decisions and why, with alternatives that were rejected,
+  including any part of the issue that the PR leaves for later.
 - **Risks:** what could go wrong, and for each risk, which test or check
   catches it, or that none does.
 - **Careful review:** which parts need a closer look than a skim (see
   below), or "none".
+
+Write down the decisions the user might make differently, and what the user
+needs to check. Leave out what doesn't help with either:
+
+- evidence for a claim that a check would catch anyway (how it was
+  verified, provider internals, experiments): "checked locally" is enough
+- changes that the diff makes obvious, and that have no alternative the user
+  might prefer
+- the case for the change itself, which the issue already made
+- repetition: say each thing once, so a risk with a check is one line naming
+  the check, and "Careful review" points at the risks rather than restating
+  them
 
 Mark the points that most need the user's attention, so that they stand out
 when skimming the plan:

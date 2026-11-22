@@ -6,9 +6,10 @@ plan, only add what the plan doesn't say. See "PR descriptions" in AGENTS.md.
 ## Summary
 
 <!--
-With a plan: a link to it, and nothing else.
-Without a plan: what the change does and why.
-Either way, the issue it finishes: "Closes lafeingcrokodil/flashcards#N".
+The issue it finishes, if any: "Closes lafeingcrokodil/flashcards#N". It
+describes the goal, so don't repeat it here.
+With a plan: also a link to it, and nothing else.
+Without an issue: also what the change does and why, in at most 150 words.
 -->
 
 ## Changes from the plan
