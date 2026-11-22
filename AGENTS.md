@@ -4,7 +4,12 @@
 
 - Work incrementally: each PR should be a small, self-contained change that
   is easy to review.
-- Keep `docs/roadmap.md` up to date as milestones progress.
+- Track planned work as issues in the repository's
+  [milestones](https://github.com/lafeingcrokodil/flashcards/milestones),
+  one issue per PR-sized item. A PR that finishes an issue says
+  `Closes lafeingcrokodil/flashcards#N` in its summary, so that merging it
+  closes the issue. New planned work gets a new issue in the right
+  milestone.
 - Plan features before implementing them, as described below.
 - Keep PR titles and descriptions up to date: when a PR changes after it's
   opened (e.g. in response to review feedback), update them to match.
@@ -49,7 +54,8 @@ straight to a PR that's ready for review.
    chronologically, and `<short-description>` is the branch name without its
    type (`feat/healthz-endpoint` → `2026-11-21-1405-healthz-endpoint.md`).
    The PR description links to the plan, so that the user comments on
-   individual lines of the plan itself (see "PR descriptions").
+   individual lines of the plan itself, and names the issue that the PR
+   closes (see "PR descriptions").
 2. Wait for the user to approve the plan in the PR. Revise it in response to
    their comments, without starting the implementation.
 3. Once it's approved, implement it in further commits, then mark the PR as
@@ -163,10 +169,10 @@ as done:
   and links to the PR. Then replace each task in the PR description with a
   link to its issue.
 - If the PR is closed without being merged, close its follow-up issues too.
-- Also open a `follow-up` issue for anything else that's left to do and
-  isn't on the roadmap, such as a limitation found during a PR that's out of
-  its scope. Planned features stay on the roadmap rather than becoming
-  issues.
+- Anything else that's left to do, such as a limitation found during a PR
+  that's out of its scope, also gets an issue: in a milestone if it's
+  planned work, or with the `idea` label if it isn't planned yet. The
+  `follow-up` label is only for the user's tasks after a PR.
 
 ## Code comments
 
@@ -203,7 +209,7 @@ using kebab-case. For example:
 - `feat/healthz-endpoint`
 - `ci/github-actions`
 - `fix/review-scheduling`
-- `docs/roadmap`
+- `docs/architecture`
 
 Use this convention instead of generated branch names (such as
 `claude/<random-words>`). Pick the name when starting the work, and use a new

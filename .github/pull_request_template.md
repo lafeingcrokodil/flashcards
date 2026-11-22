@@ -8,6 +8,7 @@ plan, only add what the plan doesn't say. See "PR descriptions" in AGENTS.md.
 <!--
 With a plan: a link to it, and nothing else.
 Without a plan: what the change does and why.
+Either way, the issue it finishes: "Closes lafeingcrokodil/flashcards#N".
 -->
 
 ## Changes from the plan
