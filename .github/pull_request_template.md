@@ -19,12 +19,12 @@ Either way, the issue it finishes: "Closes lafeingcrokodil/flashcards#N".
 
 <!-- Which checks ran (CI, local checks, manual tests, screenshots) and what they showed. -->
 
-## For you
+## Follow-ups
 
 <!--
-Your tasks after merging. Tasks before merging are review threads on the
-PR, not listed here (see "Task threads" in AGENTS.md). Write "Nothing
-after merging." if there are none.
+Tasks after merging, for you or for an agent. Tasks before merging are
+review threads on the PR, not listed here (see "Task threads" in
+AGENTS.md). Write "None." if there are none.
 
 A plain list, not a checklist: each task is tracked in its own follow-up
 issue, which is where it's marked as done. Until the tasks are approved:

@@ -152,11 +152,11 @@ Follow `.github/pull_request_template.md`. In particular:
   apart. Don't summarise the plan: link to it.
 - Tasks for the user before merging are task threads (see below), not part
   of the description, so that they're in one place.
-- The "For you" section lists the tasks after merging, as a plain list
-  rather than a checklist, since each task is tracked in its own issue (see
-  "Follow-up issues"): checks that can only be done once the change is on
-  `main` (such as whether Dependabot picked up its configuration), and
-  `terraform apply` for Terraform changes.
+- The "Follow-ups" section lists the tasks after merging, for the user or
+  for an agent, as a plain list rather than a checklist, since each task is
+  tracked in its own issue (see "Follow-up issues"): checks that can only be
+  done once the change is on `main` (such as whether Dependabot picked up
+  its configuration), and `terraform apply` for Terraform changes.
 
 ### Task threads
 
@@ -170,7 +170,7 @@ the user resolves once it's done. Start one, on the line it's about, for:
 | A close review | The lines to review (the code, or the plan's line for a decision that isn't in the code) |
 | A setting to change before the PR can work | The plan's line for the setting, or for a PR without a plan, the line of the change that needs it |
 | `terraform plan`, to compare with the resources the PR says should change | The Terraform file whose resources change |
-| Approving the "After merging" tasks | The plan's line for the first task, or for a PR without a plan, the line of the change it checks |
+| Approving the follow-ups | The plan's line for the first task, or for a PR without a plan, the line of the change it checks |
 | Anything else that has to be done first | The line it's about |
 
 - Each thread starts with **Before merging:** and says briefly what to do,
@@ -186,21 +186,21 @@ the user resolves once it's done. Start one, on the line it's about, for:
 ### Follow-up issues
 
 A task in a PR description is easy to lose once the PR is merged, so each
-"After merging" task gets a GitHub issue, and the issue is where it's marked
-as done:
+follow-up gets a GitHub issue, and the issue is where it's marked as done:
 
-- Until the user has approved the "After merging" tasks (by resolving that
-  task thread), list them without issues, so that the user can
-  change them first. Once approved, open an issue for each, with the
-  `follow-up` label, assigned to the user. Its description says what to do
-  and links to the PR. Then replace each task in the PR description with
-  just the issue's reference (`lafeingcrokodil/flashcards#N`), since GitHub
-  shows a reference on its own in a list as the issue's title.
+- Until the user has approved the follow-ups (by resolving that task
+  thread), list them without issues, so that the user can change them
+  first. Once approved, open an issue for each, with the `follow-up` label
+  and without an assignee, since either the user or an agent may do it.
+  Its description says what to do and links to the PR. Then replace each
+  task in the PR description with just the issue's reference
+  (`lafeingcrokodil/flashcards#N`), since GitHub shows a reference on its
+  own in a list as the issue's title.
 - If the PR is closed without being merged, close its follow-up issues too.
 - Anything else that's left to do, such as a limitation found during a PR
   that's out of its scope, also gets an issue: in a milestone if it's
   planned work, or with the `idea` label if it isn't planned yet. The
-  `follow-up` label is only for the user's tasks after a PR.
+  `follow-up` label is only for tasks after a PR.
 - Issues with the `automated` label are opened and closed by scheduled
   checks (with `.github/scripts/report-issue.js`), one per check: leave them
   to the check, which closes its issue once it passes again.

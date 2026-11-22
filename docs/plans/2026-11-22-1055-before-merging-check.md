@@ -8,7 +8,7 @@ risky or uncertain.
 ## Goal
 
 A PR can't be merged while any of its "Before merging" tasks (close reviews,
-settings changes, `terraform plan`, approving the "After merging" tasks) is
+settings changes, `terraform plan`, approving the follow-ups) is
 open, and the plan is approved in the same way. Instead of a checklist in
 the description and a custom check that parses it, each task becomes a
 review thread on the PR, and the `main` ruleset's built-in "Require
@@ -58,7 +58,7 @@ I start a review thread for each task, on the line it's about:
 | A close review | The lines to review (the code, or the plan's line for a decision that isn't in the code) |
 | A setting to change | The plan's line for the setting, or for a PR without a plan, the line of the change that needs it |
 | `terraform plan` | The Terraform file whose resources change |
-| Approving the "After merging" tasks | The plan's line for the first task, or for a PR without a plan, the line of the change it checks |
+| Approving the follow-ups | The plan's line for the first task, or for a PR without a plan, the line of the change it checks |
 
 Each thread starts with **Before merging:** and says what to do, briefly,
 pointing at the plan's "Close review" section rather than repeating it. It
@@ -94,10 +94,13 @@ the "Files changed" tab shows them in place.
   wouldn't show which threads are resolved, so it would only repeat the
   threads, which is the kind of duplication you'd rather avoid.
 
-"For you" keeps the "After merging" list, which is now all it holds, so
-its "After merging" subheading is dropped. Approving those tasks is now done
-by resolving that thread rather than ticking a box, and that's when I open
-their follow-up issues.
+"For you" is renamed "Follow-ups" and keeps the "After merging" list,
+which is now all it holds. Approving the follow-ups is now done by resolving
+that thread rather than ticking a box, and that's when I open their
+follow-up issues.
+
+Follow-up issues are no longer assigned to you, since an agent often does
+them. The `follow-up` label still finds them.
 
 ### Changes to `AGENTS.md`
 
@@ -108,8 +111,8 @@ their follow-up issues.
   asked.
 - **"What still gets a close review":** each close review gets a task thread,
   instead of an item in the "Before merging" checklist.
-- **"Follow-up issues":** the "After merging" tasks are approved by resolving
-  their thread.
+- **"Follow-up issues":** the follow-ups are approved by resolving their
+  thread, and their issues have no assignee.
 - **"Plans" → "Steps":** you approve a plan by resolving its approval
   thread.
 - **"Checks before a skim":** each close review has its task thread before
