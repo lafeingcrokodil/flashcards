@@ -30,7 +30,7 @@ risky or uncertain.
   default, so without it, removing an API from the list would leave it
   enabled. Keeping `true` keeps what lafeingcrokodil/flashcards#120 relied
   on: an API the app stops using gets disabled. Diary sets `false`, so that
-  removing an API can't break resources that still need it.
+  removing an API can't break resources that need it.
 - **The lock file is committed**, with hashes for Linux, macOS (both) and
   Windows. `infra/.gitignore` ignored it (`.terraform*`); its rules move
   to the root `.gitignore`, as in diary.
@@ -38,11 +38,10 @@ risky or uncertain.
   `init -backend=false`, `validate`, with `hashicorp/setup-terraform` v4.0.1
   pinned by SHA like our other actions.
 - **Dependabot updates the providers** (`/infra`), as in diary.
-- **The version check covers Terraform**, since Dependabot doesn't update
-  the CLI: a `versions/terraform.js` like the others, comparing the `terraform`
-  job's `terraform_version` with HashiCorp's release API
-  (`api.releases.hashicorp.com`, which gives each release's date), with a
-  `terraform` input for manual runs.
+- **The version check covers the Terraform CLI**, which Dependabot doesn't
+  update: `versions/terraform.js` compares the CI job's `terraform_version`
+  with HashiCorp's release API (`api.releases.hashicorp.com`), which dates
+  each release.
 - **Left out:** diary's other differences (descriptions, variable defaults,
   `depends_on` on the APIs, the Workload Identity condition), which belong to
   lafeingcrokodil/flashcards#52–#54.
@@ -50,9 +49,8 @@ risky or uncertain.
 ## Risks
 
 - **The provider upgrade replaces or destroys something:** `terraform plan`
-  should show no changes, or only in-place updates of provider-computed
-  attributes (for example on `cloudflare_dns_record.production`), and in
-  particular no replacements or destroys.
+  should show at most in-place updates (for example on
+  `cloudflare_dns_record.production`).
 - **`apply` can't easily be rolled back:** downgrading the providers then
   means editing the state. `plan` beforehand is the only safeguard.
 - **Invalid or unformatted configuration:** the new CI job.
@@ -60,9 +58,8 @@ risky or uncertain.
   `git status`.
 - **Dependabot ignores the Terraform entry:** a follow-up check once it's on
   `main`.
-- **The version check misreads Terraform's version or releases:** run
-  locally, with and without an override, and a manual run with the
-  `terraform` input as a follow-up once it's on `main`.
+- **The Terraform version check is wrong:** run locally, with and without an
+  override, and a manual run as a follow-up.
 
 ## Careful review
 
