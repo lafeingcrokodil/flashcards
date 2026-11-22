@@ -4,7 +4,7 @@ provider "cloudflare" {
 
 resource "cloudflare_dns_record" "production" {
   zone_id = var.cloudflare_zone_id
-  name    = "flashcards"
+  name    = "flashcards.lafeingcrokodil.com"
   content = "ghs.googlehosted.com"
   type    = "CNAME"
   ttl     = 300
