@@ -269,3 +269,18 @@ branch for each PR.
 Only use dependency versions that were published at least 14 days ago (Go
 modules, GitHub Actions, npm packages, Terraform providers and container
 images).
+
+Dependabot's cooldown doesn't cover every base image update, so before a
+PR that adds a digest to the `Dockerfile` is merged (Dependabot's or not),
+check that the digest is old enough:
+
+- `gcr.io` images (distroless): the registry's tag list
+  (`https://gcr.io/v2/<image>/tags/list`) gives each digest's upload time,
+  as `timeUploadedMs`. Dependabot has no date for these, so it proposes new
+  digests straight away.
+- Docker Hub images (`node`, `golang`): the tags API
+  (`https://hub.docker.com/v2/repositories/library/<image>/tags/<tag>`) gives
+  when each platform's image was last pushed, for the tag's current digest,
+  and [docker-library/repo-info](https://github.com/docker-library/repo-info)'s
+  history has older digests. Dependabot's cooldown uses the tag's push date,
+  but it isn't confirmed yet whether that holds back digest-only updates.
