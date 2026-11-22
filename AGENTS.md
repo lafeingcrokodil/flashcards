@@ -152,6 +152,13 @@ Before marking a PR as ready for review:
   the user can compare that with `terraform plan`.
 - Each close review in the plan has its task thread.
 
+## PR titles
+
+Keep PR titles to at most 65 characters, and say what the change does rather
+than listing everything in it. PRs are squash-merged, so the title becomes the
+commit's subject line, with ` (#N)` appended, and 65 characters keep that
+within Git's usual 72.
+
 ## PR descriptions
 
 Follow `.github/pull_request_template.md`. In particular:
@@ -179,6 +186,7 @@ the user resolves once it's done. Start one, on the line it's about, for:
 | A close review | The lines to review (the code, or the plan's line for a decision that isn't in the code) |
 | A setting to change before the PR can work | The plan's line for the setting, or for a PR without a plan, the line of the change that needs it |
 | `terraform plan`, to compare with the resources the PR says should change | The Terraform file whose resources change |
+| Adding a new CI job to the `main` ruleset's required checks, once it has run on the PR | The job's name in the workflow |
 | Approving the follow-ups | The plan's line for the first task, or for a PR without a plan, the line of the change it checks |
 | Anything else that has to be done first | The line it's about |
 
