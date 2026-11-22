@@ -18,8 +18,10 @@
 - Before every force-push, ask the user in chat, saying exactly what will be
   pushed where.
 - The user runs `terraform plan` and `terraform apply`.
-- After opening a PR, only mention in chat what isn't already in its
-  description.
+- Don't repeat in chat what's already on GitHub (a PR or issue
+  description, a plan, a comment): link to it, and only say in chat what
+  isn't there, such as a question that needs an answer before work can go
+  on.
 - If something is blocked (e.g. a domain by the network policy, or an action
   by a permission check), stop and ask the user rather than working around
   it. Flag limitations of the environment clearly.
