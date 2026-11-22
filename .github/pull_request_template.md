@@ -21,9 +21,23 @@ Without a plan: what the change does and why.
 ## For you
 
 <!--
-Everything that needs your action, as a checklist, for example:
+Everything that needs your action, as checklists. Remove a subsection if
+it's empty, or write "Nothing beyond skimming and merging." instead of both.
+-->
+
+### Before merging
+
+<!--
+For example:
 - [ ] Close review: <what>, in <files> (see the plan's "Close review" section)
-- [ ] <A setting to change before merging>
-- [ ] Run `terraform plan` and compare it with the expected changes, then `terraform apply`
-Or "Nothing beyond skimming and merging."
+- [ ] <A setting to change>
+- [ ] Run `terraform plan` and compare it with the resources that should change
+-->
+
+### After merging
+
+<!--
+Each item links to its follow-up issue, for example:
+- [ ] <A check that needs the change on main> (owner/repo#N)
+- [ ] Run `terraform apply` (owner/repo#N)
 -->

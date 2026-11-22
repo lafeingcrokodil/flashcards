@@ -40,6 +40,13 @@ can each be reviewed comfortably on their own.
       package in `internal/` checked by a `make cover` target, `golangci-lint`
       with all linters enabled), with the `main` ruleset requiring its jobs
 - [ ] Dependabot version updates, with a 14-day cooldown
+- [ ] `govulncheck` in CI, on pull requests and on a schedule, so that known
+      vulnerabilities (including ones in the standard library that a newer
+      Go fixes) fail the checks
+- [ ] A monthly check that opens an issue when Go or golangci-lint is behind
+      the newest release that's at least 14 days old
+- [ ] A required check that fails while a PR's "Before merging" checklist
+      has unticked items
 - [ ] SvelteKit + TypeScript app scaffold, with linting in CI
 - [ ] Serve the front end from the Go binary, local dev setup
 - [ ] Dockerfile

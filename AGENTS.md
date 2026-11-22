@@ -103,7 +103,7 @@ To fill in the "Close review" section, go through each part of the change
 
 Flag every part where both answers are no in the plan's "Close review"
 section, pointing at the files or lines concerned, and add each one to the
-PR description's "For you" checklist (see "PR descriptions").
+PR description's "Before merging" checklist (see "PR descriptions").
 Write "None" only if every part passes, and say briefly why the parts that
 come closest do.
 
@@ -138,10 +138,29 @@ Follow `.github/pull_request_template.md`. In particular:
   so that the user doesn't read the same thing twice and the two can't drift
   apart. Don't summarise the plan: link to it.
 - Everything that needs the user's action goes in the "For you" section as a
-  checklist, so that nothing is missed: each close review (a short pointer
-  to the files and the plan's "Close review" section, not a copy of it),
-  settings to change, `terraform plan` and `terraform apply`, and anything
-  else that only the user can do.
+  checklist, so that nothing is missed, split by when it's due:
+  - **Before merging:** each close review (a short pointer to the files and
+    the plan's "Close review" section, not a copy of it), settings to change
+    before the PR can work, `terraform plan` for Terraform changes (to
+    compare with the resources the PR says should change), and anything else
+    that has to be done first.
+  - **After merging:** checks that can only be done once the change is on
+    `main` (such as whether Dependabot picked up its configuration), and
+    `terraform apply` for Terraform changes.
+
+### Follow-up issues
+
+A task in a PR description is easy to lose once the PR is merged, so each
+"After merging" item also gets a GitHub issue:
+
+- Open it when the PR is marked as ready for review, with the `follow-up`
+  label, assigned to the user. Its description says what to do and links to
+  the PR, and the PR's checklist item links to the issue.
+- If the PR is closed without being merged, close its follow-up issues too.
+- Also open a `follow-up` issue for anything else that's left to do and
+  isn't on the roadmap, such as a limitation found during a PR that's out of
+  its scope. Planned features stay on the roadmap rather than becoming
+  issues.
 
 ## Code comments
 
