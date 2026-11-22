@@ -177,6 +177,9 @@ as done:
   that's out of its scope, also gets an issue: in a milestone if it's
   planned work, or with the `idea` label if it isn't planned yet. The
   `follow-up` label is only for the user's tasks after a PR.
+- Issues with the `automated` label are opened and closed by scheduled
+  checks (with `.github/scripts/report-issue.js`), one per check: leave them
+  to the check, which closes its issue once it passes again.
 
 ## Code comments
 

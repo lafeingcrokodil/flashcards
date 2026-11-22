@@ -24,3 +24,5 @@ Run `make help` (or just `make`) to list the available targets.
 CI (`.github/workflows/ci.yml`) runs `make vet`, `make cover` and
 golangci-lint on every pull request and every push to `main`.
 `.github/workflows/vuln.yml` runs `make vuln` on the same events and daily.
+When a daily run fails, it opens an issue with the `automated` label, which is
+closed automatically once the check passes again.

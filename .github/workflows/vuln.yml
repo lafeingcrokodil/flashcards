@@ -10,14 +10,24 @@ on:
   # dropped when GitHub Actions is busy.
   schedule:
     - cron: "17 5 * * *"
+  # A manual run reports like a scheduled one. Its input lets the reporting be
+  # tested without a real vulnerability.
+  workflow_dispatch:
+    inputs:
+      finding:
+        description: Text to report as if govulncheck had found it (leave empty to report govulncheck's actual result)
+        required: false
+        default: ""
 
-# The workflow only needs to read the repository.
+# The workflow only needs to read the repository, except for the report job.
 permissions:
   contents: read
 
 jobs:
   govulncheck:
     runs-on: ubuntu-latest
+    outputs:
+      report: ${{ steps.govulncheck.outputs.report }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       # govulncheck checks the standard library of the Go version it runs
@@ -25,4 +35,59 @@ jobs:
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: go.mod
-      - run: make vuln
+      # The step fails if govulncheck does, and passes its output on to the
+      # report job either way.
+      - id: govulncheck
+        name: Run govulncheck
+        shell: bash
+        run: |
+          status=0
+          make vuln > vuln.txt 2>&1 || status=$?
+          cat vuln.txt
+          {
+            echo 'report<<END_OF_REPORT'
+            cat vuln.txt
+            echo 'END_OF_REPORT'
+          } >> "$GITHUB_OUTPUT"
+          exit "$status"
+
+  # On scheduled and manual runs, the result is reported as an issue: opened
+  # or updated if govulncheck failed, closed if it passed. Pull requests and
+  # pushes only get the failing check.
+  report:
+    needs: govulncheck
+    # Runs whether govulncheck passed or failed, but not if it was cancelled
+    # or skipped, since then there's no result to report.
+    if: >-
+      always()
+      && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
+      && (needs.govulncheck.result == 'success' || needs.govulncheck.result == 'failure')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          RESULT: ${{ needs.govulncheck.result }}
+          OUTPUT: ${{ needs.govulncheck.outputs.report }}
+          FINDING: ${{ inputs.finding }}
+        with:
+          script: |
+            const report = require('./.github/scripts/report-issue.js')
+            const { RESULT, OUTPUT, FINDING } = process.env
+            const workflow = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/workflows/vuln.yml`
+            let body = ''
+            if (FINDING) {
+              body = FINDING
+            } else if (RESULT === 'failure') {
+              body = [
+                `\`govulncheck\` failed on \`main\` in the [Vulnerabilities](${workflow}) workflow:`,
+                '',
+                '```',
+                OUTPUT.trim(),
+                '```',
+              ].join('\n')
+            }
+            await report({ github, context, title: 'govulncheck failed on main', body })
