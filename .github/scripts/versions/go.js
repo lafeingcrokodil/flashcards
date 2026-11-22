@@ -1,6 +1,6 @@
 // Checks Go: the go directive in go.mod, against the releases of the
 // golang.org/toolchain module on the Go module proxy.
-const { minAgeDays, parseVersion, newestEligible, isBehind, readVersion, fetchText, day } = require('./common.js')
+const { minAgeDays, parseVersion, newestEligible, isBehind, readVersion, fetchText, day, dockerfileLine } = require('./common.js')
 
 const proxy = 'https://proxy.golang.org'
 const toolchainModule = 'golang.org/toolchain'
@@ -28,6 +28,8 @@ function body(current, newest) {
     `\`go.mod\` requires Go ${current}, but Go ${newest.version} (released on ${day(newest.date)}) is the newest release that's at least ${minAgeDays} days old.`,
     '',
     `To update, run \`go mod edit -go=${newest.version}\`, and check the [release notes](https://go.dev/doc/devel/release) for anything that affects the code.`,
+    '',
+    dockerfileLine('golang', newest.version),
   ].join('\n')
 }
 

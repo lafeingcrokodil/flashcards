@@ -61,6 +61,13 @@ function day(date) {
   return date.toISOString().slice(0, 10)
 }
 
+// dockerfileLine says how to update the Dockerfile's FROM line for image
+// (such as node or golang) to version. The new tag needs a new digest, which
+// is picked by hand, so it says how old the digest should be.
+function dockerfileLine(image, version) {
+  return `Also update the \`FROM ${image}:…\` line in the \`Dockerfile\` to ${version}, pinned to a digest that was pushed at least ${minAgeDays} days ago (or, as an exception, the oldest one there is for that version).`
+}
+
 module.exports = {
   minAgeDays,
   parseVersion,
@@ -70,4 +77,5 @@ module.exports = {
   readVersion,
   fetchText,
   day,
+  dockerfileLine,
 }

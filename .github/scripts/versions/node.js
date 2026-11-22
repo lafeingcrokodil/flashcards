@@ -1,6 +1,6 @@
 // Checks Node: the version in web/.nvmrc, against the releases listed by
 // nodejs.org.
-const { minAgeDays, parseVersion, newestEligible, isBehind, readVersion, fetchText, day } = require('./common.js')
+const { minAgeDays, parseVersion, newestEligible, isBehind, readVersion, fetchText, day, dockerfileLine } = require('./common.js')
 
 const index = 'https://nodejs.org/dist/index.json'
 
@@ -47,6 +47,8 @@ function body(current, newest) {
     `\`web/.nvmrc\` pins Node ${current}, but Node ${newest.version} (released on ${day(newest.date)}) is the newest release that's at least ${minAgeDays} days old, among Node ${major}'s releases and newer major versions' LTS releases.`,
     '',
     `To update, change \`web/.nvmrc\`, and check the [release notes](https://nodejs.org/en/blog/release/v${newest.version}) for anything that affects the front end.`,
+    '',
+    dockerfileLine('node', newest.version),
   ]
   if (newMajor !== major) {
     lines.push(
