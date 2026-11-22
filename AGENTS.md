@@ -48,8 +48,8 @@ straight to a PR that's ready for review.
    when the plan is written, in UTC as `YYYY-MM-DD-HHMM`, so that plans sort
    chronologically, and `<short-description>` is the branch name without its
    type (`feat/healthz-endpoint` → `2026-11-21-1405-healthz-endpoint.md`).
-   The PR description summarises the plan and links to it, so that the user
-   can comment on individual lines of the plan.
+   The PR description links to the plan, so that the user comments on
+   individual lines of the plan itself (see "PR descriptions").
 2. Wait for the user to approve the plan in the PR. Revise it in response to
    their comments, without starting the implementation.
 3. Once it's approved, implement it in further commits, then mark the PR as
@@ -91,8 +91,9 @@ To fill in the "Close review" section, go through each part of the change
 1. If this were wrong, would a test, linter or other check catch it?
 2. If not, would it be easy to undo, and do little harm in the meantime?
 
-Flag every part where both answers are no, in the plan's "Close review"
-section and in the PR description, pointing at the files or lines concerned.
+Flag every part where both answers are no in the plan's "Close review"
+section, pointing at the files or lines concerned, and add each one to the
+PR description's "For you" checklist (see "PR descriptions").
 Write "None" only if every part passes, and say briefly why the parts that
 come closest do.
 
@@ -118,6 +119,19 @@ Before marking a PR as ready for review:
 - For front-end changes, the PR has screenshots (see below).
 - For Terraform changes, the PR says which resources should change, so that
   the user can compare that with `terraform plan`.
+
+## PR descriptions
+
+Follow `.github/pull_request_template.md`. In particular:
+
+- For a PR with a plan, the description only adds what the plan doesn't say,
+  so that the user doesn't read the same thing twice and the two can't drift
+  apart. Don't summarise the plan: link to it.
+- Everything that needs the user's action goes in the "For you" section as a
+  checklist, so that nothing is missed: each close review (a short pointer
+  to the files and the plan's "Close review" section, not a copy of it),
+  settings to change, `terraform plan` and `terraform apply`, and anything
+  else that only the user can do.
 
 ## Code comments
 
