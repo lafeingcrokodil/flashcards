@@ -55,3 +55,50 @@ jobs:
       - run: pnpm check
       - run: pnpm lint
       - run: pnpm build
+
+  image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Check that the Dockerfile's Go and Node versions match
+        run: |
+          # The versions in the tags of the golang and node base images, e.g.
+          # 1.27.4 in "FROM golang:1.27.4-trixie@sha256:... AS server".
+          docker_go=$(sed -n 's/^FROM golang:\([0-9.]*\)-.*/\1/p' Dockerfile)
+          docker_node=$(sed -n 's/^FROM node:\([0-9.]*\)-.*/\1/p' Dockerfile)
+          go_mod=$(sed -n 's/^go //p' go.mod)
+          nvmrc=$(cat web/.nvmrc)
+          status=0
+          if [ -z "$docker_go" ] || [ "$docker_go" != "$go_mod" ]; then
+            echo "::error file=Dockerfile::The golang image's version (${docker_go:-not found}) differs from go.mod's (${go_mod:-not found}). Update the one that's behind."
+            status=1
+          fi
+          if [ -z "$docker_node" ] || [ "$docker_node" != "$nvmrc" ]; then
+            echo "::error file=Dockerfile::The node image's version (${docker_node:-not found}) differs from web/.nvmrc's (${nvmrc:-not found}). Update the one that's behind."
+            status=1
+          fi
+          exit $status
+      - run: make image
+      - name: Check that the image serves the app
+        run: |
+          docker run --detach --publish 8080:8080 flashcards
+          # Give the server a few seconds to start.
+          for attempt in 1 2 3 4 5; do
+            curl --fail --silent localhost:8080/health && break
+            sleep 1
+          done
+          curl --fail --silent --show-error localhost:8080/health
+          # The built index.html loads its scripts from /_app/immutable/,
+          # unlike the placeholder page that the Go checks use when the front
+          # end hasn't been built.
+          index=$(curl --fail --silent --show-error localhost:8080/)
+          script=$(echo "$index" |
+            grep --only-matching '/_app/immutable/[^"]*\.js' |
+            head --lines=1 || true)
+          if [ -z "$script" ]; then
+            echo "::error::The image serves an index.html without scripts under /_app/immutable/, such as the placeholder page."
+            exit 1
+          fi
+          # The script itself is served too, so the paths to the assets work.
+          curl --fail --silent --show-error --output /dev/null "localhost:8080$script"
+          echo "Served /health, index.html and $script."

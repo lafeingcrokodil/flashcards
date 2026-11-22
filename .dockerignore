@@ -1,0 +1,12 @@
+# Only send the files that the image build needs to Docker. The front end's
+# dependencies and build are left out, so that the image always gets the
+# build from its own web stage.
+*
+!go.mod
+!go.sum
+!cmd/
+!internal/
+!web/
+web/node_modules/
+web/build/
+web/.svelte-kit/

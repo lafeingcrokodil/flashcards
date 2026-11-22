@@ -1,5 +1,5 @@
 .DEFAULT_GOAL := help
-.PHONY: help web test cover vet lint vuln run build
+.PHONY: help web test cover vet lint vuln run build image
 
 help: ## List the targets.
 	@grep -E '^[a-z]+:.*## ' $(MAKEFILE_LIST) | awk -F ':.*## ' '{printf "%-6s %s\n", $$1, $$2}'
@@ -65,3 +65,6 @@ run: web ## Build the front end and run the server, on port 8080 unless PORT is 
 
 build: web ## Build the front end and a server binary that includes it, into bin/.
 	go build -o bin/flashcards ./cmd/flashcards
+
+image: ## Build the container image, as flashcards. Needs only Docker.
+	docker build --tag flashcards .
