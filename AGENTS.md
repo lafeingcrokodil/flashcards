@@ -48,8 +48,8 @@ straight to a PR that's ready for review.
    when the plan is written, in UTC as `YYYY-MM-DD-HHMM`, so that plans sort
    chronologically, and `<short-description>` is the branch name without its
    type (`feat/healthz-endpoint` → `2026-11-21-1405-healthz-endpoint.md`).
-   The PR description summarises the plan and links to it, so that the user
-   can comment on individual lines of the plan.
+   The PR description links to the plan, so that the user comments on
+   individual lines of the plan itself (see "PR descriptions" below).
 2. Wait for the user to approve the plan in the PR. Revise it in response to
    their comments, without starting the implementation.
 3. Once it's approved, implement it in further commits, then mark the PR as
@@ -91,8 +91,8 @@ To fill in the "Close review" section, go through each part of the change
 1. If this were wrong, would a test, linter or other check catch it?
 2. If not, would it be easy to undo, and do little harm in the meantime?
 
-Flag every part where both answers are no, in the plan's "Close review"
-section and in the PR description, pointing at the files or lines concerned.
+Flag every part where both answers are no in the plan's "Close review"
+section, pointing at the files or lines concerned.
 Write "None" only if every part passes, and say briefly why the parts that
 come closest do.
 
@@ -105,6 +105,23 @@ checklist: a change can need one without being on this list.
   overwrite, Terraform changes that destroy or replace resources)
 - CI/CD workflows, their permissions, and branch rulesets
 - new dependencies (as opposed to version bumps)
+
+### PR descriptions
+
+For a PR with a plan, the description only adds what the plan doesn't say,
+so that the user doesn't read the same thing twice and the two can't drift
+apart:
+
+- a link to the plan, and to its "Close review" section once the PR is ready
+  for review
+- "Changes from the plan" (see above), or that there are none
+- the checks that ran and what they showed (see below)
+- anything the user has to do, such as a setting to change before merging
+- anything that came up during the implementation that's worth knowing but
+  doesn't belong in the plan
+
+Don't summarise the plan. A PR without a plan has its description say what
+the change does and why, as usual.
 
 ### Checks before a skim
 
