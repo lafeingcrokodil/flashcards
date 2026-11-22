@@ -1,5 +1,5 @@
 terraform {
-  required_version = "v1.12.2"
+  required_version = ">= 1.12.2"
   required_providers {
     cloudflare = {
       source  = "cloudflare/cloudflare"
@@ -10,19 +10,18 @@ terraform {
       version = "6.46.0"
     }
   }
+  # The state bucket can't be managed by the configuration that stores its
+  # state in it, so it's created by hand (see README.md).
   backend "gcs" {
-    bucket = "" # specified separately, e.g. via `terraform init` command line option
+    bucket = "lafeingcrokodil-flashcards-terraform"
   }
 }
 
-resource "google_storage_bucket" "terraform_state" {
-  name          = var.terraform_bucket
-  location      = var.region
-  storage_class = "REGIONAL"
-
-  uniform_bucket_level_access = true
-
-  versioning {
-    enabled = true
+# The state bucket used to be managed here. This removes it from the state
+# without deleting it.
+removed {
+  from = google_storage_bucket.terraform_state
+  lifecycle {
+    destroy = false
   }
 }

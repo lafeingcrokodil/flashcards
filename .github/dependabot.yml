@@ -7,6 +7,11 @@ updates:
     directory: /
     schedule:
       interval: monthly
+    # Direct dependencies, as by default, and govulncheck, which go.mod lists
+    # as indirect because it's only a tool.
+    allow:
+      - dependency-type: direct
+      - dependency-name: golang.org/x/vuln
     # New versions are only proposed once they're at least 14 days old.
     cooldown:
       default-days: 14
@@ -22,4 +27,29 @@ updates:
       default-days: 14
     groups:
       actions:
+        update-types: [minor, patch]
+
+  # Base images in the Dockerfile. A new Go or Node version also needs go.mod
+  # or web/.nvmrc to be updated, which CI checks.
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: monthly
+    cooldown:
+      default-days: 14
+    groups:
+      docker:
+        update-types: [minor, patch]
+
+  # The front end's dependencies. pnpm uses the npm ecosystem.
+  - package-ecosystem: npm
+    directory: /web
+    schedule:
+      interval: monthly
+    # Matches minimumReleaseAge in web/pnpm-workspace.yaml, so that Dependabot
+    # doesn't propose versions that pnpm would refuse to install.
+    cooldown:
+      default-days: 14
+    groups:
+      web:
         update-types: [minor, patch]

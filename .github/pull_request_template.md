@@ -6,9 +6,10 @@ plan, only add what the plan doesn't say. See "PR descriptions" in AGENTS.md.
 ## Summary
 
 <!--
-With a plan: a link to it, and nothing else.
-Without a plan: what the change does and why.
-Either way, the issue it finishes: "Closes lafeingcrokodil/flashcards#N".
+The issue it finishes, if any: "Closes lafeingcrokodil/flashcards#N". It
+describes the goal, so don't repeat it here.
+With a plan: also a link to it, and nothing else.
+Without an issue: also what the change does and why, in at most 150 words.
 -->
 
 ## Changes from the plan
@@ -19,30 +20,16 @@ Either way, the issue it finishes: "Closes lafeingcrokodil/flashcards#N".
 
 <!-- Which checks ran (CI, local checks, manual tests, screenshots) and what they showed. -->
 
-## For you
+## Follow-ups
 
 <!--
-Everything that needs your action. Remove a subsection if it's empty, or
-write "Nothing beyond skimming and merging." instead of both.
--->
+Tasks after merging, for you or for an agent. Tasks before merging are
+review threads on the PR, not listed here (see "Task threads" in
+AGENTS.md). Write "None." if there are none.
 
-### Before merging
-
-<!--
-For example:
-- [ ] Close review: <what>, in <files> (see the plan's "Close review" section)
-- [ ] <A setting to change>
-- [ ] Run `terraform plan` and compare it with the resources that should change
-- [ ] Approve the "After merging" tasks below (follow-up issues are opened once this is ticked)
--->
-
-### After merging
-
-<!--
 A plain list, not a checklist: each task is tracked in its own follow-up
 issue, which is where it's marked as done. Until the tasks are approved:
 - <A check that needs the change on main>
-- Run `terraform apply`
 Once approved, each task is replaced by just its issue's reference, which
 GitHub shows as the issue's title:
 - owner/repo#N

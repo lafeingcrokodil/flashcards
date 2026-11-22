@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/lafeingcrokodil/flashcards/v3/internal/server"
+	"github.com/lafeingcrokodil/flashcards/v3/web"
 )
 
 const (
@@ -53,6 +54,11 @@ func run(ctx context.Context, getenv func(string) string, stderr io.Writer) erro
 		return err
 	}
 
+	frontend, err := web.Build()
+	if err != nil {
+		return fmt.Errorf("loading the front end: %w", err)
+	}
+
 	var lc net.ListenConfig
 
 	listener, err := lc.Listen(ctx, "tcp", ":"+port)
@@ -62,7 +68,7 @@ func run(ctx context.Context, getenv func(string) string, stderr io.Writer) erro
 
 	logger.InfoContext(ctx, "listening", "address", listener.Addr().String())
 
-	if err := serve(ctx, listener, server.New(), shutdownTimeout); err != nil {
+	if err := serve(ctx, listener, server.New(frontend), shutdownTimeout); err != nil {
 		return err
 	}
 

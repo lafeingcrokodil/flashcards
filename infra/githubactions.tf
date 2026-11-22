@@ -3,7 +3,7 @@ resource "google_service_account" "github_actions" {
 }
 
 resource "google_project_iam_member" "github_actions" {
-  project = google_project.project.id
+  project = var.project_id
   for_each = toset([
     "roles/artifactregistry.writer",
     "roles/datastore.user",
@@ -36,5 +36,5 @@ EOT
 resource "google_service_account_iam_member" "github_workload_identity" {
   service_account_id = google_service_account.github_actions.id
   role               = "roles/iam.workloadIdentityUser"
-  member             = "principalSet://iam.googleapis.com/projects/${google_project.project.number}/locations/global/workloadIdentityPools/github/attribute.repository/lafeingcrokodil/flashcards"
+  member             = "principalSet://iam.googleapis.com/projects/${data.google_project.project.number}/locations/global/workloadIdentityPools/github/attribute.repository/lafeingcrokodil/flashcards"
 }
