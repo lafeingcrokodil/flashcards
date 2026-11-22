@@ -14,8 +14,8 @@
 - Keep PR titles and descriptions up to date: when a PR changes after it's
   opened (e.g. in response to review feedback), update them to match.
   Before each update, read the current version and build on it, since the
-  user may have edited it since (e.g. ticked checklist items), and an update
-  replaces the whole description. The same goes for issue descriptions.
+  user may have edited it since (e.g. to add a note), and an update replaces
+  the whole description. The same goes for issue descriptions.
 - Don't merge PRs, even once it's agreed that one should be merged: the
   user merges them.
 - Before every force-push, ask the user in chat, saying exactly what will be
@@ -60,9 +60,10 @@ straight to a PR that's ready for review.
    type (`feat/healthz-endpoint` → `2026-11-21-1405-healthz-endpoint.md`).
    The PR description links to the plan, so that the user comments on
    individual lines of the plan itself, and names the issue that the PR
-   closes (see "PR descriptions").
-2. Wait for the user to approve the plan in the PR. Revise it in response to
-   their comments, without starting the implementation.
+   closes (see "PR descriptions"). A task thread on the plan's title asks
+   the user to approve it (see "Task threads").
+2. Wait for the user to approve the plan by resolving that thread. Revise it
+   in response to their comments, without starting the implementation.
 3. Once it's approved, implement it in further commits, then mark the PR as
    ready for review.
 4. The user skims the implementation and merges the PR.
@@ -113,8 +114,8 @@ To fill in the "Close review" section, go through each part of the change
 2. If not, would it be easy to undo, and do little harm in the meantime?
 
 Flag every part where both answers are no in the plan's "Close review"
-section, pointing at the files or lines concerned, and add each one to the
-PR description's "Before merging" checklist (see "PR descriptions").
+section, pointing at the files or lines concerned, and start a task thread
+for each one (see "Task threads").
 Write "None" only if every part passes, and say briefly why the parts that
 come closest do.
 
@@ -140,6 +141,7 @@ Before marking a PR as ready for review:
 - For front-end changes, the PR has screenshots (see below).
 - For Terraform changes, the PR says which resources should change, so that
   the user can compare that with `terraform plan`.
+- Each close review in the plan has its task thread.
 
 ## PR descriptions
 
@@ -148,37 +150,57 @@ Follow `.github/pull_request_template.md`. In particular:
 - For a PR with a plan, the description only adds what the plan doesn't say,
   so that the user doesn't read the same thing twice and the two can't drift
   apart. Don't summarise the plan: link to it.
-- Everything that needs the user's action goes in the "For you" section,
-  split by when it's due:
-  - **Before merging**, as a checklist: each close review (a short pointer
-    to the files and the plan's "Close review" section, not a copy of it),
-    settings to change before the PR can work, `terraform plan` for
-    Terraform changes (to compare with the resources the PR says should
-    change), and anything else that has to be done first. If there are
-    "After merging" tasks, the last item is to approve them.
-  - **After merging**, as a plain list rather than a checklist, since each
-    task is tracked in its own issue (see below): checks that can only be
-    done once the change is on `main` (such as whether Dependabot picked up
-    its configuration), and `terraform apply` for Terraform changes.
+- Tasks for the user before merging are task threads (see below), not part
+  of the description, so that they're in one place.
+- The "Follow-ups" section lists the tasks after merging, for the user or
+  for an agent, as a plain list rather than a checklist, since each task is
+  tracked in its own issue (see "Follow-up issues"): checks that can only be
+  done once the change is on `main` (such as whether Dependabot picked up
+  its configuration), and `terraform apply` for Terraform changes.
+
+### Task threads
+
+The `main` ruleset blocks merging while a PR has unresolved review threads.
+So each task for the user before merging is a review thread on the PR, which
+the user resolves once it's done. Start one, on the line it's about, for:
+
+| Task | Where the thread goes |
+| --- | --- |
+| Approving the plan | The plan's title |
+| A close review | The lines to review (the code, or the plan's line for a decision that isn't in the code) |
+| A setting to change before the PR can work | The plan's line for the setting, or for a PR without a plan, the line of the change that needs it |
+| `terraform plan`, to compare with the resources the PR says should change | The Terraform file whose resources change |
+| Approving the follow-ups | The plan's line for the first task, or for a PR without a plan, the line of the change it checks |
+| Anything else that has to be done first | The line it's about |
+
+- Each thread starts with **Before merging:** and says briefly what to do,
+  pointing at the plan (e.g. its "Close review" section) rather than
+  repeating it.
+- The plan's thread goes up with the draft PR. The other threads go up when
+  the PR is marked as ready for review, since the code they point at exists
+  only then, or earlier for a setting that the PR's checks need.
+- Only the user resolves threads: task threads, and the ones the user
+  starts, even once they've been answered. Otherwise a thread could be
+  resolved without the user having seen it.
 
 ### Follow-up issues
 
 A task in a PR description is easy to lose once the PR is merged, so each
-"After merging" task gets a GitHub issue, and the issue is where it's marked
-as done:
+follow-up gets a GitHub issue, and the issue is where it's marked as done:
 
-- Until the user has approved the "After merging" tasks (by ticking that
-  item in "Before merging"), list them without issues, so that the user can
-  change them first. Once approved, open an issue for each, with the
-  `follow-up` label, assigned to the user. Its description says what to do
-  and links to the PR. Then replace each task in the PR description with
-  just the issue's reference (`lafeingcrokodil/flashcards#N`), since GitHub
-  shows a reference on its own in a list as the issue's title.
+- Until the user has approved the follow-ups (by resolving that task
+  thread), list them without issues, so that the user can change them
+  first. Once approved, open an issue for each, with the `follow-up` label
+  and without an assignee, since either the user or an agent may do it.
+  Its description says what to do and links to the PR. Then replace each
+  task in the PR description with just the issue's reference
+  (`lafeingcrokodil/flashcards#N`), since GitHub shows a reference on its
+  own in a list as the issue's title.
 - If the PR is closed without being merged, close its follow-up issues too.
 - Anything else that's left to do, such as a limitation found during a PR
   that's out of its scope, also gets an issue: in a milestone if it's
   planned work, or with the `idea` label if it isn't planned yet. The
-  `follow-up` label is only for the user's tasks after a PR.
+  `follow-up` label is only for tasks after a PR.
 - Issues with the `automated` label are opened and closed by scheduled
   checks (with `.github/scripts/report-issue.js`), one per check: leave them
   to the check, which closes its issue once it passes again.
