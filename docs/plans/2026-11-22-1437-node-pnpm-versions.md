@@ -18,7 +18,8 @@ and "pnpm is out of date", opened and closed with `report-issue.js` like
 the existing two.
 
 Left for later: updating the versions automatically, as for Go and
-golangci-lint (the idea in lafeingcrokodil/flashcards#93).
+golangci-lint. That's the idea in lafeingcrokodil/flashcards#93, whose scope
+now includes Node and pnpm too.
 
 ## Design
 
