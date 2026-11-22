@@ -67,6 +67,16 @@ Keep it concise, with these sections:
 - **Close review:** which parts need a closer look than a skim (see below),
   or "none".
 
+Mark the points that most need the user's attention, so that they stand out
+when skimming the plan:
+
+- 🟡 a judgement call: there's a reasonable alternative, and the user might
+  prefer it.
+- 🔴 risky or uncertain: not covered by a check and hard to undo (so it's in
+  "Close review" too), or based on something that couldn't be verified.
+
+Use them sparingly: a plan where everything is marked has nothing marked.
+
 Add whatever else helps to review the plan, such as diagrams (Mermaid) or UI
 mockups. Put supplementary files, such as images, in a directory named like
 the plan without `.md` (`docs/plans/2026-11-21-1405-healthz-endpoint/`).
