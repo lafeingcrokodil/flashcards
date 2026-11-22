@@ -1,5 +1,5 @@
 .DEFAULT_GOAL := help
-.PHONY: help test cover vet lint run build
+.PHONY: help test cover vet lint vuln run build
 
 help: ## List the targets.
 	@grep -E '^[a-z]+:.*## ' $(MAKEFILE_LIST) | awk -F ':.*## ' '{printf "%-6s %s\n", $$1, $$2}'
@@ -43,6 +43,9 @@ vet: ## Run go vet.
 
 lint: ## Run golangci-lint.
 	golangci-lint run ./...
+
+vuln: ## Check for known vulnerabilities in the code and the Go version.
+	go tool govulncheck ./...
 
 run: ## Run the server locally, on port 8080 unless PORT is set.
 	go run ./cmd/flashcards

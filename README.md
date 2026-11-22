@@ -19,14 +19,15 @@ Requires:
 - [golangci-lint](https://golangci-lint.run/docs/welcome/install/) v2.15.0
   (for `make lint`)
 
-```bash
-make run    # start the server on http://localhost:8080 (or the port in PORT)
-make build  # build a server binary (bin/flashcards)
-make test   # run the tests
-make cover  # run the tests and check the coverage of each package in internal/ (see Makefile)
-make vet    # run go vet
-make lint   # run golangci-lint (see .golangci.yml)
-```
+Run `make help` (or just `make`) to list the available targets.
 
-CI (`.github/workflows/ci.yml`) runs `make vet`, `make cover` and
-golangci-lint on every pull request and every push to `main`.
+### Automated checks
+
+| Workflow | When | What it does |
+| --- | --- | --- |
+| [`ci.yml`](.github/workflows/ci.yml) | every pull request and push to `main` | `make vet`, `make cover` and golangci-lint |
+| [`vuln.yml`](.github/workflows/vuln.yml) | every pull request and push to `main`, and daily | `make vuln` |
+| [`versions.yml`](.github/workflows/versions.yml) | monthly | checks whether Go or golangci-lint is behind the newest release that's at least 14 days old |
+
+When a daily or monthly run finds a problem, it opens an issue with the
+`automated` label, which is closed automatically once the check passes again.
