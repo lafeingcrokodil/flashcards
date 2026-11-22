@@ -166,8 +166,9 @@ as done:
   item in "Before merging"), list them without issues, so that the user can
   change them first. Once approved, open an issue for each, with the
   `follow-up` label, assigned to the user. Its description says what to do
-  and links to the PR. Then replace each task in the PR description with a
-  link to its issue.
+  and links to the PR. Then replace each task in the PR description with
+  just the issue's reference (`lafeingcrokodil/flashcards#N`), since GitHub
+  shows a reference on its own in a list as the issue's title.
 - If the PR is closed without being merged, close its follow-up issues too.
 - Anything else that's left to do, such as a limitation found during a PR
   that's out of its scope, also gets an issue: in a milestone if it's
