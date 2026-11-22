@@ -29,6 +29,9 @@ whole app is a single binary. `make run` builds the front end and starts the
 server on http://localhost:8080, and `make build` builds a binary that
 includes it.
 
+`make image` builds the container image, `flashcards`, which includes the
+front end. It needs only Docker.
+
 `make test`, `make cover`, `make vet`, `make lint` and `make vuln` don't need
 the front end: if it hasn't been built, they create a placeholder page so that
 the Go code compiles.
@@ -53,7 +56,7 @@ server.
 
 | Workflow | When | What it does |
 | --- | --- | --- |
-| [`ci.yml`](.github/workflows/ci.yml) | every pull request and push to `main` | `make vet`, `make cover` and golangci-lint, and the front end's `pnpm check`, `pnpm lint` and `pnpm build` |
+| [`ci.yml`](.github/workflows/ci.yml) | every pull request and push to `main` | `make vet`, `make cover` and golangci-lint, the front end's `pnpm check`, `pnpm lint` and `pnpm build`, and `make image`, checking that the image serves the app and that its Go and Node versions match `go.mod` and `web/.nvmrc` |
 | [`vuln.yml`](.github/workflows/vuln.yml) | every pull request and push to `main`, and daily | `make vuln` |
 | [`versions.yml`](.github/workflows/versions.yml) | monthly | checks whether Go or golangci-lint is behind the newest release that's at least 14 days old |
 
