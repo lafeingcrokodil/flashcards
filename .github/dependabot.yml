@@ -41,6 +41,17 @@ updates:
       docker:
         update-types: [minor, patch]
 
+  # Terraform providers.
+  - package-ecosystem: terraform
+    directory: /infra
+    schedule:
+      interval: monthly
+    cooldown:
+      default-days: 14
+    groups:
+      terraform:
+        update-types: [minor, patch]
+
   # The front end's dependencies. pnpm uses the npm ecosystem.
   - package-ecosystem: npm
     directory: /web

@@ -1,3 +1,9 @@
 /bin/
 # Test coverage profile.
 coverage.out
+# Terraform's working directory and any local state.
+.terraform/
+*.tfstate
+*.tfstate.*
+# Values for Terraform variables, e.g. the Cloudflare API token.
+terraform.tfvars

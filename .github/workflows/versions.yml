@@ -1,10 +1,10 @@
 name: Versions
 
 on:
-  # Dependabot doesn't update Go, golangci-lint or Node, and may not update
-  # pnpm, so this checks monthly whether they're behind. The minute is
-  # arbitrary, but not 0: scheduled runs at the start of the hour are more
-  # likely to be delayed or dropped when GitHub Actions is busy.
+  # Dependabot doesn't update Go, golangci-lint, Node or Terraform, and may
+  # not update pnpm, so this checks monthly whether they're behind. The
+  # minute is arbitrary, but not 0: scheduled runs at the start of the hour
+  # are more likely to be delayed or dropped when GitHub Actions is busy.
   schedule:
     - cron: "41 6 3 * *"
   # A manual run reports like a scheduled one. Its inputs let the reporting be
@@ -27,6 +27,10 @@ on:
         description: pnpm version to check instead of the one in web/package.json (e.g. 12.10.0)
         required: false
         default: ""
+      terraform:
+        description: Terraform version to check instead of the one in ci.yml (e.g. 1.16.0)
+        required: false
+        default: ""
 
 # The check reads the repository and opens, updates or closes issues.
 permissions:
@@ -44,6 +48,7 @@ jobs:
           GOLANGCI_LINT_VERSION: ${{ inputs.golangci-lint }}
           NODE_VERSION: ${{ inputs.node }}
           PNPM_VERSION: ${{ inputs.pnpm }}
+          TERRAFORM_VERSION: ${{ inputs.terraform }}
         with:
           script: |
             const check = require('./.github/scripts/check-versions.js')
@@ -55,5 +60,6 @@ jobs:
                 lint: process.env.GOLANGCI_LINT_VERSION,
                 node: process.env.NODE_VERSION,
                 pnpm: process.env.PNPM_VERSION,
+                terraform: process.env.TERRAFORM_VERSION,
               },
             })
